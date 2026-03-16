@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/create", "destination": "/index.html" },
+    { "source": "/gallery", "destination": "/index.html" },
+    { "source": "/gallery/(.*)", "destination": "/index.html" }
+  ]
+}
