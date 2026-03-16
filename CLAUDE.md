@@ -4,103 +4,102 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PRTCL ("particles") is a free, open-source web tool for creating, customizing, and exporting GPU-accelerated particle effects. Users pick/customize effects at prtcl.es, tweak parameters in real-time, and export self-contained snippets for embedding in any website. MIT licensed, zero accounts, runs entirely in the browser.
+PRTCL ("particles") is a free, open-source web tool for creating, customizing, and exporting GPU-accelerated particle effects. Users pick/customize effects at prtcl.es, tweak parameters in real-time, and export self-contained snippets for embedding in any website (Elementor, Webflow, plain HTML). MIT licensed, zero accounts, runs entirely in the browser.
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router) — SSR for SEO landing, client components for the editor
-- **3D**: React Three Fiber + Three.js (pin exports to v0.170.0 for CDN stability)
-- **UI**: shadcn/ui + Tailwind CSS 4
-- **State**: Zustand
-- **Fonts**: Google Fonts API (dynamic, loaded only when text feature is active)
-- **Deployment**: Vercel
+- **Bundler**: Vite 6
+- **UI**: React 19 + TypeScript (strict)
+- **3D**: React Three Fiber + drei + Three.js (pin exports to v0.170.0 for CDN stability)
+- **Creative Controls**: Tweakpane (right panel parameter GUI)
+- **Structural UI**: Tailwind CSS 4 (design tokens in `src/index.css` via `@theme`)
+- **State**: Zustand (flat store, `getState()` in render loop — zero React overhead)
+- **Deployment**: Vercel (static landing + SPA rewrites)
 
 ## Common Commands
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm run lint         # ESLint
-npm run start        # Start production server
+npm run dev          # Start Vite dev server (port 5173)
+npm run build        # Production build to dist/
+npm run preview      # Preview production build
+npx vitest run       # Run all tests
+npx tsc -b           # Type check (strict)
 ```
 
 ## Architecture
 
 ### Effect System
 
-Effects are JavaScript function bodies stored as strings, compiled at runtime via `new Function()`. Each effect receives an `EffectContext` with: particle index, count, target position, color, time, THREE library, `addControl()` for dynamic sliders, `setInfo()`, and `annotate()`. Text effects additionally receive `textPoints: Float32Array`.
+Effects are JavaScript function bodies stored as strings, compiled at runtime via `new Function()`. Each effect receives: particle index (`i`), count, target (Vector3), color (Color), time, THREE library, `getControl()` for reading slider values, and `setInfo()`. Text effects additionally receive `textPoints: Float32Array`.
 
-Effects are stored as JSON conforming to the `Effect` interface (see `lib/effects/types.ts`).
+Effects are TypeScript objects conforming to the `Effect` interface (see `src/engine/types.ts`).
 
 ### Compilation & Security
 
-User code execution requires strict sandboxing:
-1. **Static analysis** — regex scan for forbidden patterns (document, window, fetch, eval, etc.)
-2. **Dry run** — execute once with i=0, count=100 to catch runtime errors
-3. **NaN guard** — fallback to origin if any output is NaN/Infinity
+User code execution requires strict sandboxing (4-stage pipeline in `src/engine/compiler.ts`):
+1. **Static analysis** — regex scan for 20 forbidden patterns (document, window, fetch, eval, Function, globalThis, localStorage, setTimeout, etc.)
+2. **Compilation** — `new Function()` with strict argument list
+3. **Dry run** — execute with i=0..99 to catch runtime errors and collect controls
+4. **NaN guard** — fallback to origin if output is NaN/Infinity
 
-The validator (`lib/effects/validator.ts`) must remain strict — this is a security boundary.
+The validator (`src/engine/validator.ts`) is a **security boundary** — it must remain strict.
 
 ### Renderer
 
-Custom `<ParticleSystem>` R3F component using BufferGeometry (position + customColor attributes) with custom ShaderMaterial (additive blending, soft point sprites). The hot loop runs in `useFrame()` — performance here is critical. Targets: 20k particles @ 60fps desktop, 5-8k @ 60fps mobile. Adaptive quality auto-reduces particle count if frame time > 20ms.
+Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using BufferGeometry (position + customColor attributes) with custom ShaderMaterial (additive blending, soft point sprites). The hot loop runs in `useFrame()`:
 
-### Text-to-Particles
-
-Canvas-based text sampling: render text to offscreen canvas, threshold + Poisson disk sampling to extract glyph positions as a Float32Array of normalized coordinates.
-
-### Export System (4 modes)
-
-1. **Full HTML** — standalone page with Three.js from CDN, controls, orbit
-2. **Embed Snippet** — transparent, no UI, pointer-events: none, fills parent (the Elementor/Webflow use case)
-3. **Code** — just the effect function body
-4. **JSON Preset** — full Effect definition, importable back into PRTCL
-
-Export snippets must include `/* Made with PRTCL — prtcl.es */`. Target < 15KB minified (before CDN import).
+- **Zero allocations**: target/color objects reused, control map built once per frame
+- **No React in loop**: reads store via `getState()` — zero React re-renders
+- **Adaptive quality** (`src/engine/adaptive-quality.ts`): reduces particle count when delta > 20ms, recovers after 60 good frames, floor at 1000 particles
+- **Performance targets**: 20k particles @ 60fps desktop, 5-8k @ 60fps mobile
 
 ### Key File Locations
 
 ```
-components/particles/   — Core particle system, shader material, compiler, text sampler
-components/editor/      — Three-panel editor layout, effect browser, controls, export modal
-lib/effects/            — Types, built-in presets, validator, export templates
-lib/store.ts            — Zustand store (app state)
-app/create/             — Main editor page (client component boundary)
-app/gallery/            — Community presets browser
-public/gallery/         — Gallery JSON files (curated, no database)
+src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, types
+src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
+src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield)
+src/store.ts             — Zustand store (effect state, settings, throttled perf metrics)
+src/App.tsx              — Router: /create → Editor, /gallery → placeholder
 ```
 
 ### UI Layout
 
-Three-panel responsive layout (collapses to tabs on mobile):
-- **Left**: Effect browser (presets, search, fork)
+Three-panel fixed layout (280px | flex | 320px), collapses to tabs below 768px:
+- **Left**: Effect browser — categorized presets (organic, math, text, abstract), search
 - **Center**: R3F canvas with orbit controls
-- **Right**: Dynamic controls from `addControl()`, global settings, text controls, collapsible code editor
+- **Right**: Tweakpane — global controls (particle count, point size) + dynamic effect controls from `addControl()`
 
 Everything is live — no submit buttons. Export is max 2 clicks.
 
-## Design Tokens
+### Store Design
 
-- Background: #050510 (dark-first, dark mode only for v1)
-- Accent: #7aa2f7 (electric blue)
+Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane.
+
+## Design Tokens (in `src/index.css`)
+
+- Background: `#050510` | Surface: `#0d0d1a` | Border: `#1a1a2e`
+- Accent: `#7aa2f7` (electric blue)
+- Text: `#e0e0e0` | Muted: `#8b8fa3`
 - Code font: JetBrains Mono
-- Marketing font: Geist, Satoshi, or similar geometric sans
+- Dark mode only (v1)
 
-## Implementation Phases
+## Implementation Status
 
-Follow this order — each phase builds on the previous:
-1. Core engine: particle system, compiler, editor layout, 4 presets (Nebula, Lorenz, Galaxy, Starfield)
-2. Export system: all 4 modes + modal
-3. Text-to-particles: canvas sampler, Google Fonts loader, 3 text effects
-4. Polish: landing page, gallery, fork system, mobile responsive, performance pass
-5. Launch: Vercel deploy, domain, GitHub public
+- [x] **Phase 1**: Core engine, compiler, editor layout, 4 presets (Nebula, Lorenz, Galaxy, Starfield)
+- [ ] **Phase 2**: Export system — 4 modes + modal + live preview
+- [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
+- [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive
+- [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
 ## Conventions
 
 - Package name: `prtcl`
 - GitHub: `enuzzo/prtcl`, domain: `prtcl.es`
-- Built-in preset author: "PRTCL Team" or "Netmilk Studio"
-- TypeScript strict — proper types for Effect, Control, ExportConfig
-- Gallery v1 is curated JSON in the repo (no database, no auth)
-- Google Fonts loaded dynamically only when text feature is used
-- Full architecture spec: see `PRTCL-BOOTSTRAP.md`
+- Built-in preset author: "PRTCL Team"
+- TypeScript strict — proper types for Effect, Control, CompiledEffect
+- Gallery v1: curated JSON in repo (no database, no auth)
+- Google Fonts: loaded dynamically only when text feature is used
+- Export snippets must include `/* Made with PRTCL — prtcl.es */`
+- Design spec: `docs/superpowers/specs/2026-03-16-prtcl-design.md`
+- Implementation plan: `docs/superpowers/plans/2026-03-16-prtcl-phase1-core-engine.md`
