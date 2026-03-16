@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { Pane } from 'tweakpane'
 import { useStore } from '../store'
 
@@ -7,12 +7,20 @@ export function ControlPanel() {
   const paneRef = useRef<Pane | null>(null)
   const controls = useStore((s) => s.controls)
 
+  // Only rebuild Tweakpane when the SET of controls changes (new effect selected),
+  // not when control VALUES change (slider moved). This prevents disposing the pane
+  // mid-event which causes a crash.
+  const controlSchema = useMemo(
+    () => controls.map((c) => `${c.id}:${c.min}:${c.max}:${c.initial}`).join('|'),
+    [controls],
+  )
+
   useEffect(() => {
     if (!containerRef.current) return
     paneRef.current?.dispose()
 
-    // Tweakpane v4 types require @tweakpane/core which isn't separately
-    // installed — the methods exist at runtime via inheritance from FolderApi.
+    const currentControls = useStore.getState().controls
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pane = new Pane({ container: containerRef.current }) as any
     paneRef.current = pane
@@ -30,11 +38,11 @@ export function ControlPanel() {
       min: 1, max: 20, step: 0.5, label: 'Point Size',
     }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
 
-    // Effect controls
-    if (controls.length > 0) {
+    // Effect controls — read from store snapshot, not from the subscribed value
+    if (currentControls.length > 0) {
       const effectFolder = pane.addFolder({ title: 'Effect' })
       const params: Record<string, number> = {}
-      for (const c of controls) {
+      for (const c of currentControls) {
         params[c.id] = c.value
         effectFolder.addBinding(params, c.id, {
           min: c.min, max: c.max, label: c.label,
@@ -43,7 +51,7 @@ export function ControlPanel() {
     }
 
     return () => { pane.dispose(); paneRef.current = null }
-  }, [controls]) // ONLY depend on controls, NOT particleCount/pointSize
+  }, [controlSchema]) // Depend on schema (ids+ranges), NOT on array reference
 
   return (
     <div className="w-[320px] bg-surface border-l border-border overflow-y-auto">
