@@ -113,6 +113,17 @@ export function ParticleSystem() {
     const camY = _state.camera.position.y
     const camZ = _state.camera.position.z
 
+    // Unproject pointer to world space (onto z=0 plane through camera target)
+    // _state.pointer is R3F's normalized device coords (-1..1), updated automatically
+    const pointer = _state.pointer
+    const _ptrVec = target // reuse target temporarily
+    _ptrVec.set(pointer.x, pointer.y, 0.5).unproject(_state.camera)
+    const dir = _ptrVec.sub(_state.camera.position).normalize()
+    const dist = -_state.camera.position.z / dir.z
+    const pointerX = _state.camera.position.x + dir.x * dist
+    const pointerY = _state.camera.position.y + dir.y * dist
+    const pointerZ = 0
+
     // Get the actual backing arrays from the attributes (Three.js v0.183+ copies arrays)
     const posAttr = geometry.getAttribute('position') as Float32BufferAttribute
     const colAttr = geometry.getAttribute('customColor') as Float32BufferAttribute
@@ -136,7 +147,7 @@ export function ParticleSystem() {
       if (i < count) {
         // Particle within new effect range — compute destination
         try {
-          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ)
+          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ)
         } catch {
           // Effect error on this particle — leave at origin
         }
@@ -144,7 +155,7 @@ export function ParticleSystem() {
         // Disappearing particle — morph to a real particle's position in the new cloud
         // so it merges in naturally instead of collapsing to origin
         try {
-          compiledFn(i % count, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ)
+          compiledFn(i % count, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ)
         } catch {
           // fallback: stays at origin
         }

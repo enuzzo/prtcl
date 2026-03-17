@@ -18,6 +18,12 @@ export interface EffectContext {
   camX?: number
   camY?: number
   camZ?: number
+  /** Pointer world-space X (raycasted onto camera target plane). 0 when no pointer. */
+  pointerX?: number
+  /** Pointer world-space Y (raycasted onto camera target plane). 0 when no pointer. */
+  pointerY?: number
+  /** Pointer world-space Z. 0 for now. */
+  pointerZ?: number
 }
 
 export interface Control {
@@ -62,6 +68,9 @@ export type CompiledEffectFn = (
   camX?: number,
   camY?: number,
   camZ?: number,
+  pointerX?: number,
+  pointerY?: number,
+  pointerZ?: number,
 ) => void
 
 export interface CompiledEffect {

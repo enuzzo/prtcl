@@ -57,7 +57,7 @@ Inspired by [particles.casberry.in](https://particles.casberry.in/) by [Casberry
 |---|---|
 | Hopf Fibration, Black Hole, Cumulonimbus Storm, 4D Clifford Torus | [CasberryIndia](https://github.com/CasberryIndia) |
 | Fractal Frequency | Gabi |
-| Nebula Organica, Starfield, Spiral Galaxy | PRTCL Team |
+| Nebula Organica, Starfield | PRTCL Team |
 
 Built with [React Three Fiber](https://github.com/pmndrs/react-three-fiber), [Tweakpane](https://tweakpane.github.io/docs/), [MediaPipe Hands](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker), and the [vibemilk](https://github.com/enuzzo/vibemilk) acid-pop theme.
 

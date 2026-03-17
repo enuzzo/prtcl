@@ -142,7 +142,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 
 ## Implementation Status
 
-- [x] **Phase 1**: Core engine, compiler, editor layout, 8 presets (Fractal Frequency, Hopf Fibration, Nebula, Starfield, Black Hole, Cumulonimbus Storm, Spiral Galaxy, 4D Clifford Torus)
+- [x] **Phase 1**: Core engine, compiler, editor layout, 7 presets (Fractal Frequency, Hopf Fibration, Nebula, Starfield, Black Hole, Cumulonimbus Storm, 4D Clifford Torus)
 - [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
 - [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
