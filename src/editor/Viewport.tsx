@@ -5,6 +5,8 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ParticleSystem } from '../engine/ParticleSystem'
 import { useStore } from '../store'
 import { setCameraRef, setControlsRef } from '../engine/camera-bridge'
+import { useHandTracking } from '../tracking/useHandTracking'
+import { TrackingThumbnail } from './TrackingThumbnail'
 
 /** Syncs store camera values (autoRotate, zoom) with the R3F scene */
 function CameraSync() {
@@ -58,6 +60,8 @@ function CameraSync() {
 
 export function Viewport() {
   const backgroundColor = useStore((s) => s.backgroundColor)
+  const trackingEnabled = useStore((s) => s.trackingEnabled)
+  const { videoEl } = useHandTracking()
 
   return (
     <div className="flex-1 relative">
@@ -69,6 +73,9 @@ export function Viewport() {
         <ParticleSystem />
         <CameraSync />
       </Canvas>
+      {trackingEnabled && (
+        <TrackingThumbnail videoEl={videoEl} />
+      )}
     </div>
   )
 }
