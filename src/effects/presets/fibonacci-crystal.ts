@@ -36,6 +36,7 @@ var depth = addControl('depth', 'Depth', 0.1, 2, 0.8);
 var scale = addControl('scale', 'Scale', 0.5, 5, 2.5);
 var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.15);
 var complexity = addControl('complexity', 'Complexity', 1, 20, 8);
+var spasm = addControl('spasm', 'Spasm', 0, 3, 1.2);
 
 var PI = Math.PI;
 var TAU = PI * 2;
@@ -51,7 +52,6 @@ var hash = (i * 2654435761) >>> 0;
 var rand01 = ((hash & 0xFFFF) / 65535.0); // 0..1
 
 // ── Fibonacci sphere distribution ──
-// Classic algorithm: even points on a sphere surface
 var t = i / count; // 0..1
 var theta = i * GOLDEN_ANGLE; // longitude: golden angle spiral
 var phi = Math.acos(1 - 2 * t); // latitude: arccosine for even spacing
@@ -63,11 +63,41 @@ var sy = sinPhi * Math.sin(theta);
 var sz = Math.cos(phi);
 
 // ── Volumetric depth: scatter particles from surface inward ──
-// Some on surface, some inside — creates solid crystal feel
 var layerR = 1.0 - rand01 * rand01 * depth; // bias toward surface
-var x = sx * scale * layerR;
-var y = sy * scale * layerR;
-var z = sz * scale * layerR;
+
+// ── Asymmetric spasms: internal bumps that deform the sphere ──
+// Multiple bump sources at different frequencies and directions
+// Each bump is a traveling wave from a direction, creating organic pulsation
+var bump = 0;
+// Bump 1: fast, from below-right — sharp spike
+var b1dir = sx * 0.3 + sy * -0.8 + sz * 0.5; // dot with direction
+var b1wave = Math.sin(time * 3.7) * Math.sin(time * 1.1 + 0.5);
+b1wave = b1wave > 0.3 ? (b1wave - 0.3) * 2.5 : 0; // threshold → sharp onset
+bump += b1wave * Math.max(0, b1dir) * 0.6;
+
+// Bump 2: slow rolling wave, from the left
+var b2dir = sx * -0.9 + sy * 0.2 + sz * 0.1;
+var b2wave = Math.pow(Math.max(0, Math.sin(time * 1.3 + 2.0)), 3); // cubic for punch
+bump += b2wave * Math.max(0, b2dir) * 0.8;
+
+// Bump 3: medium, from top — breathing
+var b3dir = sx * 0.1 + sy * 0.95 + sz * 0.2;
+var b3wave = Math.pow(Math.max(0, Math.sin(time * 2.1 + 4.0)), 2);
+bump += b3wave * Math.max(0, b3dir) * 0.5;
+
+// Bump 4: erratic, diagonal — twitchy
+var b4dir = sx * 0.6 + sy * 0.4 + sz * -0.7;
+var b4t = time * 5.3;
+var b4wave = Math.sin(b4t) * Math.sin(b4t * 0.7) * Math.sin(b4t * 0.3);
+b4wave = b4wave > 0.2 ? (b4wave - 0.2) * 3 : 0;
+bump += b4wave * Math.max(0, b4dir) * 0.4;
+
+// Apply bump as radial displacement (push outward from center)
+var bumpR = 1.0 + bump * spasm;
+
+var x = sx * scale * layerR * bumpR;
+var y = sy * scale * layerR * bumpR;
+var z = sz * scale * layerR * bumpR;
 
 // ── Kaleidoscope pattern via spherical UV ──
 // Use phi (latitude) and theta (longitude) as 2D pattern coords
@@ -99,9 +129,11 @@ var cr = palA0 + palB0 * Math.cos(TAU * (palT + palD0));
 var cg = palA1 + palB1 * Math.cos(TAU * (palT + palD1));
 var cb = palA2 + palB2 * Math.cos(TAU * (palT + palD2));
 
-// ── Depth glow: inner particles slightly brighter (crystal core) ──
+// ── Depth glow + spasm flash ──
 var depthGlow = 1.0 + (1.0 - layerR) * 0.5;
-var brightness = pattern * depthGlow;
+// Particles in bump zones flash brighter
+var spasmGlow = 1.0 + bump * 1.5;
+var brightness = pattern * depthGlow * spasmGlow;
 
 target.set(x, y, z);
 color.setRGB(
