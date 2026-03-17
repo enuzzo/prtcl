@@ -58,7 +58,7 @@ Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
-src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield, blackhole, hopf)
+src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield, blackhole, hopf, storm)
 src/store.ts             — Zustand store (effect state, settings, camera, throttled perf metrics)
 src/App.tsx              — Router: /create → Editor, /gallery → placeholder
 ```
@@ -86,18 +86,25 @@ Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and Orbi
 
 Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane.
 
-## Design Tokens (in `src/index.css`)
+## Design System (in `src/index.css`)
 
-- Background: `#050510` | Surface: `#0d0d1a` | Border: `#1a1a2e`
-- Accent: `#7aa2f7` (electric blue)
-- Text: `#e0e0e0` | Muted: `#8b8fa3`
-- Code font: JetBrains Mono
+Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/css/themes/acid-pop.css`). Token values only — no `vm-*` component classes.
+
+- **Backgrounds (3-tier)**: `#08040E` (bg) → `#1D1131` (surface) → `#2B1A4A` (elevated)
+- **Accent primary**: `#FF2BD6` (hot pink) — brand, selections, slider fills
+- **Accent secondary**: `#7CFF00` (lime green) — CTAs, slider knobs, focus rings
+- **Text**: `#F9F4FF` (primary) | `#D5C6F2` (secondary) | `#A98ED1` (muted)
+- **Borders**: `rgba(255,43,214,0.22)` (subtle pink) | `rgba(124,255,0,0.56)` (strong lime)
+- **Semantic**: success `#46FF9A` | warning `#FFD553` | danger `#FF4F7A` | info `#2CF4FF`
+- **Font**: Inconsolata Nerd Font Mono (primary) → JetBrains Mono (fallback)
+- **Tweakpane**: fully themed via CSS custom properties (`.tp-rotv` overrides)
 - Dark mode only (v1)
 
 ## Implementation Status
 
-- [x] **Phase 1**: Core engine, compiler, editor layout, 6 presets (Nebula, Lorenz, Galaxy, Starfield, Black Hole, Hopf Fibration)
+- [x] **Phase 1**: Core engine, compiler, editor layout, 7 presets (Nebula, Lorenz, Galaxy, Starfield, Black Hole, Hopf Fibration, Cumulonimbus Storm)
 - [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
+- [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive

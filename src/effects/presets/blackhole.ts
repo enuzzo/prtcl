@@ -17,7 +17,12 @@ export const blackhole: Effect = {
   category: 'abstract',
   tags: ['black hole', 'space', 'gargantua', 'accretion', 'physics'],
   particleCount: 25000,
+  pointSize: 2,
   cameraDistance: 5,
+  cameraPosition: [2.15, 0.975, -2.048],
+  cameraTarget: [0, 0, 0],
+  autoRotateSpeed: 1,
+  cameraZoom: 1.6,
   createdAt: '2026-03-16',
   code: `
 // Scale factor: original uses coords 0-200, we need ±5
@@ -25,16 +30,16 @@ var S = 0.06;
 
 // ── Geometry ──────────────────────────────────────────────
 var RS       = addControl('radius',    'Event Horizon',  0.2, 1.2, 0.36);
-var MAX_R    = addControl('max_r',     'Disk Radius',    1.5, 7,   3.5);
+var MAX_R    = addControl('max_r',     'Disk Radius',    1.5, 7,   3.234);
 var THICK    = addControl('thickness', 'Disk Thickness',   0, 1,   0.35);
 
 // ── Dynamics ─────────────────────────────────────────────
-var SPEED    = addControl('speed',     'Orbit Speed',      0, 3,   0.6);
+var SPEED    = addControl('speed',     'Orbit Speed',      0, 3,   0.13);
 var TURB     = addControl('turbulence','Turbulence',       0, 1,   0.4);
 
 // ── Appearance ───────────────────────────────────────────
-var TEMP     = addControl('temp',      'Color Temp',       0, 1,   0.35);
-var GLOW     = addControl('glow',      'Core Glow',        0, 2,   1.2);
+var TEMP     = addControl('temp',      'Color Temp',       0, 1,   0.272);
+var GLOW     = addControl('glow',      'Core Glow',        0, 2,   1.087);
 
 if (i === 0) setInfo('Black Hole', 'Supermassive black hole with accretion disk');
 

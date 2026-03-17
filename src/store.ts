@@ -65,7 +65,7 @@ export const useStore = create<PrtclState>((set) => ({
   // Settings
   particleCount: 15000,
   pointSize: 4.0,
-  backgroundColor: '#050510',
+  backgroundColor: '#08040E',
   bloomEnabled: false,
 
   // Camera

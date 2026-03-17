@@ -1,11 +1,141 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Inconsolata";
+  src: url("/fonts/InconsolataNerdFontMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Acid-pop palette — extracted from vibemilk acid-pop theme (2026-03-17)
+   Source: incoming/vibemilk-ds/css/themes/acid-pop.css
+   Only token VALUES come from vibemilk. Structure is PRTCL's own. */
 @theme {
-  --color-bg: #050510;
-  --color-surface: #0d0d1a;
-  --color-border: #1a1a2e;
-  --color-accent: #7aa2f7;
-  --color-text: #e0e0e0;
-  --color-text-muted: #8b8fa3;
-  --font-mono: "JetBrains Mono", monospace;
+  /* Backgrounds (3-tier depth) */
+  --color-bg: #08040E;
+  --color-surface: #1D1131;
+  --color-elevated: #2B1A4A;
+
+  /* Borders */
+  --color-border: rgba(255, 43, 214, 0.22);
+  --color-border-strong: rgba(124, 255, 0, 0.56);
+
+  /* Text */
+  --color-text: #F9F4FF;
+  --color-text-secondary: #D5C6F2;
+  --color-text-muted: #A98ED1;
+
+  /* Accent: hot pink */
+  --color-accent: #FF2BD6;
+  --color-accent-hover: #FF64E5;
+
+  /* Accent 2: lime green */
+  --color-accent2: #7CFF00;
+  --color-accent2-hover: #A4FF4A;
+
+  /* Semantic */
+  --color-success: #46FF9A;
+  --color-warning: #FFD553;
+  --color-danger: #FF4F7A;
+  --color-info: #2CF4FF;
+
+  /* Inputs */
+  --color-input: #150A26;
+  --color-input-focus: #23103D;
+
+  /* Glow shadows */
+  --shadow-glow-pink: 0 0 12px rgba(255, 43, 214, 0.4);
+  --shadow-glow-lime: 0 0 24px rgba(124, 255, 0, 0.3);
+
+  /* Font */
+  --font-mono: "Inconsolata", "JetBrains Mono", monospace;
+}
+
+/* Tweakpane acid-pop theme overrides (root = .tp-rotv) */
+.tp-rotv {
+  /* Structure */
+  --tp-base-background-color: #1D1131;
+  --tp-base-border-radius: 6px;
+  --tp-base-shadow-color: rgba(255, 43, 214, 0.15);
+  --tp-base-font-family: "Inconsolata", "JetBrains Mono", monospace;
+  --tp-blade-border-radius: 4px;
+  --tp-blade-horizontal-padding: 4px;
+  --tp-blade-value-width: 160px;
+
+  /* Containers (folders, rows) */
+  --tp-container-background-color: #150A26;
+  --tp-container-background-color-hover: #23103D;
+  --tp-container-background-color-focus: #23103D;
+  --tp-container-background-color-active: #261841;
+  --tp-container-foreground-color: #F9F4FF;
+  --tp-container-horizontal-padding: 4px;
+  --tp-container-unit-size: 20px;
+  --tp-container-unit-spacing: 4px;
+  --tp-container-vertical-padding: 4px;
+
+  /* Inputs (sliders, number fields) */
+  --tp-input-background-color: #150A26;
+  --tp-input-background-color-hover: #1D1131;
+  --tp-input-background-color-focus: #23103D;
+  --tp-input-background-color-active: #261841;
+  --tp-input-foreground-color: #F9F4FF;
+
+  /* Labels */
+  --tp-label-foreground-color: #A98ED1;
+
+  /* Buttons */
+  --tp-button-background-color: rgba(255, 43, 214, 0.15);
+  --tp-button-background-color-hover: rgba(255, 43, 214, 0.25);
+  --tp-button-background-color-focus: rgba(255, 43, 214, 0.30);
+  --tp-button-background-color-active: rgba(255, 43, 214, 0.35);
+  --tp-button-foreground-color: #FF2BD6;
+
+  /* Slider groove fill — soft lavender */
+  --tp-groove-foreground-color: rgba(213, 198, 242, 0.35);
+
+  /* Monitors (read-only) */
+  --tp-monitor-background-color: #150A26;
+  --tp-monitor-foreground-color: #D5C6F2;
+}
+
+/* Tweakpane folder titles — accent pink */
+.tp-rotv .tp-fldv_t {
+  color: #FF2BD6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+
+/* Tweakpane folder expand arrow — match title color */
+.tp-rotv .tp-fldv_m {
+  background-color: #FF2BD6;
+}
+
+/* Slider fill — soft lavender bar with lime grab handle at edge */
+.tp-rotv .tp-sldv_k {
+  position: relative;
+}
+.tp-rotv .tp-sldv_k::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 4px;
+  border-radius: 2px;
+  background-color: #7CFF00;
+  box-shadow: 0 0 6px rgba(124, 255, 0, 0.6);
+}
+
+/* Number input text — brighter on focus */
+.tp-rotv .tp-txtv_i:focus {
+  background-color: #23103D;
+  color: #F9F4FF;
+  box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.4);
+}
+
+/* Cursor pointer on all interactive elements */
+button, [role="button"], .tp-fldv_b, .tp-btnv_b {
+  cursor: pointer;
 }
