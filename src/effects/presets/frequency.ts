@@ -23,7 +23,7 @@ export const frequency: Effect = {
   cameraPosition: [1.837, 0, 3.063],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 2.5,
-  cameraZoom: 1.4,
+  cameraZoom: 1,
   createdAt: '2026-03-17',
   controls: { freq: 2.5, amp: 15, pulse: 0.633, fractal: 3, colorSpeed: 1 },
   code: `

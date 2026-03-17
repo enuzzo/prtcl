@@ -6,21 +6,20 @@
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands-0F9D58?style=for-the-badge&logo=google)](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker)
 [![License](https://img.shields.io/badge/License-MIT-7CFF00?style=for-the-badge)](./LICENSE)
 
-> "What if 20,000 particles could form a fractal frequency oscillation, a supermassive black hole,
-> and a Hopf fibration — and you could control all of them by waving your hand at the screen?"
->
-> _Someone who had clearly spent too many late nights tuning smoothing constants and reading topology papers._
+GPU-accelerated particle effects you can drop into any website. Pick a preset, twist a few sliders, copy the snippet. Elementor, Webflow, Next.js, React, plain HTML — it doesn't care. Your friends will think you understand 4D stereographic projections. You don't. Neither do we. But the particles don't know that, and they look incredible anyway.
 
 <div align="center">
+
 <img src="docs/assets/prtcl-hero.png" alt="PRTCL editor — Fractal Frequency effect with 20,000 particles" width="800" style="border-radius:8px;" />
+
 <br />
+
 <sub>Fractal Frequency at 20k particles. The sliders are optional. The jaw-dropping part isn't.</sub>
 </div>
 
-**PRTCL** is a free, open-source particle effects editor that runs entirely in the browser. Pick a preset, twist the sliders, wave your hand, export a self-contained snippet. Embed it in Elementor, Webflow, plain HTML — anywhere. Zero accounts, zero backend, zero npm install required on the consumer side.
+**PRTCL** is a free, open-source particle effects editor that runs entirely in the browser. 8 built-in presets — from Hopf fibrations to 4D Clifford tori — each with real-time sliders and smooth morph transitions between them. Zero accounts, zero backend, zero npm install on the consumer side.
 
-It is not a particle library. Particle libraries have documentation and a learning curve.
-This has *a three-panel editor, hand tracking via MediaPipe, and an adaptive quality system that silently drops particles before you notice the frame rate dipping.*
+Hand tracking via webcam. Adaptive quality that silently drops particles before your GPU cries. An export button that gives you a self-contained snippet you can paste anywhere.
 
 **[prtcl.es](https://prtcl.es)**
 
@@ -86,18 +85,20 @@ The renderer pre-allocates all buffers, reuses Vector3/Color objects, builds the
 
 ## Effects
 
-Six built-in presets, each with tunable parameters:
+Eight built-in presets, each with tunable parameters:
 
 | Preset | Category | What It Does |
 |---|---|---|
 | **Fractal Frequency** | Math | Pulsing 3D harmonic structure. Sound waves meet fractal oscillations. The default, and the one people screenshot. |
 | **Hopf Fibration** | Math | Stereographic projection of a 4D hypersphere. Interlocking tori from S3 fibers. Yes, it's exactly as wild as it sounds. |
+| **Spiral Galaxy** | Math | Logarithmic spiral arms, dust lanes, central bulge. Billions of years of physics in 16ms per frame. |
+| **4D Clifford Torus** | Math | A torus living natively in 4D, rotating through six orthogonal planes and projected into 3D. Brightness, hue, and W-distance sliders. |
 | **Nebula Organica** | Organic | Volumetric gas cloud with breathing animation and turbulent motion. Calm until you crank the amplitude. |
 | **Cumulonimbus Storm** | Organic | Ocean, rain, lightning bolts, and volumetric storm clouds. All particles. No textures. No regrets. |
 | **Starfield** | Abstract | Warp-speed stars streaking through space. Simple premise, mesmerizing result. |
 | **Black Hole** | Abstract | Accretion disk, gravitational lensing, relativistic jets. 25,000 particles pretending to be a supermassive singularity. |
 
-Every parameter is live — move a slider, see the result. No submit buttons, no preview delays. Export is max two clicks.
+Every parameter is live — move a slider, see the result. Switching between effects triggers a smooth 2-second morph: particles glide from one shape to the next while the camera tracks along. No submit buttons, no preview delays. Export is max two clicks.
 
 ---
 
@@ -127,10 +128,10 @@ The gesture classifier requires 3 of 4 fingers extended, deliberately excluding 
 Every page load starts with 1,200 particles morphing through three text phases:
 
 ```
-scattered dots → "PRTCL" → "PRTCL.ES" → "PARTICLES" → explode → fade
+scattered dots → "PRTCL" → "PRTCL.ES" → "PARTICLES" → explode
 ```
 
-The explosion alone is 1.4 seconds because it's too beautiful to rush. Total runtime: 5.65 seconds. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence, so particles on the "P" in PRTCL naturally map to the "P" in PARTICLES.
+The explosion sends particles flying past the screen edges while the PRTCL editor crossfades in underneath. Total runtime: ~5 seconds. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence, so particles on the "P" in PRTCL naturally map to the "P" in PARTICLES.
 
 Is it skippable? No. Is it vibe coded? Yes. Is it random? Absolutely not.
 
@@ -169,14 +170,14 @@ npx tsc -b           # Type check (strict mode, no mercy)
 | Parameter | Range | What It Does |
 |---|---|---|
 | Particles | 1,000 – 30,000 | More particles = more detail = more GPU. The adaptive quality system will quietly override you if your hardware disagrees. |
-| Point Size | 0.5 – 5 | Particle radius. Larger = softer, more nebula-like. Smaller = sharper, more digital. |
+| Point Size | 0.5 – 25 | Particle radius. Larger = softer, more nebula-like. Smaller = sharper, more digital. |
 
 ### Camera
 
 | Parameter | Range | What It Does |
 |---|---|---|
 | Auto Rotate | -10 to 10 | Continuous orbit speed. Negative = counter-clockwise. Zero = manual only. |
-| Zoom | 0.1 – 5 | Camera distance multiplier. Or just use your hand. |
+| Zoom | 0.2 – 10 | Camera distance relative to preset default. Or just use your hand. |
 
 ### Effect
 
@@ -216,6 +217,8 @@ We've done our best to credit every original author. If you created one of these
 | Fractal Frequency | Gabi | Harmonic structure with fractal wave layering |
 | Nebula Organica | PRTCL Team | Original preset |
 | Starfield | PRTCL Team | Original preset |
+| Spiral Galaxy | PRTCL Team | Logarithmic spiral arms |
+| 4D Clifford Torus | [CasberryIndia](https://github.com/CasberryIndia) | Stereographic projection from 4D with six rotation planes |
 
 ### Tech
 

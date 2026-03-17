@@ -15,7 +15,6 @@ const T_HOLD2    = 450     // hold "PRTCL.ES"
 const T_MORPH2   = 800     // letters spread → "PARTICLES"
 const T_HOLD3    = 500     // hold "PARTICLES"
 const T_EXPLODE  = 1400    // explode outward (slow & scenic)
-const T_FADE     = 500     // canvas opacity fade
 
 // Cumulative timestamps
 const C1 = T_CONVERGE                                          // 1000
@@ -25,7 +24,6 @@ const C4 = C3 + T_HOLD2                                        // 2450
 const C5 = C4 + T_MORPH2                                       // 3250
 const C6 = C5 + T_HOLD3                                        // 3750
 const C7 = C6 + T_EXPLODE                                      // 5150
-const TOTAL = C7 + T_FADE                                       // 5650
 
 /* ── Easing ────────────────────────────────────────────────── */
 function easeOutCubic(t: number) { return 1 - Math.pow(1 - t, 3) }
@@ -60,7 +58,7 @@ function sampleTextPointsSorted(
   off.height = h
   const ctx = off.getContext('2d')!
 
-  const fontSize = Math.max(36, Math.min(w * 0.09, 90))
+  const fontSize = Math.max(48, Math.min(w * 0.14, 140))
   ctx.font = `bold ${fontSize}px ${FONT}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
@@ -230,18 +228,23 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             if (p.vx === 0 && p.vy === 0) {
               const dx = p.t3x - cx
               const dy = p.t3y - cy
-              const speed = 2.5 + Math.random() * 4
+              // High speed so particles fly well past screen edges
+              const speed = 5 + Math.random() * 6
               p.vx = dx * speed
               p.vy = dy * speed
             }
             p.x = p.t3x + p.vx * t
             p.y = p.t3y + p.vy * t
-            p.alpha = 1 - raw
+            // No alpha fade — particles stay fully visible until off-screen
+            p.alpha = 1
           }
-        } else if (elapsed < TOTAL) {
-          const t = clamp01((elapsed - C7) / T_FADE)
-          wrap.style.opacity = String(1 - t)
+          // Crossfade: in the second half, fade the overlay so PRTCL emerges underneath
+          if (raw > 0.35) {
+            const fadeT = easeInOutCubic((raw - 0.35) / 0.65)
+            wrap.style.opacity = String(1 - fadeT)
+          }
         } else {
+          wrap.style.opacity = '0'
           onComplete()
           return
         }

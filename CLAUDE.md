@@ -54,6 +54,7 @@ Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using 
 - **No React in loop**: reads store via `getState()` — zero React re-renders
 - **Adaptive quality** (`src/engine/adaptive-quality.ts`): reduces particle count when delta > 34ms (~30fps), recovers after 30 good frames at 50fps+, floor at 5000 particles
 - **Performance targets**: 20k particles @ 60fps desktop, 5-8k @ 60fps mobile
+- **Morph transitions** (2s, `easeInOutSine`): When switching effects, current particle positions/colors are snapshot into Float32Arrays and lerped toward new effect output. Point size also lerps. Particle count mismatches handled via modulo sampling (excess particles merge into new cloud, appearing particles emerge from old cloud). Camera position and target also morph in sync via `CameraSync` in `Viewport.tsx`.
 
 ### Splash Screen
 
@@ -62,10 +63,9 @@ Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Pla
 1. **Converge** (1000ms) — scattered particles form "PRTCL"
 2. **Morph 1** (600ms) — ".ES" slides in → "PRTCL.ES"
 3. **Morph 2** (800ms) — letters spread → "PARTICLES"
-4. **Explode** (1400ms) — particles fly outward, alpha fades (slow & scenic)
-5. **Fade** (500ms) — entire overlay fades, `onComplete()` removes from DOM
+4. **Explode** (1400ms) — particles fly off-screen edges at high velocity (no alpha fade), overlay crossfades via `easeInOutCubic` starting at 35% so PRTCL emerges underneath
 
-Total duration ~5.65s. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
+Total duration ~5.15s. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
 
 ### Hand Tracking
 
@@ -132,7 +132,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 
 ## Implementation Status
 
-- [x] **Phase 1**: Core engine, compiler, editor layout, 6 presets (Fractal Frequency, Hopf Fibration, Nebula, Starfield, Black Hole, Cumulonimbus Storm)
+- [x] **Phase 1**: Core engine, compiler, editor layout, 8 presets (Fractal Frequency, Hopf Fibration, Nebula, Starfield, Black Hole, Cumulonimbus Storm, Spiral Galaxy, 4D Clifford Torus)
 - [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
 - [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link

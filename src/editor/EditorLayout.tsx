@@ -23,7 +23,12 @@ export function EditorLayout() {
       store.setParticleCount(effect.particleCount)
       store.setPointSize(effect.pointSize ?? 4.0)
       store.setAutoRotateSpeed(effect.autoRotateSpeed ?? 0)
-      store.setCameraZoom(effect.cameraZoom ?? 1)
+      store.setCameraZoom(1)
+      // Compute base zoom distance from preset camera position/target
+      const cp = effect.cameraPosition ?? [0, 0, 5]
+      const ct = effect.cameraTarget ?? [0, 0, 0]
+      const dx = cp[0] - ct[0], dy = cp[1] - ct[1], dz = cp[2] - ct[2]
+      store.setBaseZoomDistance(Math.sqrt(dx * dx + dy * dy + dz * dz))
       store.setCameraPosition(effect.cameraPosition ?? null)
       store.setCameraTarget(effect.cameraTarget ?? null)
     } else {

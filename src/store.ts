@@ -18,6 +18,7 @@ export interface PrtclState extends TrackingSlice {
   // Camera
   autoRotateSpeed: number
   cameraZoom: number
+  baseZoomDistance: number
   /** Set once when effect loads; CameraSync applies it then clears */
   pendingCameraPosition: [number, number, number] | null
   pendingCameraTarget: [number, number, number] | null
@@ -42,6 +43,7 @@ export interface PrtclState extends TrackingSlice {
   // Actions: camera
   setAutoRotateSpeed: (speed: number) => void
   setCameraZoom: (zoom: number) => void
+  setBaseZoomDistance: (dist: number) => void
   setCameraPosition: (pos: [number, number, number] | null) => void
   setCameraTarget: (target: [number, number, number] | null) => void
 
@@ -72,6 +74,7 @@ export const useStore = create<PrtclState>((set) => ({
   // Camera
   autoRotateSpeed: 0,
   cameraZoom: 1,
+  baseZoomDistance: 5,
   pendingCameraPosition: null,
   pendingCameraTarget: null,
 
@@ -100,6 +103,7 @@ export const useStore = create<PrtclState>((set) => ({
   // Actions: camera
   setAutoRotateSpeed: (speed) => set({ autoRotateSpeed: speed }),
   setCameraZoom: (zoom) => set({ cameraZoom: zoom }),
+  setBaseZoomDistance: (dist) => set({ baseZoomDistance: dist }),
   setCameraPosition: (pos) => set({ pendingCameraPosition: pos }),
   setCameraTarget: (target) => set({ pendingCameraTarget: target }),
 

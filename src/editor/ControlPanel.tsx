@@ -37,7 +37,7 @@ export function ControlPanel() {
     }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
 
     globals.addBinding(globalParams, 'pointSize', {
-      min: 0.1, max: 5, step: 0.1, label: 'Point Size',
+      min: 0.5, max: 25, step: 0.5, label: 'Point Size',
     }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
 
     // ── Camera controls ────────────────────────────────────
@@ -50,7 +50,7 @@ export function ControlPanel() {
     }).on('change', (ev: { value: number }) => useStore.getState().setAutoRotateSpeed(ev.value))
 
     cameraFolder.addBinding(cameraParams, 'cameraZoom', {
-      min: 0.1, max: 5, step: 0.1, label: 'Zoom',
+      min: 0.2, max: 10, step: 0.1, label: 'Zoom',
     }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
 
     // ── Effect controls ────────────────────────────────────

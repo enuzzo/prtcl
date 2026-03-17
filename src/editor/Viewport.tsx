@@ -9,11 +9,27 @@ import { updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
 import { TrackingThumbnail } from './TrackingThumbnail'
 
+const MORPH_DURATION = 2.0 // seconds — must match ParticleSystem
+
+/** Sine ease-in-out — the gentlest S-curve, like a breath */
+function easeInOutSine(t: number): number {
+  const c = t < 0 ? 0 : t > 1 ? 1 : t
+  return -(Math.cos(Math.PI * c) - 1) / 2
+}
+
 /** Syncs store camera values (autoRotate, zoom) with the R3F scene */
 function CameraSync() {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const zoomRef = useRef(1)
   const { camera } = useThree()
+
+  // Camera morph state
+  const camFromPos = useRef({ x: 0, y: 0, z: 0 })
+  const camToPos = useRef({ x: 0, y: 0, z: 0 })
+  const camFromTarget = useRef({ x: 0, y: 0, z: 0 })
+  const camToTarget = useRef({ x: 0, y: 0, z: 0 })
+  const camMorphStart = useRef(-1)
+  const hasPendingTarget = useRef(false)
 
   // Register refs for the camera bridge (used by Copy Params)
   useEffect(() => { setCameraRef(camera) }, [camera])
@@ -21,20 +37,53 @@ function CameraSync() {
     if (controlsRef.current) setControlsRef(controlsRef.current)
   })
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     const state = useStore.getState()
     const ctrl = controlsRef.current
 
-    // Apply pending camera position from effect preset (one-shot)
+    // Start camera morph when preset sets pending position
     if (state.pendingCameraPosition) {
       const [px, py, pz] = state.pendingCameraPosition
-      camera.position.set(px, py, pz)
+      camFromPos.current = { x: camera.position.x, y: camera.position.y, z: camera.position.z }
+      camToPos.current = { x: px, y: py, z: pz }
+      camMorphStart.current = clock.elapsedTime
       state.setCameraPosition(null)
     }
     if (state.pendingCameraTarget && ctrl) {
       const [tx, ty, tz] = state.pendingCameraTarget
-      ctrl.target.set(tx, ty, tz)
+      camFromTarget.current = { x: ctrl.target.x, y: ctrl.target.y, z: ctrl.target.z }
+      camToTarget.current = { x: tx, y: ty, z: tz }
+      hasPendingTarget.current = true
       state.setCameraTarget(null)
+    }
+
+    // Animate camera morph
+    if (camMorphStart.current >= 0) {
+      const elapsed = clock.elapsedTime - camMorphStart.current
+      const t = easeInOutSine(Math.min(elapsed / MORPH_DURATION, 1))
+
+      const fp = camFromPos.current
+      const tp = camToPos.current
+      camera.position.set(
+        fp.x + (tp.x - fp.x) * t,
+        fp.y + (tp.y - fp.y) * t,
+        fp.z + (tp.z - fp.z) * t,
+      )
+
+      if (hasPendingTarget.current && ctrl) {
+        const ft = camFromTarget.current
+        const tt = camToTarget.current
+        ctrl.target.set(
+          ft.x + (tt.x - ft.x) * t,
+          ft.y + (tt.y - ft.y) * t,
+          ft.z + (tt.z - ft.z) * t,
+        )
+      }
+
+      if (t >= 1) {
+        camMorphStart.current = -1
+        hasPendingTarget.current = false
+      }
     }
 
     if (ctrl) {
@@ -42,7 +91,7 @@ function CameraSync() {
       ctrl.autoRotateSpeed = state.autoRotateSpeed
     }
 
-    // Zoom slider: scale camera distance from target
+    // Zoom slider: scale camera distance from target relative to preset distance
     // Only apply when user moves the slider (avoid fighting with scroll zoom)
     if (state.cameraZoom !== zoomRef.current) {
       zoomRef.current = state.cameraZoom
@@ -50,7 +99,7 @@ function CameraSync() {
       const baseDist = dir.length()
       if (baseDist > 0.01) {
         dir.normalize()
-        const newDist = 5 / Math.max(0.1, state.cameraZoom)
+        const newDist = state.baseZoomDistance / Math.max(0.2, state.cameraZoom)
         camera.position.copy((ctrl?.target ?? camera.position).clone().add(dir.multiplyScalar(newDist)))
       }
     }

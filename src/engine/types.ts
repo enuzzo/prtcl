@@ -15,6 +15,9 @@ export interface EffectContext {
   setInfo: (title: string, description: string) => void
   annotate?: (id: string, position: Vector3, label: string) => void
   textPoints?: Float32Array
+  camX?: number
+  camY?: number
+  camZ?: number
 }
 
 export interface Control {
@@ -56,6 +59,9 @@ export type CompiledEffectFn = (
   getControl: (id: string) => number,
   setInfo: (title: string, description: string) => void,
   textPoints?: Float32Array,
+  camX?: number,
+  camY?: number,
+  camZ?: number,
 ) => void
 
 export interface CompiledEffect {

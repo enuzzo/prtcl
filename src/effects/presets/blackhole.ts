@@ -22,7 +22,7 @@ export const blackhole: Effect = {
   cameraPosition: [2.15, 0.975, -2.048],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 1,
-  cameraZoom: 1.6,
+  cameraZoom: 1,
   createdAt: '2026-03-16',
   code: `
 // Scale factor: original uses coords 0-200, we need ±5
