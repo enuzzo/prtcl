@@ -2,6 +2,7 @@ import { useEffect, useRef, useMemo } from 'react'
 import { Pane } from 'tweakpane'
 import { useStore } from '../store'
 import { getCameraSnapshot } from '../engine/camera-bridge'
+import { TrackingSidebar } from './TrackingSidebar'
 
 export function ControlPanel() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -114,6 +115,7 @@ export function ControlPanel() {
 
   return (
     <div className="w-[320px] bg-surface border-l border-border overflow-y-auto">
+      <TrackingSidebar />
       <div ref={containerRef} className="p-2" />
     </div>
   )
