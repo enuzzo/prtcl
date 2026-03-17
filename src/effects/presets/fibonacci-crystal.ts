@@ -37,6 +37,7 @@ var scale = addControl('scale', 'Scale', 0.5, 5, 2.5);
 var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.15);
 var complexity = addControl('complexity', 'Complexity', 1, 20, 8);
 var spasm = addControl('spasm', 'Spasm', 0, 3, 1.2);
+var petals = addControl('petals', 'Petals', 0, 1, 0.6);
 
 var PI = Math.PI;
 var TAU = PI * 2;
@@ -62,6 +63,26 @@ var sx = sinPhi * Math.cos(theta);
 var sy = sinPhi * Math.sin(theta);
 var sz = Math.cos(phi);
 
+// ── Crystal/flower shape: spherical harmonic deformation ──
+// Combine multiple harmonics to create organic lobes and facets
+// Y_l^m approximations using phi (latitude) and theta (longitude)
+var cosP = Math.cos(phi);
+var sinP = sinPhi;
+var cos2P = 2 * cosP * cosP - 1; // cos(2*phi)
+var sin2P = 2 * sinP * cosP;     // sin(2*phi)
+
+// Tetrahedral symmetry: 4 lobes like a crystal
+var crystal4 = 0.3 * (sinP * sinP * Math.cos(2 * theta)); // Y_2^2
+// Hexagonal petals around equator
+var crystal6 = 0.2 * (sinP * sinP * sinP * Math.cos(3 * theta)); // Y_3^3 approx
+// Polar elongation (makes it taller, less spherical)
+var polar = 0.15 * cos2P; // Y_2^0
+// Asymmetric organic wobble (slowly rotating)
+var wobble = 0.1 * sinP * Math.cos(theta + time * 0.2) * cosP;
+
+// Combine: 1.0 = perfect sphere, petals slider blends in deformation
+var shapeR = 1.0 + (crystal4 + crystal6 + polar + wobble) * petals;
+
 // ── Volumetric depth: scatter particles from surface inward ──
 var layerR = 1.0 - rand01 * rand01 * depth; // bias toward surface
 
@@ -80,7 +101,7 @@ var b2dir = sx * -0.9 + sy * 0.2 + sz * 0.1;
 var b2wave = Math.pow(Math.max(0, Math.sin(time * 1.3 + 2.0)), 3); // cubic for punch
 bump += b2wave * Math.max(0, b2dir) * 0.8;
 
-// Bump 3: medium, from top — breathing
+// Bump 3: medium, from above — breathing
 var b3dir = sx * 0.1 + sy * 0.95 + sz * 0.2;
 var b3wave = Math.pow(Math.max(0, Math.sin(time * 2.1 + 4.0)), 2);
 bump += b3wave * Math.max(0, b3dir) * 0.5;
@@ -95,9 +116,9 @@ bump += b4wave * Math.max(0, b4dir) * 0.4;
 // Apply bump as radial displacement (push outward from center)
 var bumpR = 1.0 + bump * spasm;
 
-var x = sx * scale * layerR * bumpR;
-var y = sy * scale * layerR * bumpR;
-var z = sz * scale * layerR * bumpR;
+var x = sx * scale * shapeR * layerR * bumpR;
+var y = sy * scale * shapeR * layerR * bumpR;
+var z = sz * scale * shapeR * layerR * bumpR;
 
 // ── Kaleidoscope pattern via spherical UV ──
 // Use phi (latitude) and theta (longitude) as 2D pattern coords
