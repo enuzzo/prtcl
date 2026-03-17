@@ -62,10 +62,24 @@ Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Pla
 1. **Converge** (1000ms) — scattered particles form "PRTCL"
 2. **Morph 1** (600ms) — ".ES" slides in → "PRTCL.ES"
 3. **Morph 2** (800ms) — letters spread → "PARTICLES"
-4. **Explode** (500ms) — particles fly outward, alpha fades
-5. **Fade** (350ms) — entire overlay fades, `onComplete()` removes from DOM
+4. **Explode** (1400ms) — particles fly outward, alpha fades (slow & scenic)
+5. **Fade** (500ms) — entire overlay fades, `onComplete()` removes from DOM
 
-Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
+Total duration ~5.65s. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
+
+### Hand Tracking
+
+MediaPipe Hands WASM for real-time hand gesture control of the camera (`src/tracking/`). Lazy-loaded (~4MB) only when the user toggles the hand icon in TopBar. Architecture:
+
+```
+MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → HandCameraSync (useFrame, 60fps)
+```
+
+**Single gesture — open palm**: 3+ of 4 fingers extended (thumb excluded — unreliable across camera angles). Palm X/Y controls camera orbit rotation (with dead zone + mirrored X). Hand distance from camera (wrist-to-middle-finger-tip) controls zoom — hand closer to monitor pushes shape away (zoom out), hand farther pulls shape closer (zoom in). All inputs are smoothed via lerp (`INPUT_ALPHA = 0.12`) to prevent jerks on tracking flicker.
+
+**Camera control**: `HandCameraSync` runs as a separate R3F component rendered after `CameraSync`, so its `useFrame` executes after OrbitControls' update. Manipulates camera via spherical coordinates on the OrbitControls offset. Captures home camera position on first engagement; returns smoothly after 5s timeout.
+
+**Key files**: `hand-camera.ts` (camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay).
 
 ### Key File Locations
 
@@ -73,8 +87,9 @@ Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial co
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
 src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm)
+src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/components/          — SplashScreen (Canvas 2D particle text animation)
-src/store.ts             — Zustand store (effect state, settings, camera, throttled perf metrics)
+src/store.ts             — Zustand store (effect state, settings, camera, tracking, throttled perf metrics)
 src/App.tsx              — Router: /create → Editor, /gallery → placeholder; splash overlay
 ```
 
@@ -121,6 +136,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
 - [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
+- [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive

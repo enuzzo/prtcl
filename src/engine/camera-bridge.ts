@@ -11,6 +11,7 @@ let _controls: OrbitControlsImpl | null = null
 
 export function setCameraRef(camera: Camera) { _camera = camera }
 export function setControlsRef(controls: OrbitControlsImpl) { _controls = controls }
+export function getControlsRef() { return _controls }
 
 export function getCameraSnapshot() {
   if (!_camera) return null

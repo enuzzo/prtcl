@@ -109,11 +109,9 @@ export const useStore = create<PrtclState>((set) => ({
   trackingError: null,
   gesture: 'none',
   palmPosition: null,
-  pinchDistance: 0,
+  handSize: 0,
   confidence: 0,
   landmarks: null,
-  fistPhase: 'idle',
-  fistProgress: 0,
 
   setTrackingEnabled: (on) => set({ trackingEnabled: on }),
   setTrackingReady: (ready) => set({ trackingReady: ready }),

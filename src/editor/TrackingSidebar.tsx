@@ -1,24 +1,9 @@
 import { useStore } from '../store'
 
-const GESTURE_LABELS: Record<string, string> = {
-  none: 'No hand detected',
-  open_palm: 'Open Palm \u2014 Magnet',
-  pinch: 'Pinch \u2014 Scale',
-  fist: 'Fist \u2014 Explode',
-}
-
-const FIST_PHASE_LABELS: Record<string, string> = {
-  idle: '',
-  contracting: 'Contracting...',
-  exploding: 'Exploding!',
-  reassembling: 'Reassembling...',
-}
-
 export function TrackingSidebar() {
   const enabled = useStore((s) => s.trackingEnabled)
   const ready = useStore((s) => s.trackingReady)
   const gesture = useStore((s) => s.gesture)
-  const fistPhase = useStore((s) => s.fistPhase)
   const error = useStore((s) => s.trackingError)
 
   if (!enabled) return null
@@ -52,14 +37,9 @@ export function TrackingSidebar() {
         </div>
       ) : (
         <div className="font-mono" style={{ fontSize: 10 }}>
-          <div style={{ color: gesture !== 'none' ? '#7CFF00' : undefined }} className={gesture === 'none' ? 'text-text-muted' : ''}>
-            {GESTURE_LABELS[gesture]}
+          <div style={{ color: gesture === 'open_palm' ? '#7CFF00' : undefined }} className={gesture === 'none' ? 'text-text-muted' : ''}>
+            {gesture === 'open_palm' ? 'Hand detected — controlling camera' : 'No hand detected'}
           </div>
-          {fistPhase !== 'idle' && (
-            <div className="text-accent mt-1" style={{ fontSize: 9 }}>
-              {FIST_PHASE_LABELS[fistPhase]}
-            </div>
-          )}
         </div>
       )}
     </div>

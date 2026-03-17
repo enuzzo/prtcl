@@ -4,7 +4,8 @@ import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ParticleSystem } from '../engine/ParticleSystem'
 import { useStore } from '../store'
-import { setCameraRef, setControlsRef } from '../engine/camera-bridge'
+import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
+import { updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
 import { TrackingThumbnail } from './TrackingThumbnail'
 
@@ -53,9 +54,28 @@ function CameraSync() {
         camera.position.copy((ctrl?.target ?? camera.position).clone().add(dir.multiplyScalar(newDist)))
       }
     }
+
   })
 
   return <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.1} />
+}
+
+/**
+ * Runs AFTER OrbitControls' update() by being a sibling component
+ * rendered after CameraSync. This ensures our camera changes stick.
+ */
+function HandCameraSync() {
+  const { camera } = useThree()
+
+  useFrame(() => {
+    const state = useStore.getState()
+    if (!state.trackingEnabled) return
+    const ctrl = getControlsRef()
+    if (!ctrl) return
+    updateHandCamera(ctrl, camera, state.palmPosition, state.handSize, state.gesture)
+  })
+
+  return null
 }
 
 export function Viewport() {
@@ -72,6 +92,7 @@ export function Viewport() {
       >
         <ParticleSystem />
         <CameraSync />
+        <HandCameraSync />
       </Canvas>
       {trackingEnabled && (
         <TrackingThumbnail videoEl={videoEl} />

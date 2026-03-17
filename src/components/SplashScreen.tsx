@@ -9,23 +9,23 @@ const FONT = '"Inconsolata", "JetBrains Mono", monospace'
 /* ── Timeline (ms) ─────────────────────────────────────────── */
 // "PRTCL" forms → ".ES" slides in → spreads to "PARTICLES" → explode
 const T_CONVERGE = 1000    // scatter → "PRTCL"
-const T_HOLD1    = 350     // hold "PRTCL"
+const T_HOLD1    = 400     // hold "PRTCL"
 const T_MORPH1   = 600     // ".ES" slides in → "PRTCL.ES"
-const T_HOLD2    = 400     // hold "PRTCL.ES"
+const T_HOLD2    = 450     // hold "PRTCL.ES"
 const T_MORPH2   = 800     // letters spread → "PARTICLES"
-const T_HOLD3    = 350     // hold "PARTICLES"
-const T_EXPLODE  = 500     // explode outward
-const T_FADE     = 350     // canvas opacity fade
+const T_HOLD3    = 500     // hold "PARTICLES"
+const T_EXPLODE  = 1400    // explode outward (slow & scenic)
+const T_FADE     = 500     // canvas opacity fade
 
 // Cumulative timestamps
 const C1 = T_CONVERGE                                          // 1000
-const C2 = C1 + T_HOLD1                                        // 1350
-const C3 = C2 + T_MORPH1                                       // 1950
-const C4 = C3 + T_HOLD2                                        // 2350
-const C5 = C4 + T_MORPH2                                       // 3150
-const C6 = C5 + T_HOLD3                                        // 3500
-const C7 = C6 + T_EXPLODE                                      // 4000
-const TOTAL = C7 + T_FADE                                       // 4350
+const C2 = C1 + T_HOLD1                                        // 1400
+const C3 = C2 + T_MORPH1                                       // 2000
+const C4 = C3 + T_HOLD2                                        // 2450
+const C5 = C4 + T_MORPH2                                       // 3250
+const C6 = C5 + T_HOLD3                                        // 3750
+const C7 = C6 + T_EXPLODE                                      // 5150
+const TOTAL = C7 + T_FADE                                       // 5650
 
 /* ── Easing ────────────────────────────────────────────────── */
 function easeOutCubic(t: number) { return 1 - Math.pow(1 - t, 3) }

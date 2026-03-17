@@ -14,9 +14,7 @@ export interface Landmark {
   z: number  // depth (smaller = closer)
 }
 
-export type HandGesture = 'none' | 'open_palm' | 'pinch' | 'fist'
-
-export type FistPhase = 'idle' | 'contracting' | 'exploding' | 'reassembling'
+export type HandGesture = 'none' | 'open_palm'
 
 export interface TrackingSlice {
   // State
@@ -27,13 +25,9 @@ export interface TrackingSlice {
   // Hand data
   gesture: HandGesture
   palmPosition: { x: number; y: number } | null
-  pinchDistance: number
+  handSize: number
   confidence: number
   landmarks: Landmark[] | null
-
-  // Fist state machine
-  fistPhase: FistPhase
-  fistProgress: number
 
   // Actions
   setTrackingEnabled: (on: boolean) => void

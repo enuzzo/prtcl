@@ -3,8 +3,8 @@ import { useStore } from '../store'
 import { loadMediaPipe, closeMediaPipe } from './mediapipe-loader'
 import type { MediaPipeResult } from './mediapipe-loader'
 import { LandmarkSmoother } from './smoothing'
-import { createGestureClassifier, getPalmCenter, getPinchDistance } from './gesture-classifier'
-import { resetHandModifier } from './hand-modifier'
+import { createGestureClassifier, getPalmCenter, getHandSize } from './gesture-classifier'
+import { resetHandCamera } from './hand-camera'
 
 /**
  * React hook that manages the full webcam → MediaPipe → store pipeline.
@@ -42,12 +42,12 @@ export function useHandTracking(): {
       const smoothed = smoother.smooth(result.landmarks)
       const gesture = classify(smoothed, result.handedness, performance.now())
       const palmPosition = getPalmCenter(smoothed)
-      const pinchDistance = getPinchDistance(smoothed)
+      const handSize = getHandSize(smoothed)
 
       useStore.getState().updateHandState({
         gesture,
         palmPosition,
-        pinchDistance,
+        handSize,
         confidence: result.confidence,
         landmarks: smoothed,
       })
@@ -138,7 +138,7 @@ export function useHandTracking(): {
       setVideoEl(null)
 
       closeMediaPipe()
-      resetHandModifier()
+      resetHandCamera()
 
       useStore.getState().setTrackingReady(false)
       useStore.getState().updateHandState({
@@ -146,8 +146,7 @@ export function useHandTracking(): {
         palmPosition: null,
         landmarks: null,
         confidence: 0,
-        fistPhase: 'idle',
-        fistProgress: 0,
+        handSize: 0,
       })
     }
   }, [enabled, processResult])

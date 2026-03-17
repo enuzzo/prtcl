@@ -26,9 +26,7 @@ const CONNECTIONS: [number, number][] = [
 
 const GESTURE_LABELS: Record<string, string> = {
   none: 'No hand',
-  open_palm: 'Open Palm',
-  pinch: 'Pinch',
-  fist: 'Fist',
+  open_palm: 'Tracking',
 }
 
 const CANVAS_W = 120
@@ -119,7 +117,7 @@ export function TrackingThumbnail({ videoEl }: TrackingThumbnailProps) {
           borderRadius: 6,
         }}
       >
-        <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H} />
+        <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H} style={{ transform: 'scaleX(-1)' }} />
         <div
           className="text-center font-mono uppercase"
           style={{

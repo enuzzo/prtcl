@@ -1,53 +1,28 @@
 import type { Landmark, HandGesture } from './types'
 import { LANDMARK } from './types'
 
-const PINCH_THRESHOLD = 0.05
 const DEBOUNCE_MS = 150
-
-/** Distance between two landmarks in 2D (x,y) */
-function dist2d(a: Landmark, b: Landmark): number {
-  const dx = a.x - b.x
-  const dy = a.y - b.y
-  return Math.sqrt(dx * dx + dy * dy)
-}
 
 /** Check if a finger is extended: tip.y < pip.y (MediaPipe y grows downward) */
 function isFingerExtended(landmarks: Landmark[], tip: number, pip: number): boolean {
   return landmarks[tip]!.y < landmarks[pip]!.y
 }
 
-/** Check if thumb is extended based on handedness */
-function isThumbExtended(landmarks: Landmark[], handedness: string): boolean {
-  const tip = landmarks[LANDMARK.THUMB_TIP]!
-  const mcp = landmarks[LANDMARK.THUMB_MCP]!
-  // Right hand: extended when tip.x > mcp.x; Left hand: tip.x < mcp.x
-  return handedness === 'Right' ? tip.x > mcp.x : tip.x < mcp.x
-}
 
 /**
  * Stateless gesture classification from 21 landmarks.
- * Exported for testing. The debounced version is createGestureClassifier().
+ * Detects open_palm when at least 3 of 4 fingers are extended (thumb excluded —
+ * its x-axis check is unreliable across camera angles and handedness).
  */
-export function classifyGesture(landmarks: Landmark[], handedness: string): HandGesture {
-  const thumbUp = isThumbExtended(landmarks, handedness)
+export function classifyGesture(landmarks: Landmark[], _handedness: string): HandGesture {
   const indexUp = isFingerExtended(landmarks, LANDMARK.INDEX_TIP, LANDMARK.INDEX_PIP)
   const middleUp = isFingerExtended(landmarks, LANDMARK.MIDDLE_TIP, LANDMARK.MIDDLE_PIP)
   const ringUp = isFingerExtended(landmarks, LANDMARK.RING_TIP, LANDMARK.RING_PIP)
   const pinkyUp = isFingerExtended(landmarks, LANDMARK.PINKY_TIP, LANDMARK.PINKY_PIP)
 
-  // Pinch: thumb and index tips very close together
-  const pinchDist = dist2d(landmarks[LANDMARK.THUMB_TIP]!, landmarks[LANDMARK.INDEX_TIP]!)
-  if (pinchDist < PINCH_THRESHOLD) {
-    return 'pinch'
-  }
+  const extended = (indexUp ? 1 : 0) + (middleUp ? 1 : 0) + (ringUp ? 1 : 0) + (pinkyUp ? 1 : 0)
 
-  // Fist: all four fingers curled, thumb curled
-  if (!indexUp && !middleUp && !ringUp && !pinkyUp && !thumbUp) {
-    return 'fist'
-  }
-
-  // Open palm: all five fingers extended
-  if (thumbUp && indexUp && middleUp && ringUp && pinkyUp) {
+  if (extended >= 3) {
     return 'open_palm'
   }
 
@@ -70,10 +45,15 @@ export function getPalmCenter(landmarks: Landmark[]): { x: number; y: number } {
 }
 
 /**
- * Compute normalized pinch distance (thumb-index tip distance).
+ * Compute hand size as wrist-to-middle-finger-tip distance.
+ * Proxy for hand distance from camera: larger = closer, smaller = farther.
  */
-export function getPinchDistance(landmarks: Landmark[]): number {
-  return dist2d(landmarks[LANDMARK.THUMB_TIP]!, landmarks[LANDMARK.INDEX_TIP]!)
+export function getHandSize(landmarks: Landmark[]): number {
+  const wrist = landmarks[LANDMARK.WRIST]!
+  const middleTip = landmarks[LANDMARK.MIDDLE_TIP]!
+  const dx = wrist.x - middleTip.x
+  const dy = wrist.y - middleTip.y
+  return Math.sqrt(dx * dx + dy * dy)
 }
 
 /**
@@ -102,19 +82,16 @@ export function createGestureClassifier(): (
     }
 
     if (raw === confirmedGesture) {
-      // Already confirmed — reset candidate
       candidateGesture = raw
       return confirmedGesture
     }
 
     if (raw !== candidateGesture) {
-      // New candidate — start debounce timer
       candidateGesture = raw
       candidateStartMs = timestampMs
       return confirmedGesture
     }
 
-    // Same candidate — check if debounce period passed
     if (timestampMs - candidateStartMs >= DEBOUNCE_MS) {
       confirmedGesture = raw
       return confirmedGesture
