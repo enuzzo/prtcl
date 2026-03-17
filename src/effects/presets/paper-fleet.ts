@@ -34,6 +34,8 @@ export const paperFleet: Effect = {
 addControl('colorScheme', 'Color Scheme', 0, 4, 0);
 // Discipline: 0=anarchy (planes go wherever), 1=tight formation spiraling inward
 addControl('discipline', 'Discipline', 0, 1, 0.15);
+// Speed: time scale multiplier for the simulation
+addControl('speed', 'Speed', 0.1, 3, 1);
 target.set(0, 0, 0);
 color.set(0, 0, 0);
 `,

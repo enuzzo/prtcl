@@ -113,7 +113,7 @@ export function PaperFleet() {
   useFrame((_state, delta) => {
     if (!meshRef.current) return
 
-    const dt = Math.min(delta, 0.1)
+    const dtRaw = Math.min(delta, 0.1)
     const store = useStore.getState()
 
     // Read controls from store (declared via addControl in effect code)
@@ -123,7 +123,11 @@ export function PaperFleet() {
     const scheme = COLOR_SCHEMES[schemeIdx % COLOR_SCHEMES.length]!
 
     const disciplineControl = controls.find(c => c.id === 'discipline')
-    const discipline = disciplineControl ? disciplineControl.value : 0.5
+    const discipline = disciplineControl ? disciplineControl.value : 0.15
+
+    const speedControl = controls.find(c => c.id === 'speed')
+    const speed = speedControl ? speedControl.value : 1.0
+    const dt = dtRaw * speed
 
     // Initialize or resize arrows array
     const needsReinit = !arrowsRef.current || prevCountRef.current !== count
