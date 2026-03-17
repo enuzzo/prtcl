@@ -30,8 +30,10 @@ export const paperFleet: Effect = {
   // The code runs but PaperFleet component handles rendering.
   // addControl declares the color scheme slider for Tweakpane.
   code: `
-// Color scheme selector: 0=PRTCL, 1=Classic, 2=Ocean, 3=Ember, 4=Ghost
+// Color scheme: 0=PRTCL, 1=Classic, 2=Ocean, 3=Ember, 4=Ghost
 addControl('colorScheme', 'Color Scheme', 0, 4, 0);
+// Discipline: 0=anarchy (planes go wherever), 1=tight formation spiraling inward
+addControl('discipline', 'Discipline', 0, 1, 0.15);
 target.set(0, 0, 0);
 color.set(0, 0, 0);
 `,

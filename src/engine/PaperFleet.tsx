@@ -116,11 +116,14 @@ export function PaperFleet() {
     const dt = Math.min(delta, 0.1)
     const store = useStore.getState()
 
-    // Read color scheme from controls (set by effect code's addControl)
+    // Read controls from store (declared via addControl in effect code)
     const controls = store.controls
     const schemeControl = controls.find(c => c.id === 'colorScheme')
     const schemeIdx = schemeControl ? Math.round(schemeControl.value) : 0
     const scheme = COLOR_SCHEMES[schemeIdx % COLOR_SCHEMES.length]!
+
+    const disciplineControl = controls.find(c => c.id === 'discipline')
+    const discipline = disciplineControl ? disciplineControl.value : 0.5
 
     // Initialize or resize arrows array
     const needsReinit = !arrowsRef.current || prevCountRef.current !== count
@@ -176,12 +179,29 @@ export function PaperFleet() {
     const mesh = meshRef.current!
 
     // Update simulation
+    // discipline: 0 = anarchic (original physics), 1 = tight orbits pulled inward
+    // Higher discipline = stronger gravity + velocity damping + spiral inward
+    const gravityMul = 1.0 + discipline * 3.0  // 1x to 4x gravity
+    const damping = 1.0 - discipline * 0.02     // velocity drag (0 to 2% per frame)
+    const spiralPull = discipline * 0.3          // constant inward pull
+
     for (let i = 0; i < count; i++) {
       const arrow = arrows[i]!
 
+      // Gravity toward origin (scaled by discipline)
+      const distSq = arrow.position.lengthSq()
       _v3.copy(arrow.position)
-        .multiplyScalar(-Math.PI / arrow.position.lengthSq())
+        .multiplyScalar(-Math.PI * gravityMul / distSq)
       arrow.velocity.add(_v3)
+
+      // Spiral inward pull: constant gentle force toward center
+      if (spiralPull > 0) {
+        _v3.copy(arrow.position).normalize().multiplyScalar(-spiralPull * dt)
+        arrow.velocity.add(_v3)
+      }
+
+      // Velocity damping (higher discipline = more drag = tighter orbits)
+      arrow.velocity.multiplyScalar(damping)
 
       _v3.copy(arrow.velocity).multiplyScalar(dt)
       arrow.position.add(_v3)
