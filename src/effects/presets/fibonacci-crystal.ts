@@ -17,20 +17,20 @@ export const fibonacciCrystal: Effect = {
   author: 'PRTCL Team',
   category: 'math',
   tags: ['fibonacci', 'crystal', 'kaleidoscope', 'fractal', 'symmetry', 'palette', 'gem'],
-  particleCount: 25000,
-  pointSize: 2.5,
+  particleCount: 18000,
+  pointSize: 2,
   cameraDistance: 6,
-  cameraPosition: [4, 3, 5],
+  cameraPosition: [0.673, 4.252, -5.609],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 1.5,
   cameraZoom: 1,
   createdAt: '2026-03-18',
   code: `
-var faceting = addControl('faceting', 'Faceting', 0, 1, 0.45);
+var faceting = addControl('faceting', 'Faceting', 0, 1, 0.652);
 var scale = addControl('scale', 'Scale', 0.5, 5, 2.5);
-var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.2);
-var breath = addControl('breath', 'Breath', 0, 3, 1.2);
-var complexity = addControl('complexity', 'Complexity', 1, 20, 8);
+var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.625);
+var breath = addControl('breath', 'Breath', 0, 3, 1.639);
+var complexity = addControl('complexity', 'Complexity', 1, 20, 15.727);
 
 var PI = Math.PI;
 var TAU = PI * 2;
@@ -98,36 +98,34 @@ var x = fx * scale * layerR * organicR;
 var y = fy * scale * layerR * organicR;
 var z = fz * scale * layerR * organicR;
 
-// ── Rich chromatic coloring ──
-// Two palettes that shift and blend for richer color variety
+// ── Saturated chromatic coloring ──
+// Key: use wider phase offsets between RGB channels to prevent white
 
-// Which facet? Used to give each face a distinct hue
+// Which facet? Each face gets a distinct hue
 var faceId = Math.round(qTheta / angStep) + Math.round(qPhi / phiStep) * 5;
-var faceHue = faceId * 0.15; // strong hue separation per face
+var faceHue = faceId * 0.18;
 
-// Edge proximity (particles near facet edges)
+// Edge proximity
 var edgeDist = Math.sqrt(
   (sx - qx) * (sx - qx) + (sy - qy) * (sy - qy) + (sz - qz) * (sz - qz)
 );
 var edgeFactor = Math.min(edgeDist * 6, 1);
 
-// Palette A: warm (pink → gold → teal)
-var palTA = faceHue + time * colorSpeed + edgeFactor * 0.3;
-var crA = 0.5 + 0.5 * Math.cos(TAU * (palTA + 0.0));
-var cgA = 0.5 + 0.5 * Math.cos(TAU * (palTA + 0.33));
-var cbA = 0.5 + 0.5 * Math.cos(TAU * (palTA + 0.67));
+// Quilez palette with WIDE channel separation (avoids white)
+// a + b * cos(TAU * (c*t + d)) — the d offsets determine hue spread
+// Wider d separation = more saturated, less white
+var palT = faceHue + time * colorSpeed + edgeFactor * 0.2 + layerR * 0.3;
 
-// Palette B: cool (violet → cyan → lime)
-var palTB = faceHue * 0.7 + time * colorSpeed * 1.3 + layerR * 0.5;
-var crB = 0.5 + 0.5 * Math.cos(TAU * (palTB + 0.1));
-var cgB = 0.5 + 0.5 * Math.cos(TAU * (palTB + 0.5));
-var cbB = 0.5 + 0.5 * Math.cos(TAU * (palTB + 0.8));
+// Surface palette: vibrant (magenta → teal → amber)
+var cr = 0.55 + 0.45 * Math.cos(TAU * (palT + 0.00));
+var cg = 0.45 + 0.45 * Math.cos(TAU * (palT + 0.40));
+var cb = 0.55 + 0.45 * Math.cos(TAU * (palT + 0.75));
 
-// Blend: inner particles use palette B (cool core), outer use A (warm surface)
-var blendAB = layerR; // 0=core, 1=surface
-var cr = crA * blendAB + crB * (1 - blendAB);
-var cg = cgA * blendAB + cgB * (1 - blendAB);
-var cb = cbA * blendAB + cbB * (1 - blendAB);
+// Core tint: shift inner particles toward complementary hue
+var coreShift = (1.0 - layerR) * 0.35;
+cr = cr * (1 - coreShift) + (1 - cr) * coreShift;
+cg = cg * (1 - coreShift * 0.5);
+cb = cb * (1 - coreShift) + (1 - cb) * coreShift * 0.7;
 
 // ── Kaleidoscope pattern ──
 var u = fphi / PI;
@@ -136,13 +134,14 @@ var fu = (u * complexity) % 1;
 var fv = (v * complexity) % 1;
 var pattern = Math.sin(fu * TAU * 3) * Math.sin(fv * TAU * 5);
 pattern += Math.sin(u * complexity * 4 + time * 0.5) * 0.4;
-pattern = 0.4 + 0.6 / (1 + Math.exp(-pattern * 3));
+pattern = 0.35 + 0.65 / (1 + Math.exp(-pattern * 3));
 
-// ── Brightness: core glow + edge shimmer + wave flash ──
-var coreGlow = 1.0 + (1.0 - layerR) * 1.2; // inner particles glow hot
-var edgeGlow = 1.0 + edgeFactor * 0.6; // edges shimmer
-var waveFlash = 1.0 + Math.max(0, w1 + w3) * 2.0; // waves brighten
-var brightness = pattern * coreGlow * edgeGlow * waveFlash;
+// ── Brightness: gentle, clamped to prevent white-out ──
+var coreGlow = 1.0 + (1.0 - layerR) * 0.4;
+var edgeGlow = 1.0 + edgeFactor * 0.3;
+var waveFlash = 1.0 + Math.max(0, w1 + w3) * 0.8;
+// Clamp brightness to preserve color saturation
+var brightness = Math.min(pattern * coreGlow * edgeGlow * waveFlash, 1.4);
 
 target.set(x, y, z);
 color.setRGB(
