@@ -16,14 +16,13 @@ export function ParticleSystem() {
   const color = useMemo(() => new Color(), [])
 
   // Pre-allocate buffers
-  const { positions, colors, geometry } = useMemo(() => {
+  const geometry = useMemo(() => {
     const pos = new Float32Array(MAX_PARTICLES * 3)
     const col = new Float32Array(MAX_PARTICLES * 3)
     const geo = new BufferGeometry()
     geo.setAttribute('position', new Float32BufferAttribute(pos, 3))
     geo.setAttribute('customColor', new Float32BufferAttribute(col, 3))
-    geo.setDrawRange(0, 0)
-    return { positions: pos, colors: col, geometry: geo }
+    return geo
   }, [])
 
   const material = useMemo(() => createParticleShaderMaterial(4.0), [])
@@ -48,9 +47,8 @@ export function ParticleSystem() {
     const count = adaptiveQuality.getParticleCount()
 
     // Update point size uniform
-    const uPointSize = material.uniforms['uPointSize']
-    if (uPointSize) {
-      uPointSize.value = pointSize
+    if (material.uniforms['uPointSize']) {
+      material.uniforms['uPointSize'].value = pointSize
     }
 
     // Build control lookup once per frame (not per particle)
@@ -65,9 +63,11 @@ export function ParticleSystem() {
 
     const time = _state.clock.elapsedTime
 
-    // Hot loop — run compiled fn for each particle
+    // Get the actual backing arrays from the attributes (Three.js v0.183+ copies arrays)
     const posAttr = geometry.getAttribute('position') as Float32BufferAttribute
     const colAttr = geometry.getAttribute('customColor') as Float32BufferAttribute
+    const positions = posAttr.array as Float32Array
+    const colors = colAttr.array as Float32Array
 
     for (let i = 0; i < count; i++) {
       target.set(0, 0, 0)

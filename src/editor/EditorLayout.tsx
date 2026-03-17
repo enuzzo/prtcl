@@ -21,6 +21,11 @@ export function EditorLayout() {
       store.setControls(result.value.controls)
       store.setInfo(result.value.info)
       store.setParticleCount(effect.particleCount)
+      store.setPointSize(effect.pointSize ?? 4.0)
+      store.setAutoRotateSpeed(effect.autoRotateSpeed ?? 0)
+      store.setCameraZoom(effect.cameraZoom ?? 1)
+      store.setCameraPosition(effect.cameraPosition ?? null)
+      store.setCameraTarget(effect.cameraTarget ?? null)
     } else {
       console.error('Failed to compile effect:', result.error)
     }

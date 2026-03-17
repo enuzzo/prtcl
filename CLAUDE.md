@@ -50,16 +50,16 @@ Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using 
 
 - **Zero allocations**: target/color objects reused, control map built once per frame
 - **No React in loop**: reads store via `getState()` — zero React re-renders
-- **Adaptive quality** (`src/engine/adaptive-quality.ts`): reduces particle count when delta > 20ms, recovers after 60 good frames, floor at 1000 particles
+- **Adaptive quality** (`src/engine/adaptive-quality.ts`): reduces particle count when delta > 34ms (~30fps), recovers after 30 good frames at 50fps+, floor at 5000 particles
 - **Performance targets**: 20k particles @ 60fps desktop, 5-8k @ 60fps mobile
 
 ### Key File Locations
 
 ```
-src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, types
+src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
-src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield)
-src/store.ts             — Zustand store (effect state, settings, throttled perf metrics)
+src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield, blackhole, hopf)
+src/store.ts             — Zustand store (effect state, settings, camera, throttled perf metrics)
 src/App.tsx              — Router: /create → Editor, /gallery → placeholder
 ```
 
@@ -68,9 +68,19 @@ src/App.tsx              — Router: /create → Editor, /gallery → placeholde
 Three-panel fixed layout (280px | flex | 320px), collapses to tabs below 768px:
 - **Left**: Effect browser — categorized presets (organic, math, text, abstract), search
 - **Center**: R3F canvas with orbit controls
-- **Right**: Tweakpane — global controls (particle count, point size) + dynamic effect controls from `addControl()`
+- **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), Effect (dynamic controls from `addControl()`), Tools (Copy Params)
 
 Everything is live — no submit buttons. Export is max 2 clicks.
+
+### Preset Tuning Workflow
+
+Each preset defines baseline values for all parameters: `particleCount`, `pointSize`, `autoRotateSpeed`, `cameraZoom`, `cameraPosition`, `cameraTarget`, plus effect-specific control defaults. When an effect is selected, all baselines are applied automatically.
+
+**Copy Params** button in ControlPanel exports a JSON snapshot of all current settings (global, camera position/orientation, effect controls) to the clipboard. This enables iterative tuning: adjust sliders → Copy Params → paste JSON → update preset defaults in code.
+
+### Camera Bridge
+
+Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and OrbitControls to code outside the Canvas (e.g., ControlPanel's Copy Params). Camera position from presets is applied as a one-shot pending state in the store, consumed by CameraSync in the next frame.
 
 ### Store Design
 
@@ -86,7 +96,8 @@ Zustand store is flat with granular selectors. Performance metrics (fps, actualP
 
 ## Implementation Status
 
-- [x] **Phase 1**: Core engine, compiler, editor layout, 4 presets (Nebula, Lorenz, Galaxy, Starfield)
+- [x] **Phase 1**: Core engine, compiler, editor layout, 6 presets (Nebula, Lorenz, Galaxy, Starfield, Black Hole, Hopf Fibration)
+- [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive

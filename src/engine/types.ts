@@ -36,7 +36,12 @@ export interface Effect {
   tags: string[]
   category: 'organic' | 'math' | 'text' | 'abstract'
   particleCount: number
+  pointSize?: number
   cameraDistance: number
+  cameraPosition?: [number, number, number]
+  cameraTarget?: [number, number, number]
+  autoRotateSpeed?: number
+  cameraZoom?: number
   createdAt: string
   controls?: Record<string, number>
 }

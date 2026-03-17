@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { Pane } from 'tweakpane'
 import { useStore } from '../store'
+import { getCameraSnapshot } from '../engine/camera-bridge'
 
 export function ControlPanel() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -25,7 +26,7 @@ export function ControlPanel() {
     const pane = new Pane({ container: containerRef.current }) as any
     paneRef.current = pane
 
-    // Global controls — read initial values from store
+    // ── Global controls ────────────────────────────────────
     const { particleCount, pointSize } = useStore.getState()
     const globals = pane.addFolder({ title: 'Global' })
     const globalParams = { particleCount, pointSize }
@@ -38,7 +39,20 @@ export function ControlPanel() {
       min: 1, max: 20, step: 0.5, label: 'Point Size',
     }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
 
-    // Effect controls — read from store snapshot, not from the subscribed value
+    // ── Camera controls ────────────────────────────────────
+    const { autoRotateSpeed, cameraZoom } = useStore.getState()
+    const cameraFolder = pane.addFolder({ title: 'Camera' })
+    const cameraParams = { autoRotateSpeed, cameraZoom }
+
+    cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
+      min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
+    }).on('change', (ev: { value: number }) => useStore.getState().setAutoRotateSpeed(ev.value))
+
+    cameraFolder.addBinding(cameraParams, 'cameraZoom', {
+      min: 0.1, max: 5, step: 0.1, label: 'Zoom',
+    }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
+
+    // ── Effect controls ────────────────────────────────────
     if (currentControls.length > 0) {
       const effectFolder = pane.addFolder({ title: 'Effect' })
       const params: Record<string, number> = {}
@@ -49,6 +63,51 @@ export function ControlPanel() {
         }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
       }
     }
+
+    // ── Copy Params button ─────────────────────────────────
+    const toolsFolder = pane.addFolder({ title: 'Tools' })
+    toolsFolder.addButton({ title: 'Copy Params' }).on('click', () => {
+      const s = useStore.getState()
+      const cam = getCameraSnapshot()
+      const snapshot = {
+        effect: s.selectedEffect?.id ?? 'unknown',
+        global: {
+          particleCount: s.particleCount,
+          pointSize: s.pointSize,
+        },
+        camera: {
+          autoRotateSpeed: s.autoRotateSpeed,
+          zoom: s.cameraZoom,
+          position: cam?.position ?? [0, 0, 5],
+          target: cam?.target ?? [0, 0, 0],
+        },
+        controls: Object.fromEntries(
+          s.controls.map((c) => [c.id, Math.round(c.value * 1000) / 1000]),
+        ),
+      }
+      const text = JSON.stringify(snapshot, null, 2)
+      // Clipboard API can fail when document isn't focused — use fallback
+      const copyToClipboard = async () => {
+        try {
+          await navigator.clipboard.writeText(text)
+        } catch {
+          // Fallback: textarea + execCommand
+          const ta = document.createElement('textarea')
+          ta.value = text
+          ta.style.cssText = 'position:fixed;left:-9999px'
+          document.body.appendChild(ta)
+          ta.select()
+          document.execCommand('copy')
+          document.body.removeChild(ta)
+        }
+      }
+      copyToClipboard().then(() => {
+        const btn = toolsFolder.children[0] as { title: string }
+        const prev = btn.title
+        btn.title = 'Copied!'
+        setTimeout(() => { btn.title = prev }, 1200)
+      })
+    })
 
     return () => { pane.dispose(); paneRef.current = null }
   }, [controlSchema]) // Depend on schema (ids+ranges), NOT on array reference
