@@ -6,6 +6,17 @@ import { createParticleShaderMaterial } from './ShaderMaterial'
 import { AdaptiveQuality } from './adaptive-quality'
 import { useStore } from '../store'
 
+// Lazy-loaded hand modifier — only imported when tracking is active
+let _applyHandModifier: typeof import('../tracking/hand-modifier').applyHandModifier | null = null
+let _handModifierLoading = false
+
+async function ensureHandModifier() {
+  if (_applyHandModifier || _handModifierLoading) return
+  _handModifierLoading = true
+  const mod = await import('../tracking/hand-modifier')
+  _applyHandModifier = mod.applyHandModifier
+}
+
 const MAX_PARTICLES = 30000
 
 export function ParticleSystem() {
@@ -92,6 +103,18 @@ export function ParticleSystem() {
       colors[idx] = color.r
       colors[idx + 1] = color.g
       colors[idx + 2] = color.b
+    }
+
+    // ── Hand tracking modifier ──
+    // Operates on positions buffer AFTER effect computation.
+    // All existing effects work automatically — no per-effect changes needed.
+    // Must also check fistPhase: explode/reassemble continue after gesture returns to 'none'.
+    if (store.trackingEnabled && (store.gesture !== 'none' || store.fistPhase !== 'idle')) {
+      if (!_applyHandModifier) {
+        ensureHandModifier()
+      } else {
+        _applyHandModifier(positions, count, store, delta)
+      }
     }
 
     posAttr.needsUpdate = true
