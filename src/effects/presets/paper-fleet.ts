@@ -13,7 +13,7 @@ export const paperFleet: Effect = {
   id: 'paper-fleet',
   slug: 'paper-fleet',
   name: 'Paper Fleet',
-  description: '10,000 paper planes orbiting gravity. Instanced mesh, not particles. A different kind of beautiful.',
+  description: 'Newton\'s laws, 10k paper planes, zero air traffic control. They orbit because math said so.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['instanced', 'mesh', 'gravity', 'orbit', 'arrows', 'fleet', '3d'],
@@ -25,11 +25,13 @@ export const paperFleet: Effect = {
   autoRotateSpeed: 0.5,
   cameraZoom: 1,
   createdAt: '2026-03-18',
-  // Custom renderer — bypasses ParticleSystem entirely
   renderer: 'custom',
   customRenderer: 'paper-fleet',
-  // Empty code — the PaperFleet component handles everything
+  // The code runs but PaperFleet component handles rendering.
+  // addControl declares the color scheme slider for Tweakpane.
   code: `
+// Color scheme selector: 0=PRTCL, 1=Classic, 2=Ocean, 3=Ember, 4=Ghost
+addControl('colorScheme', 'Color Scheme', 0, 4, 0);
 target.set(0, 0, 0);
 color.set(0, 0, 0);
 `,

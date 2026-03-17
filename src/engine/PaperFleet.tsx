@@ -5,7 +5,7 @@ import { useStore } from '../store'
 
 /**
  * Paper Fleet — instanced arrow geometry orbiting a gravitational center.
- * Ported from Martin Schuhfuss's instanced geometry demo.
+ * Based on Martin Schuhfuss's instanced geometry demo.
  * Each arrow has persistent velocity and is attracted toward the origin.
  *
  * This is a "custom renderer" — it replaces the standard ParticleSystem
@@ -23,6 +23,44 @@ function rnd(min = 1, max = 0, pow = 1): number {
   return (max - min) * r + min
 }
 
+/** Color schemes — each defines HSL ranges for arrow colors */
+const COLOR_SCHEMES = [
+  // 0: PRTCL Acid Pop — magenta + lime on black
+  { name: 'PRTCL', fn: (_i: number) => {
+    const c = new THREE.Color()
+    const pick = Math.random()
+    if (pick < 0.4) c.setHSL(0.89, 0.9, rnd(0.4, 0.7, 1))       // magenta/pink
+    else if (pick < 0.7) c.setHSL(0.25, 1.0, rnd(0.3, 0.6, 1))   // lime/green
+    else c.setHSL(rnd(0.85, 0.95), 0.7, rnd(0.3, 0.5, 1))        // purple accent
+    return c
+  }},
+  // 1: Original — warm pastels (the classic from the demo)
+  { name: 'Classic', fn: (_i: number) => {
+    const c = new THREE.Color()
+    c.setHSL(rnd(0, 0.65, 0.2), 0.3, rnd(0.3, 0.7, 2))
+    return c
+  }},
+  // 2: Ocean — deep blues and teals
+  { name: 'Ocean', fn: (_i: number) => {
+    const c = new THREE.Color()
+    c.setHSL(rnd(0.5, 0.65), rnd(0.4, 0.8), rnd(0.2, 0.6, 1.5))
+    return c
+  }},
+  // 3: Sunset — oranges, reds, golds
+  { name: 'Ember', fn: (_i: number) => {
+    const c = new THREE.Color()
+    c.setHSL(rnd(0.0, 0.12), rnd(0.7, 1.0), rnd(0.3, 0.6, 1.5))
+    return c
+  }},
+  // 4: Monochrome — white/silver with subtle variation
+  { name: 'Ghost', fn: (_i: number) => {
+    const c = new THREE.Color()
+    const v = rnd(0.3, 0.9, 2)
+    c.setRGB(v, v * 0.97, v * 1.03)
+    return c
+  }},
+]
+
 /** Create the arrow (paper plane) geometry */
 function createArrowGeometry(): THREE.BufferGeometry {
   const shape = new THREE.Shape(
@@ -39,7 +77,6 @@ function createArrowGeometry(): THREE.BufferGeometry {
     bevelSegments: 2,
   })
 
-  // Orient into x/z plane, centered
   const matrix = new THREE.Matrix4()
     .makeRotationX(Math.PI / 2)
     .setPosition(new THREE.Vector3(0, 0.15, 0))
@@ -58,34 +95,38 @@ interface ArrowState {
 
 export function PaperFleet() {
   const numInstances = useStore((s) => s.particleCount)
-  const count = Math.min(numInstances, 10000) // cap for performance
+  const count = Math.min(numInstances, 10000)
 
-  // Create arrow geometry once
   const baseGeometry = useMemo(() => createArrowGeometry(), [])
-
-  // Create instanced mesh ref
   const meshRef = useRef<THREE.InstancedMesh>(null)
-
-  // Persistent arrow state (survives across frames)
   const arrowsRef = useRef<ArrowState[] | null>(null)
   const prevCountRef = useRef(0)
+  const prevSchemeRef = useRef(-1)
 
-  // Material with vertex colors
   const material = useMemo(() => new THREE.MeshLambertMaterial({
     vertexColors: false,
     side: THREE.DoubleSide,
   }), [])
 
-  // Dummy for matrix composition
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
   useFrame((_state, delta) => {
     if (!meshRef.current) return
 
-    const dt = Math.min(delta, 0.1) // cap timestep
+    const dt = Math.min(delta, 0.1)
+    const store = useStore.getState()
+
+    // Read color scheme from controls (set by effect code's addControl)
+    const controls = store.controls
+    const schemeControl = controls.find(c => c.id === 'colorScheme')
+    const schemeIdx = schemeControl ? Math.round(schemeControl.value) : 0
+    const scheme = COLOR_SCHEMES[schemeIdx % COLOR_SCHEMES.length]!
 
     // Initialize or resize arrows array
-    if (!arrowsRef.current || prevCountRef.current !== count) {
+    const needsReinit = !arrowsRef.current || prevCountRef.current !== count
+    const needsRecolor = schemeIdx !== prevSchemeRef.current
+
+    if (needsReinit) {
       const arrows: ArrowState[] = []
       const existing = arrowsRef.current || []
 
@@ -105,51 +146,49 @@ export function PaperFleet() {
             .multiplyScalar(Math.PI * Math.PI)
             .add(new THREE.Vector3(rnd(5), rnd(4), rnd(3)))
 
-          const color = new THREE.Color()
-          color.setHSL(rnd(0, 0.65, 0.2), 0.3, rnd(0.3, 0.7, 2))
-
           arrows.push({
             position,
             velocity,
             rotation: new THREE.Quaternion(),
-            color,
+            color: scheme.fn(i),
           })
         }
       }
 
       arrowsRef.current = arrows
       prevCountRef.current = count
+    }
 
-      // Set instance colors
+    // Recolor all arrows when scheme changes
+    if (needsRecolor || needsReinit) {
+      const arrows = arrowsRef.current!
       for (let i = 0; i < count; i++) {
+        arrows[i]!.color = scheme.fn(i)
         meshRef.current!.setColorAt(i, arrows[i]!.color)
       }
       if (meshRef.current.instanceColor) {
         meshRef.current.instanceColor.needsUpdate = true
       }
+      prevSchemeRef.current = schemeIdx
     }
 
     const arrows = arrowsRef.current!
+    const mesh = meshRef.current!
 
     // Update simulation
-    const mesh = meshRef.current!
     for (let i = 0; i < count; i++) {
       const arrow = arrows[i]!
 
-      // Gravity toward origin
       _v3.copy(arrow.position)
         .multiplyScalar(-Math.PI / arrow.position.lengthSq())
       arrow.velocity.add(_v3)
 
-      // Position from velocity
       _v3.copy(arrow.velocity).multiplyScalar(dt)
       arrow.position.add(_v3)
 
-      // Rotation from velocity direction
       _v3.copy(arrow.velocity).normalize()
       arrow.rotation.setFromUnitVectors(ARROW_FORWARD, _v3)
 
-      // Write to instance matrix
       dummy.position.copy(arrow.position)
       dummy.quaternion.copy(arrow.rotation)
       dummy.updateMatrix()
@@ -158,8 +197,6 @@ export function PaperFleet() {
 
     mesh.instanceMatrix.needsUpdate = true
 
-    // Report stats
-    const store = useStore.getState()
     store.setFps(Math.round(1 / Math.max(delta, 0.001)))
     store.setActualParticleCount(count)
   })

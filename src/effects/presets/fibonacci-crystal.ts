@@ -13,7 +13,7 @@ export const fibonacciCrystal: Effect = {
   id: 'fibonacci-crystal',
   slug: 'fibonacci-crystal',
   name: 'Fibonacci Crystal',
-  description: 'A breathing gemstone made of 25,000 particles. Sharp facets, kaleidoscope colors, organic pulsation.',
+  description: 'Spherical harmonics walked into a bar and ordered a kaleidoscope. The bartender said no. They did it anyway.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['fibonacci', 'crystal', 'kaleidoscope', 'fractal', 'symmetry', 'palette', 'gem'],
