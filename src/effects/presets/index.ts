@@ -7,6 +7,7 @@ import { frequency } from './frequency'
 import { cliffordTorus } from './clifford-torus'
 import { magneticDust } from './magnetic-dust'
 import { fibonacciCrystal } from './fibonacci-crystal'
+import { paperFleet } from './paper-fleet'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet]

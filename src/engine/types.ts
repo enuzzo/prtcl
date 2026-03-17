@@ -53,6 +53,10 @@ export interface Effect {
   cameraZoom?: number
   createdAt: string
   controls?: Record<string, number>
+  /** 'particles' (default) uses ParticleSystem, 'custom' uses a standalone R3F component */
+  renderer?: 'particles' | 'custom'
+  /** For custom renderers: which component to mount (e.g. 'paper-fleet') */
+  customRenderer?: string
 }
 
 export type CompiledEffectFn = (

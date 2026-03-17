@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ParticleSystem } from '../engine/ParticleSystem'
+import { PaperFleet } from '../engine/PaperFleet'
 import { useStore } from '../store'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { updateHandCamera } from '../tracking/hand-camera'
@@ -127,10 +128,22 @@ function HandCameraSync() {
   return null
 }
 
+/** Registry of custom renderers — maps customRenderer id to R3F component */
+const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
+  'paper-fleet': PaperFleet,
+}
+
 export function Viewport() {
   const backgroundColor = useStore((s) => s.backgroundColor)
   const trackingEnabled = useStore((s) => s.trackingEnabled)
+  const selectedEffect = useStore((s) => s.selectedEffect)
   const { videoEl } = useHandTracking()
+
+  // Determine which renderer to use
+  const isCustom = selectedEffect?.renderer === 'custom'
+  const CustomRenderer = isCustom && selectedEffect?.customRenderer
+    ? CUSTOM_RENDERERS[selectedEffect.customRenderer] ?? null
+    : null
 
   return (
     <div className="flex-1 min-w-0 relative">
@@ -139,7 +152,7 @@ export function Viewport() {
         gl={{ antialias: false, alpha: false }}
         style={{ background: backgroundColor }}
       >
-        <ParticleSystem />
+        {CustomRenderer ? <CustomRenderer /> : <ParticleSystem />}
         <CameraSync />
         <HandCameraSync />
       </Canvas>
