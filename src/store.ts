@@ -23,6 +23,11 @@ export interface PrtclState extends TrackingSlice {
   pendingCameraPosition: [number, number, number] | null
   pendingCameraTarget: [number, number, number] | null
 
+  // Panel visibility
+  leftPanelOpen: boolean
+  rightPanelOpen: boolean
+  isFullscreen: boolean
+
   // Performance (throttled — updated at most once per second)
   fps: number
   actualParticleCount: number
@@ -46,6 +51,13 @@ export interface PrtclState extends TrackingSlice {
   setBaseZoomDistance: (dist: number) => void
   setCameraPosition: (pos: [number, number, number] | null) => void
   setCameraTarget: (target: [number, number, number] | null) => void
+
+  // Actions: panels
+  setLeftPanelOpen: (open: boolean) => void
+  setRightPanelOpen: (open: boolean) => void
+  toggleLeftPanel: () => void
+  toggleRightPanel: () => void
+  setIsFullscreen: (fs: boolean) => void
 
   // Actions: performance (throttled internally)
   setFps: (fps: number) => void
@@ -78,6 +90,11 @@ export const useStore = create<PrtclState>((set) => ({
   pendingCameraPosition: null,
   pendingCameraTarget: null,
 
+  // Panel visibility
+  leftPanelOpen: true,
+  rightPanelOpen: true,
+  isFullscreen: false,
+
   // Performance
   fps: 0,
   actualParticleCount: 0,
@@ -106,6 +123,13 @@ export const useStore = create<PrtclState>((set) => ({
   setBaseZoomDistance: (dist) => set({ baseZoomDistance: dist }),
   setCameraPosition: (pos) => set({ pendingCameraPosition: pos }),
   setCameraTarget: (target) => set({ pendingCameraTarget: target }),
+
+  // Actions: panels
+  setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),
+  setRightPanelOpen: (open) => set({ rightPanelOpen: open }),
+  toggleLeftPanel: () => set((s) => ({ leftPanelOpen: !s.leftPanelOpen })),
+  toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
+  setIsFullscreen: (fs) => set({ isFullscreen: fs }),
 
   // ── Tracking ──────────────────────────────────────────
   trackingEnabled: false,

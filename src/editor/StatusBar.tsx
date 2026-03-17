@@ -1,6 +1,5 @@
 import { useStore } from '../store'
 
-// GitHub Octocat SVG (simplified)
 function GitHubIcon() {
   return (
     <svg
@@ -15,20 +14,41 @@ function GitHubIcon() {
   )
 }
 
-export function StatusBar() {
+interface StatusBarProps {
+  isMobile: boolean
+}
+
+export function StatusBar({ isMobile }: StatusBarProps) {
   const fps = useStore((s) => s.fps)
   const actualParticleCount = useStore((s) => s.actualParticleCount)
   const effectName = useStore((s) => s.selectedEffect?.name ?? 'No effect')
 
+  if (isMobile) {
+    return (
+      <div className="flex items-center justify-center h-7 px-4 bg-surface/80 backdrop-blur-sm border-t border-border text-[10px] font-mono text-text-muted">
+        <div className="flex items-center gap-2">
+          <span>&copy; 2026 Netmilk Studio</span>
+          <span className="opacity-30">&middot;</span>
+          <a
+            href="https://github.com/enuzzo/prtcl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:text-accent transition-colors"
+          >
+            <GitHubIcon />
+            <span>PRTCL on GitHub</span>
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center justify-between h-8 px-4 bg-surface border-t border-border text-xs font-mono text-text-muted">
-      {/* Left: effect name */}
       <span>{effectName}</span>
-
-      {/* Center: copyright + GitHub */}
       <div className="flex items-center gap-2">
-        <span className="opacity-60">&copy; 2026 Netmilk Studio</span>
-        <span className="opacity-30">·</span>
+        <span>&copy; 2026 Netmilk Studio</span>
+        <span className="opacity-30">&middot;</span>
         <a
           href="https://github.com/enuzzo/prtcl"
           target="_blank"
@@ -36,11 +56,9 @@ export function StatusBar() {
           className="flex items-center gap-1 hover:text-accent transition-colors cursor-pointer"
         >
           <GitHubIcon />
-          <span>GitHub</span>
+          <span>PRTCL on GitHub</span>
         </a>
       </div>
-
-      {/* Right: stats */}
       <div className="flex gap-4">
         <span>{actualParticleCount.toLocaleString()} particles</span>
         <span>{fps} FPS</span>

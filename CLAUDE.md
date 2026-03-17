@@ -85,20 +85,30 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
-src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
+src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
 src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/components/          — SplashScreen (Canvas 2D particle text animation)
-src/store.ts             — Zustand store (effect state, settings, camera, tracking, throttled perf metrics)
+src/hooks/               — Shared React hooks (useIsMobile)
+src/store.ts             — Zustand store (effect state, settings, camera, panels, tracking, throttled perf metrics)
 src/App.tsx              — Router: /create → Editor, /gallery → placeholder; splash overlay
 ```
 
 ### UI Layout
 
-Three-panel fixed layout (280px | flex | 320px), collapses to tabs below 768px:
+**Desktop** (≥768px): Three-panel layout (280px | flex | 320px) with collapsible sidebars:
 - **Left**: Effect browser — categorized presets (organic, math, text, abstract), search
 - **Center**: R3F canvas with orbit controls
 - **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), Effect (dynamic controls from `addControl()`), Tools (Copy Params)
+- **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. In normal mode, canvas resizes (flex reflow). In fullscreen, panels overlay as drawers (position absolute).
+- **Fullscreen = immersive mode**: Both panels auto-collapse on enter, auto-restore on exit (including ESC key). Panels can be temporarily re-opened as overlays.
+
+**Mobile** (<768px): Showcase/entertainment mode — fullscreen particles with minimal chrome:
+- **TopBar**: PRTCL logo | effect name dropdown trigger | hand tracking | fullscreen
+- **Dropdown**: Animated overlay from top (~50% viewport), categorized effects with search, tap-outside-to-close
+- **StatusBar**: Centered copyright + "PRTCL on GitHub" link
+- **Hidden**: EffectBrowser, ControlPanel, Tweakpane, Export, version/codename
+- **Hook**: `useIsMobile()` — `matchMedia`-based breakpoint detection at 768px
 
 Everything is live — no submit buttons. Export is max 2 clicks.
 
@@ -114,7 +124,7 @@ Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and Orbi
 
 ### Store Design
 
-Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane.
+Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions.
 
 ## Design System (in `src/index.css`)
 
@@ -137,9 +147,10 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
+- [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
-- [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive
+- [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
 ## Conventions
