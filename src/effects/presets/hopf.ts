@@ -12,7 +12,7 @@ export const hopf: Effect = {
   id: 'hopf-fibration',
   slug: 'hopf-fibration',
   name: 'Hopf Fibration',
-  description: 'Stereographic projection of a 4D hypersphere — interlocking tori from S³ fibers',
+  description: 'A 4D hypersphere projected into 3D. The math checks out. The visuals are unreasonable.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['hopf', 'fibration', '4D', 'hypersphere', 'topology', 'math'],

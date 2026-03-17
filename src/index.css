@@ -135,6 +135,20 @@
   box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.4);
 }
 
+/* Stacked layout: label above slider (prevents label truncation in narrow panel) */
+.tp-rotv .tp-lblv {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+.tp-rotv .tp-lblv_l {
+  width: 100%;
+  padding-bottom: 0;
+}
+.tp-rotv .tp-lblv_v {
+  width: 100%;
+}
+
 /* Cursor pointer on all interactive elements */
 button, [role="button"], .tp-fldv_b, .tp-btnv_b {
   cursor: pointer;

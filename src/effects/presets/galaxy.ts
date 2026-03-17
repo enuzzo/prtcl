@@ -4,7 +4,7 @@ export const galaxy: Effect = {
   id: 'spiral-galaxy',
   slug: 'spiral-galaxy',
   name: 'Spiral Galaxy',
-  description: 'Logarithmic spiral arms with dust lanes and central bulge',
+  description: 'Logarithmic spirals, dust lanes, central bulge. Billions of years of physics in 16ms per frame.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['galaxy', 'spiral', 'space', 'math'],

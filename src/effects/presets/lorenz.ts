@@ -4,7 +4,7 @@ export const lorenz: Effect = {
   id: 'lorenz-attractor',
   slug: 'lorenz-attractor',
   name: 'Lorenz Attractor',
-  description: 'Classic chaotic attractor with swirling butterfly wings',
+  description: 'Chaos theory in particle form. The butterfly flaps. Things happen.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['lorenz', 'attractor', 'chaos', 'math'],

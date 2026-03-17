@@ -12,7 +12,7 @@ export const blackhole: Effect = {
   id: 'black-hole',
   slug: 'black-hole',
   name: 'Black Hole',
-  description: 'Supermassive black hole with accretion disk and gravitational lensing',
+  description: '25,000 particles pretending to be a supermassive singularity. No actual event horizon (probably).',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['black hole', 'space', 'gargantua', 'accretion', 'physics'],

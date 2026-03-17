@@ -4,7 +4,7 @@ export const nebula: Effect = {
   id: 'nebula-organica',
   slug: 'nebula-organica',
   name: 'Nebula Organica',
-  description: 'Volumetric gas cloud with breathing animation and turbulent motion',
+  description: 'A gas cloud that breathes. Calm until you touch the amplitude slider.',
   author: 'PRTCL Team',
   category: 'organic',
   tags: ['nebula', 'gas', 'organic', 'volumetric'],

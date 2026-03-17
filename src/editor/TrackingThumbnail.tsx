@@ -25,8 +25,8 @@ const CONNECTIONS: [number, number][] = [
 ]
 
 const GESTURE_LABELS: Record<string, string> = {
-  none: 'No hand',
-  open_palm: 'Tracking',
+  none: 'Show me your hand',
+  open_palm: 'You got this',
 }
 
 const CANVAS_W = 120

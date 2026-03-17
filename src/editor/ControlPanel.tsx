@@ -105,7 +105,7 @@ export function ControlPanel() {
       copyToClipboard().then(() => {
         const btn = toolsFolder.children[0] as { title: string }
         const prev = btn.title
-        btn.title = 'Copied!'
+        btn.title = 'In your clipboard. You\u2019re welcome.'
         setTimeout(() => { btn.title = prev }, 1200)
       })
     })

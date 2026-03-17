@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
+import { VERSION, CODENAME } from '../version'
 
 export function TopBar() {
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -32,7 +33,15 @@ export function TopBar() {
 
   return (
     <div className="flex items-center justify-between h-12 px-4 bg-surface border-b border-border">
-      <span className="font-mono text-accent font-bold tracking-wider">PRTCL</span>
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-accent font-bold tracking-wider">PRTCL</span>
+        <span className="font-mono text-text-muted font-bold tracking-wider hidden sm:inline" title={`v${VERSION} "${CODENAME}"`}>
+          {VERSION}
+        </span>
+        <span className="font-mono text-accent/40 tracking-wider hidden md:inline">
+          {CODENAME}
+        </span>
+      </div>
       <div className="flex items-center gap-2">
         {/* Hand Tracking toggle — hidden on mobile */}
         <button
@@ -47,10 +56,10 @@ export function TopBar() {
           title={
             trackingError
               ?? (trackingEnabled && !trackingReady
-                ? 'Loading hand tracking...'
+                ? 'Summoning MediaPipe...'
                 : trackingEnabled
-                  ? 'Hand tracking ON'
-                  : 'Enable hand tracking')
+                  ? 'Hand tracking ON — wave at the particles'
+                  : 'Control particles with your hands. Yes, really.')
           }
         >
           {'\u270B'}
@@ -58,7 +67,7 @@ export function TopBar() {
         <button
           onClick={toggleFullscreen}
           className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors"
-          title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+          title={isFullscreen ? 'Back to reality (Esc)' : 'Fullscreen — give the particles the space they deserve'}
         >
           {isFullscreen ? '⛶' : '⛶'}
         </button>

@@ -33,12 +33,12 @@ export function TrackingSidebar() {
         </div>
       ) : !ready ? (
         <div className="font-mono text-text-muted animate-pulse" style={{ fontSize: 10 }}>
-          Loading...
+          Waking up MediaPipe...
         </div>
       ) : (
         <div className="font-mono" style={{ fontSize: 10 }}>
           <div style={{ color: gesture === 'open_palm' ? '#7CFF00' : undefined }} className={gesture === 'none' ? 'text-text-muted' : ''}>
-            {gesture === 'open_palm' ? 'Hand detected — controlling camera' : 'No hand detected'}
+            {gesture === 'open_palm' ? 'You are the controller now' : 'Waiting for a hand... any hand'}
           </div>
         </div>
       )}
