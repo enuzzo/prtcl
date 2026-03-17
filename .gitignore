@@ -26,5 +26,8 @@ dist-ssr
 # Superpowers
 .superpowers/
 
+# Worktrees
+.worktrees/
+
 # Incoming reference material
 incoming/
