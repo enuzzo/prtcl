@@ -6,10 +6,12 @@ import { useStore } from '../store'
 /**
  * Paper Fleet — instanced arrow geometry orbiting a gravitational center.
  * Based on Martin Schuhfuss's instanced geometry demo.
- * Each arrow has persistent velocity and is attracted toward the origin.
+ * Physics are identical to the original: gravity = -PI / distSq, velocity
+ * perpendicular to radius, below escape velocity. This creates stable
+ * orbits with a hollow center.
  *
- * This is a "custom renderer" — it replaces the standard ParticleSystem
- * when the selected effect has renderer: 'custom'.
+ * Discipline slider adds a REVERSIBLE overlay force — when set back to 0,
+ * the original orbit physics resume naturally. No permanent state corruption.
  */
 
 const ARROW_FORWARD = new THREE.Vector3(0, 0, 1)
@@ -23,18 +25,18 @@ function rnd(min = 1, max = 0, pow = 1): number {
   return (max - min) * r + min
 }
 
-/** Color schemes — each defines HSL ranges for arrow colors */
+/** Color schemes */
 const COLOR_SCHEMES = [
-  // 0: PRTCL Acid Pop — magenta + lime on black
+  // 0: PRTCL Acid Pop — magenta + lime
   { name: 'PRTCL', fn: (_i: number) => {
     const c = new THREE.Color()
     const pick = Math.random()
-    if (pick < 0.4) c.setHSL(0.89, 0.9, rnd(0.4, 0.7, 1))       // magenta/pink
-    else if (pick < 0.7) c.setHSL(0.25, 1.0, rnd(0.3, 0.6, 1))   // lime/green
-    else c.setHSL(rnd(0.85, 0.95), 0.7, rnd(0.3, 0.5, 1))        // purple accent
+    if (pick < 0.4) c.setHSL(0.89, 0.9, rnd(0.4, 0.7, 1))
+    else if (pick < 0.7) c.setHSL(0.25, 1.0, rnd(0.3, 0.6, 1))
+    else c.setHSL(rnd(0.85, 0.95), 0.7, rnd(0.3, 0.5, 1))
     return c
   }},
-  // 1: Original — warm pastels (the classic from the demo)
+  // 1: Classic warm pastels
   { name: 'Classic', fn: (_i: number) => {
     const c = new THREE.Color()
     c.setHSL(rnd(0, 0.65, 0.2), 0.3, rnd(0.3, 0.7, 2))
@@ -46,13 +48,13 @@ const COLOR_SCHEMES = [
     c.setHSL(rnd(0.5, 0.65), rnd(0.4, 0.8), rnd(0.2, 0.6, 1.5))
     return c
   }},
-  // 3: Sunset — oranges, reds, golds
+  // 3: Ember — oranges, reds, golds
   { name: 'Ember', fn: (_i: number) => {
     const c = new THREE.Color()
     c.setHSL(rnd(0.0, 0.12), rnd(0.7, 1.0), rnd(0.3, 0.6, 1.5))
     return c
   }},
-  // 4: Monochrome — white/silver with subtle variation
+  // 4: Ghost — monochrome silver
   { name: 'Ghost', fn: (_i: number) => {
     const c = new THREE.Color()
     const v = rnd(0.3, 0.9, 2)
@@ -85,7 +87,6 @@ function createArrowGeometry(): THREE.BufferGeometry {
   return extruded
 }
 
-/** Arrow state (persistent across frames) */
 interface ArrowState {
   position: THREE.Vector3
   velocity: THREE.Vector3
@@ -116,14 +117,14 @@ export function PaperFleet() {
     const dtRaw = Math.min(delta, 0.1)
     const store = useStore.getState()
 
-    // Read controls from store (declared via addControl in effect code)
+    // Read controls
     const controls = store.controls
     const schemeControl = controls.find(c => c.id === 'colorScheme')
     const schemeIdx = schemeControl ? Math.round(schemeControl.value) : 0
     const scheme = COLOR_SCHEMES[schemeIdx % COLOR_SCHEMES.length]!
 
     const disciplineControl = controls.find(c => c.id === 'discipline')
-    const discipline = disciplineControl ? disciplineControl.value : 0.15
+    const discipline = disciplineControl ? disciplineControl.value : 0
 
     const speedControl = controls.find(c => c.id === 'speed')
     const speed = speedControl ? speedControl.value : 1.0
@@ -141,6 +142,7 @@ export function PaperFleet() {
         if (i < existing.length && existing[i]) {
           arrows.push(existing[i]!)
         } else {
+          // ── EXACT original initialization ──
           const position = new THREE.Vector3()
           position.setFromSphericalCoords(
             rnd(10, 300, 1.6),
@@ -148,6 +150,7 @@ export function PaperFleet() {
             rnd(0, 2 * Math.PI)
           )
 
+          // Velocity: perpendicular to radius, below escape velocity
           const velocity = new THREE.Vector3()
           velocity.copy(position).cross(UP).normalize()
             .multiplyScalar(Math.PI * Math.PI)
@@ -166,7 +169,7 @@ export function PaperFleet() {
       prevCountRef.current = count
     }
 
-    // Recolor all arrows when scheme changes
+    // Recolor when scheme changes
     if (needsRecolor || needsReinit) {
       const arrows = arrowsRef.current!
       for (let i = 0; i < count; i++) {
@@ -182,37 +185,50 @@ export function PaperFleet() {
     const arrows = arrowsRef.current!
     const mesh = meshRef.current!
 
-    // Update simulation
-    // discipline: 0 = anarchic (original physics), 1 = tight orbits pulled inward
-    // Higher discipline = stronger gravity + velocity damping + spiral inward
-    const gravityMul = 1.0 + discipline * 3.0  // 1x to 4x gravity
-    const damping = 1.0 - discipline * 0.02     // velocity drag (0 to 2% per frame)
-    const spiralPull = discipline * 0.3          // constant inward pull
-
     for (let i = 0; i < count; i++) {
       const arrow = arrows[i]!
 
-      // Gravity toward origin (scaled by discipline)
-      const distSq = arrow.position.lengthSq()
+      // ── EXACT original gravity: -PI / distSq ──
+      // This is the ONLY gravity. It creates stable orbits with hollow center.
       _v3.copy(arrow.position)
-        .multiplyScalar(-Math.PI * gravityMul / distSq)
+        .multiplyScalar(-Math.PI / arrow.position.lengthSq())
       arrow.velocity.add(_v3)
 
-      // Spiral inward pull: constant gentle force toward center
-      if (spiralPull > 0) {
-        _v3.copy(arrow.position).normalize().multiplyScalar(-spiralPull * dt)
-        arrow.velocity.add(_v3)
+      // ── Discipline overlay (additive, reversible) ──
+      // When discipline > 0: gently nudge velocity toward circular orbit
+      // When discipline = 0: pure original physics, no modification
+      if (discipline > 0) {
+        const dist = arrow.position.length()
+        if (dist > 1) {
+          // Compute ideal circular orbit velocity at this distance
+          // v_circular = sqrt(PI / dist) for our gravity model
+          const idealSpeed = Math.sqrt(Math.PI / dist)
+          const currentSpeed = arrow.velocity.length()
+
+          // Dampen excess velocity (brings runaways back into orbit)
+          if (currentSpeed > idealSpeed * 1.5) {
+            const dampFactor = 1.0 - discipline * 0.01
+            arrow.velocity.multiplyScalar(dampFactor)
+          }
+
+          // Gently steer velocity perpendicular to radius (circularize)
+          // Project velocity onto tangent plane, blend toward it
+          const radial = _v3.copy(arrow.position).normalize()
+          const radialComponent = arrow.velocity.dot(radial)
+          // Remove some radial velocity (makes orbit more circular)
+          arrow.velocity.addScaledVector(radial, -radialComponent * discipline * 0.005)
+        }
       }
 
-      // Velocity damping (higher discipline = more drag = tighter orbits)
-      arrow.velocity.multiplyScalar(damping)
-
+      // Position from velocity
       _v3.copy(arrow.velocity).multiplyScalar(dt)
       arrow.position.add(_v3)
 
+      // Rotation from velocity direction
       _v3.copy(arrow.velocity).normalize()
       arrow.rotation.setFromUnitVectors(ARROW_FORWARD, _v3)
 
+      // Write to instance matrix
       dummy.position.copy(arrow.position)
       dummy.quaternion.copy(arrow.rotation)
       dummy.updateMatrix()
