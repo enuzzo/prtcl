@@ -6,7 +6,7 @@
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands-0F9D58?style=for-the-badge&logo=google)](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker)
 [![License](https://img.shields.io/badge/License-MIT-7CFF00?style=for-the-badge)](./LICENSE)
 
-GPU-accelerated particle effects you can drop into any website. Pick a preset, twist a few sliders, copy the snippet. Elementor, Webflow, Next.js, React, plain HTML — it doesn't care. Your friends will think you understand 4D stereographic projections. You don't. Neither do we. But the particles don't know that, and they look incredible anyway.
+GPU-accelerated particle effects you can drop into any website. Pick a preset, twist a few sliders, copy the snippet. Elementor, Webflow, Next.js, React, plain HTML — it doesn't care. Your friends will think you understand 4D stereographic projections. You don't. Neither do I. But the particles don't know that, and they look incredible anyway.
 
 <div align="center">
 

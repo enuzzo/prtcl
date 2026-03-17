@@ -151,5 +151,3 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - Gallery v1: curated JSON in repo (no database, no auth)
 - Google Fonts: loaded dynamically only when text feature is used
 - Export snippets must include `/* Made with PRTCL — prtcl.es */`
-- Design spec: `docs/superpowers/specs/2026-03-16-prtcl-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-03-16-prtcl-phase1-core-engine.md`
