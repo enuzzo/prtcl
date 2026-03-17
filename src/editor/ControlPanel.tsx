@@ -36,7 +36,7 @@ export function ControlPanel() {
     }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
 
     globals.addBinding(globalParams, 'pointSize', {
-      min: 1, max: 20, step: 0.5, label: 'Point Size',
+      min: 0.1, max: 5, step: 0.1, label: 'Point Size',
     }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
 
     // ── Camera controls ────────────────────────────────────

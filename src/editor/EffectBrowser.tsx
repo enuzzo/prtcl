@@ -115,7 +115,11 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                     }`}
                   >
                     <div className="font-medium">{effect.name}</div>
-                    <div className="text-xs text-text-muted mt-0.5 truncate">
+                    <div
+                      className={`text-xs text-text-muted mt-0.5 ${
+                        selectedId === effect.id ? 'line-clamp-3' : 'truncate'
+                      }`}
+                    >
                       {effect.description}
                     </div>
                   </button>

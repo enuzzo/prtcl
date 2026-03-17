@@ -16,12 +16,26 @@ npm run dev       # http://localhost:5173
 npm run build     # Production build → dist/
 ```
 
-## Credits
+## Credits & attributions
 
-Inspired by [particles.casberry.in](https://particles.casberry.in/) by [CasberryIndia](https://github.com/CasberryIndia) — a WebGL particle simulation platform for creative computational artists. Some effect presets were adapted from their community contributions, refined and extended for the PRTCL engine.
+PRTCL was inspired by [particles.casberry.in](https://particles.casberry.in/) by [CasberryIndia](https://github.com/CasberryIndia) — a WebGL particle simulation platform for creative computational artists. Some effect presets were adapted from community contributions, refined and extended for the PRTCL engine.
 
-UI font: [ProggyClean](https://github.com/bluescan/proggyfonts) by Tristan Grimmer (MIT), patched with [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts).
+Design system: [vibemilk](https://github.com/enuzzo/vibemilk) acid-pop theme by Netmilk Studio.
+UI font: [Inconsolata](https://github.com/googlefonts/Inconsolata) by Raph Levien, patched with [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts).
+
+### Effect credits
+
+We've done our best to credit every original author. If you created one of these effects — or know who did — we'd love to hear from you! Open an issue or email us, and we'll happily add your name and link your repo.
+
+| Effect | Original credit | Notes |
+|--------|----------------|-------|
+| Hopf Fibration | [CasberryIndia](https://github.com/CasberryIndia) | Stereographic projection of a 4D hypersphere |
+| Black Hole | [CasberryIndia](https://github.com/CasberryIndia) | Gargantua-style accretion disk simulation |
+| Cumulonimbus Storm | [CasberryIndia](https://github.com/CasberryIndia) | Full storm system with ocean, rain, lightning |
+| Fractal Frequency | Gabi | Harmonic structure with fractal wave layering |
+| Nebula Organica | PRTCL Team | Original preset |
+| Starfield | PRTCL Team | Original preset |
 
 ## License
 
-MIT
+MIT — © 2026 [Netmilk Studio](https://netmilk.studio)

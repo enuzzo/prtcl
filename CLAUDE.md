@@ -30,7 +30,9 @@ npx tsc -b           # Type check (strict)
 
 ### Effect System
 
-Effects are JavaScript function bodies stored as strings, compiled at runtime via `new Function()`. Each effect receives: particle index (`i`), count, target (Vector3), color (Color), time, THREE library, `getControl()` for reading slider values, and `setInfo()`. Text effects additionally receive `textPoints: Float32Array`.
+Effects are JavaScript function bodies stored as strings, compiled at runtime via `new Function()`. Each effect receives: particle index (`i`), count, target (Vector3), color (Color), time, THREE library, `addControl()` for declaring and reading slider values, and `setInfo()`. Text effects additionally receive `textPoints: Float32Array`.
+
+**Important**: Effect code must use `addControl(id, label, min, max, initial)` — the compiler parameter is named `addControl`, not `getControl`. The default preset is Fractal Frequency (`ALL_PRESETS[0]`).
 
 Effects are TypeScript objects conforming to the `Effect` interface (see `src/engine/types.ts`).
 
@@ -53,14 +55,27 @@ Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using 
 - **Adaptive quality** (`src/engine/adaptive-quality.ts`): reduces particle count when delta > 34ms (~30fps), recovers after 30 good frames at 50fps+, floor at 5000 particles
 - **Performance targets**: 20k particles @ 60fps desktop, 5-8k @ 60fps mobile
 
+### Splash Screen
+
+Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Plays on every page load (no sessionStorage gating — users can rewatch). 1200 particles in acid-pop colors morph through three text phases:
+
+1. **Converge** (1000ms) — scattered particles form "PRTCL"
+2. **Morph 1** (600ms) — ".ES" slides in → "PRTCL.ES"
+3. **Morph 2** (800ms) — letters spread → "PARTICLES"
+4. **Explode** (500ms) — particles fly outward, alpha fades
+5. **Fade** (350ms) — entire overlay fades, `onComplete()` removes from DOM
+
+Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
+
 ### Key File Locations
 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar
-src/effects/presets/     — Built-in effect presets (nebula, lorenz, galaxy, starfield, blackhole, hopf, storm)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm)
+src/components/          — SplashScreen (Canvas 2D particle text animation)
 src/store.ts             — Zustand store (effect state, settings, camera, throttled perf metrics)
-src/App.tsx              — Router: /create → Editor, /gallery → placeholder
+src/App.tsx              — Router: /create → Editor, /gallery → placeholder; splash overlay
 ```
 
 ### UI Layout
@@ -102,9 +117,10 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 
 ## Implementation Status
 
-- [x] **Phase 1**: Core engine, compiler, editor layout, 7 presets (Nebula, Lorenz, Galaxy, Starfield, Black Hole, Hopf Fibration, Cumulonimbus Storm)
+- [x] **Phase 1**: Core engine, compiler, editor layout, 6 presets (Fractal Frequency, Hopf Fibration, Nebula, Starfield, Black Hole, Cumulonimbus Storm)
 - [x] **Phase 1.5**: Preset tuning workflow — camera controls, zoom, Copy Params, per-preset baselines
 - [x] **Phase 1.6**: Design system — vibemilk acid-pop theme, Inconsolata font, Tweakpane theming, fullscreen, effect browser search + collapsible categories, adaptive quality linear ramp
+- [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery, mobile responsive
