@@ -38,7 +38,7 @@ export function TopBar() {
         <span className="font-mono text-text-muted font-bold tracking-wider hidden sm:inline" title={`v${VERSION} "${CODENAME}"`}>
           {VERSION}
         </span>
-        <span className="font-mono text-accent/40 tracking-wider hidden md:inline">
+        <span className="font-mono text-text-muted font-bold tracking-wider hidden md:inline">
           {CODENAME}
         </span>
       </div>
