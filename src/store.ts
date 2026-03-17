@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { Effect, CompiledEffectFn, Control } from './engine/types'
+import type { TrackingSlice } from './tracking/types'
 
-export interface PrtclState {
+export interface PrtclState extends TrackingSlice {
   // Effect state
   selectedEffect: Effect | null
   compiledFn: CompiledEffectFn | null
@@ -101,6 +102,23 @@ export const useStore = create<PrtclState>((set) => ({
   setCameraZoom: (zoom) => set({ cameraZoom: zoom }),
   setCameraPosition: (pos) => set({ pendingCameraPosition: pos }),
   setCameraTarget: (target) => set({ pendingCameraTarget: target }),
+
+  // ── Tracking ──────────────────────────────────────────
+  trackingEnabled: false,
+  trackingReady: false,
+  trackingError: null,
+  gesture: 'none',
+  palmPosition: null,
+  pinchDistance: 0,
+  confidence: 0,
+  landmarks: null,
+  fistPhase: 'idle',
+  fistProgress: 0,
+
+  setTrackingEnabled: (on) => set({ trackingEnabled: on }),
+  setTrackingReady: (ready) => set({ trackingReady: ready }),
+  setTrackingError: (error) => set({ trackingError: error }),
+  updateHandState: (state) => set(state),
 
   // Actions: performance (throttled to once per second, batched together)
   setFps: (fps) => {
