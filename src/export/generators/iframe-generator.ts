@@ -36,7 +36,11 @@ export function buildEmbedUrl(payload: ExportPayload): string {
     params.set('badge', '0')
   }
 
-  return `https://prtcl.es/embed?${params.toString()}`
+  // Use current origin in dev so the iframe works locally for testing
+  const base = import.meta.env.DEV
+    ? `${window.location.origin}/embed`
+    : 'https://prtcl.es/embed'
+  return `${base}?${params.toString()}`
 }
 
 /**

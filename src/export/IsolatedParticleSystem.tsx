@@ -63,7 +63,11 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
     posAttr.needsUpdate = true
     colAttr.needsUpdate = true
     geometry.setDrawRange(0, count)
-    material.uniforms['uPointSize']!.value = pointSize * gl.getPixelRatio()
+    // Scale point size relative to canvas height so the preview (260px) looks
+    // proportionally the same as the main editor (~800px) or the actual export.
+    const canvasHeight = gl.domElement.clientHeight
+    const viewportScale = canvasHeight / 800
+    material.uniforms['uPointSize']!.value = pointSize * gl.getPixelRatio() * viewportScale
   })
 
   return <points geometry={geometry} material={material} />
