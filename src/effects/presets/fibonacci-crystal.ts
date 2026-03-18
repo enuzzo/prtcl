@@ -32,9 +32,17 @@ var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.625);
 var breath = addControl('breath', 'Breath', 0, 3, 1.639);
 var complexity = addControl('complexity', 'Complexity', 1, 20, 15.727);
 
-// Audio modulation
-breath = breath + energy * 2.0;
-faceting = faceting + beat * (1.0 - faceting) * 0.5;
+// Audio modulation — each band drives a different dimension
+// Bass → breathing (crystal expands/contracts with kick drum)
+breath = breath * (1.0 + bass * 4.0);
+// Beat → faceting sharpens momentarily (geometric snap on transients)
+faceting = Math.min(1.0, faceting + beat * 0.35);
+// Energy → scale (overall loudness swells the crystal)
+scale = scale * (1.0 + energy * 1.5);
+// Highs → color cycling (hi-hats make the kaleidoscope spin faster)
+colorSpeed = colorSpeed * (1.0 + highs * 3.0);
+// Mids → complexity (vocals add fractal detail)
+complexity = complexity * (1.0 + mids * 0.5);
 
 var PI = Math.PI;
 var TAU = PI * 2;

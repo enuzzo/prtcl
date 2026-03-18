@@ -37,7 +37,7 @@ export function computeBands(data: Uint8Array, binCount: number): AudioBands {
 }
 
 const HISTORY_SIZE = 30
-const BEAT_THRESHOLD = 1.5
+const BEAT_THRESHOLD = 1.3
 const BEAT_DECAY_MS = 100
 
 /**
@@ -58,7 +58,7 @@ export class BeatDetector {
 
     const avg = this.history.reduce((a, b) => a + b, 0) / this.history.length
 
-    if (bassBand > avg * BEAT_THRESHOLD && avg > 0.01) {
+    if (bassBand > avg * BEAT_THRESHOLD && avg > 0.005) {
       this.lastBeatTime = now
       return 1
     }

@@ -38,8 +38,12 @@ var fractal = addControl("fractal", "Fractal Depth", 1.0, 6.0, 3.0);
 var colorSpeed = addControl("colorSpeed", "Color Speed", 0.0, 5.0, 1.0);
 
 // Audio modulation (values are 0 when mic is off — no effect)
-amp = amp + bass * amp * 0.5;
-freq = freq + highs * freq * 0.3;
+// Bass → amplitude (shape breathes with kick/bass)
+amp = amp * (1.0 + bass * 3.0);
+// Highs → frequency (shimmer speeds up with hi-hats/cymbals)
+freq = freq * (1.0 + highs * 2.0);
+// Mids → pulse speed (vocals/guitar make it throb faster)
+pulse = pulse * (1.0 + mids * 1.5);
 
 var t = time * pulse;
 var fi = i / count;
@@ -86,9 +90,11 @@ var colorT = time * colorSpeed;
 var hue = 0.6 + 0.4 * Math.sin(waveEnergy * 3.0 + colorT);
 var sat = 0.8 + 0.2 * waveEnergy;
 var light = 0.4 + 0.3 * waveEnergy;
+// Audio color shift — hue wanders with energy
+hue = hue + energy * 0.3;
 // Beat flash — spike brightness toward white on onset
-light = light + beat * 0.4;
-sat = sat - beat * 0.3;
+light = light + beat * 0.5;
+sat = sat - beat * 0.4;
 color.setHSL(hue, sat, light);
 
 if (i === 0) {

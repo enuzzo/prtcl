@@ -15,6 +15,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   abstract: 'Abstract',
 }
 
+/** Effects that use audio params (bass/mids/highs/energy/beat) */
+const AUDIO_EFFECTS = new Set(['frequency', 'fibonacci-crystal', 'nebula-organica'])
+/** Effects that use pointer tracking (pointerX/Y) */
+const POINTER_EFFECTS = new Set(['magnetic-dust'])
+
 export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserProps) {
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -75,9 +80,9 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
         {!isSearching && (
           <button
             onClick={toggleAll}
-            className="text-[10px] font-mono text-text-muted hover:text-accent uppercase tracking-wider transition-colors"
+            className="text-[10px] font-mono text-text-muted hover:text-accent2 uppercase tracking-wider transition-colors"
           >
-            {allCollapsed ? '▸ Expand all' : '▾ Collapse all'}
+            {allCollapsed ? <><span className="text-accent2">▸</span> Expand all</> : <><span className="text-accent2">▾</span> Collapse all</>}
           </button>
         )}
       </div>
@@ -99,7 +104,7 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                 onClick={() => !isSearching && toggleCategory(cat)}
                 className="flex items-center gap-1 w-full text-xs font-mono text-text-muted uppercase tracking-wider px-2 mb-1 hover:text-accent transition-colors"
               >
-                <span className="text-[10px]">{isOpen ? '▾' : '▸'}</span>
+                <span className="text-xs text-accent2">{isOpen ? '▾' : '▸'}</span>
                 {CATEGORY_LABELS[cat]}
                 <span className="ml-auto text-[10px] opacity-60">{items.length}</span>
               </button>
@@ -114,7 +119,13 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                         : 'text-text hover:bg-border/50 border border-transparent'
                     }`}
                   >
-                    <div className="font-medium">{effect.name}</div>
+                    <div className="font-medium flex items-center justify-between gap-1">
+                      <span>{effect.name}</span>
+                      <span className="flex items-center gap-1 text-[10px] opacity-50 shrink-0">
+                        {AUDIO_EFFECTS.has(effect.id) && <span title="Audio reactive">🎙️</span>}
+                        {POINTER_EFFECTS.has(effect.id) && <span title="Pointer reactive">✋</span>}
+                      </span>
+                    </div>
                     <div
                       className={`text-xs text-text-muted mt-0.5 ${
                         selectedId === effect.id ? 'line-clamp-3' : 'truncate'
