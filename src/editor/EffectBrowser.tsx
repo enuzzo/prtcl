@@ -97,41 +97,50 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
           if (!items || items.length === 0) return null
           const isOpen = isSearching || !collapsed.has(cat)
           return (
-            <div key={cat} className="mb-3">
+            <div
+              key={cat}
+              className="mb-3 rounded-lg bg-elevated/40 border border-border/50 overflow-hidden"
+            >
+              {/* Category header */}
               <button
                 onClick={() => !isSearching && toggleCategory(cat)}
-                className="flex items-center gap-1 w-full text-xs font-mono text-text-muted uppercase tracking-wider px-2 mb-1 hover:text-accent transition-colors"
+                className="flex items-center gap-1.5 w-full text-[10px] font-mono text-accent uppercase tracking-widest px-3 py-2 hover:bg-elevated/60 transition-colors"
               >
-                <span className="text-xs text-accent2">{isOpen ? '▾' : '▸'}</span>
+                <span className="text-accent2">{isOpen ? '▾' : '▸'}</span>
                 {CATEGORY_LABELS[cat]}
-                <span className="ml-auto text-[10px] opacity-60">{items.length}</span>
+                <span className="ml-auto text-[10px] text-text-muted opacity-60">{items.length}</span>
               </button>
-              {isOpen &&
-                items.map((effect) => (
-                  <button
-                    key={effect.id}
-                    onClick={() => onSelect(effect)}
-                    className={`w-full text-left px-3 py-2 rounded text-sm font-mono transition-colors ${
-                      selectedId === effect.id
-                        ? 'bg-accent/15 text-accent border border-accent/30'
-                        : 'text-text hover:bg-border/50 border border-transparent'
-                    }`}
-                  >
-                    <div className="font-medium flex items-center justify-between gap-1">
-                      <span>{effect.name}</span>
-                      {AUDIO_EFFECTS.has(effect.id) && (
-                        <span className="text-[10px] opacity-50 shrink-0" title="Audio reactive">🎙️</span>
-                      )}
-                    </div>
-                    <div
-                      className={`text-xs text-text-muted mt-0.5 ${
-                        selectedId === effect.id ? 'line-clamp-3' : 'truncate'
-                      }`}
-                    >
-                      {effect.description}
-                    </div>
-                  </button>
-                ))}
+              {/* Effect list inside card */}
+              {isOpen && (
+                <div className="px-1.5 pb-1.5">
+                  {items.map((effect) => {
+                    const isSelected = selectedId === effect.id
+                    return (
+                      <button
+                        key={effect.id}
+                        onClick={() => onSelect(effect)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm font-mono transition-colors ${
+                          isSelected
+                            ? 'bg-accent/15 text-accent border border-accent/30'
+                            : 'text-text hover:bg-border/40 border border-transparent'
+                        }`}
+                      >
+                        <div className="font-medium flex items-center justify-between gap-1">
+                          <span>{effect.name}</span>
+                          {AUDIO_EFFECTS.has(effect.id) && (
+                            <span className="text-[10px] opacity-50 shrink-0" title="Audio reactive">🎙️</span>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="text-xs text-text-muted mt-0.5 line-clamp-3">
+                            {effect.description}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )
         })}
