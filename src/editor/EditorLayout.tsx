@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
+import { useTextSampling } from '../text/useTextSampling'
 import { TopBar } from './TopBar'
 import { StatusBar } from './StatusBar'
 import { Viewport } from './Viewport'
@@ -69,6 +70,8 @@ export function EditorLayout() {
       handleSelectEffect(ALL_PRESETS[0]!)
     }
   }, [selectedEffect, handleSelectEffect])
+
+  useTextSampling()
 
   const transition = mounted.current ? 'sidebar-transition' : ''
 
