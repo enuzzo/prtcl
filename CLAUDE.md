@@ -222,6 +222,12 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
+## Future Ideas
+
+- **Shareable URLs (Deep Links)** — encode effect + slider values in URL hash with shortener. `prtcl.es/create#effect=fibonacci-crystal&faceting=0.65&breath=1.6&cam=-80,50,20`. Zero backend, instant sharing.
+- **Background Color Picker** — `backgroundColor` is in the store but no UI. Add color picker in Global Tweakpane section. Dark for glow, white for silhouette, custom for brand embeds.
+- **Effect Transition Options** — currently morph is always 2s easeInOutSine. Add dropdown: Morph (current), Explode→Reform, Dissolve (alpha fade), Instant (hard cut).
+
 ## Conventions
 
 - Package name: `prtcl`
