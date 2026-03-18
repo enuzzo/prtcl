@@ -90,6 +90,7 @@ export function ControlPanel() {
     const DROPDOWN_CONTROLS: Record<string, Record<string, number>> = {
       colorMode: { 'PRTCL': 0, 'Spectrum': 1, 'Noir': 2 },
       style: { 'PRTCL': 0, 'Classic': 1, 'Gold': 2, 'Ice': 3 },
+      palette: { 'Aurora': 0, 'PRTCL': 1, 'Fire': 2, 'Ocean': 3 },
     }
 
     if (currentControls.length > 0) {
