@@ -29,7 +29,7 @@ Add real-time microphone input to PRTCL so particle effects react to sound. Micr
 Mic (getUserMedia)
   → AudioContext (created lazy on first toggle — avoids autoplay policy block)
     → MediaStreamSource
-      → AnalyserNode (fftSize: 256, 128 frequency bins)
+      → AnalyserNode (fftSize: 1024, 512 frequency bins, ~43Hz per bin)
         → useAudioReactivity hook (rAF loop, ~60fps)
           → computeBands() → bass (20-250Hz), mids (250-2kHz), highs (2k-20kHz)
           → BeatDetector.detect() → spike in bass energy vs rolling average
@@ -43,20 +43,22 @@ Pattern follows hand tracking: dedicated rAF loop writes to Zustand store, Parti
 Simple onset detection algorithm:
 - Maintains a rolling history of ~30 frames of bass energy
 - Beat = current bass energy > 1.5x rolling average
-- Beat flag stays `true` for ~100ms then decays to `false`
+- Beat value: 1.0 on onset, decays linearly to 0.0 over ~100ms. Numeric (not boolean) so effects can use it as a smooth multiplier for transitions.
 - No sophisticated BPM tracking — just energy spikes
 
 ### Frequency Band Computation
 
-`AnalyserNode.getByteFrequencyData()` returns 128 bins (0-255 each) covering 0 to Nyquist (~22050Hz at 44100Hz sample rate).
+`AnalyserNode.getByteFrequencyData()` returns 512 bins (0-255 each) covering 0 to Nyquist (~22050Hz at 44100Hz sample rate). With `fftSize: 1024`, each bin spans ~43Hz — giving ~6 bins in the bass range for meaningful low-frequency resolution.
+
+Bin formula: `bin = frequency / (sampleRate / fftSize) = frequency / 43.07`
 
 | Band  | Frequency Range | Bins (approx) | Description              |
 |-------|----------------|---------------|--------------------------|
-| Bass  | 20-250 Hz      | 0-3           | Kick drums, bass lines   |
-| Mids  | 250-2000 Hz    | 3-12          | Vocals, guitars, snares  |
-| Highs | 2000-20000 Hz  | 12-128        | Hi-hats, cymbals, air    |
+| Bass  | 20-250 Hz      | 0-5           | Kick drums, bass lines   |
+| Mids  | 250-2000 Hz    | 6-46          | Vocals, guitars, snares  |
+| Highs | 2000-20000 Hz  | 47-464        | Hi-hats, cymbals, air    |
 
-Each band: sum byte values in range, divide by (count * 255) → normalized 0-1.
+Each band: sum byte values in range, divide by (count * 255) → normalized 0-1. `energy` is the simple average of the three normalized band values (perception-agnostic, not weighted by bin count).
 
 ## Store Slice
 
@@ -71,7 +73,7 @@ bassBand: number                // 0-1, 20-250 Hz
 midsBand: number                // 0-1, 250-2000 Hz
 highsBand: number               // 0-1, 2000-20000 Hz
 energy: number                  // 0-1, average of three bands
-beat: boolean                   // true for ~100ms on each beat
+beat: number                    // 1.0 on beat onset, decays to 0.0 over ~100ms
 
 // Actions
 setAudioEnabled: (on: boolean) => void
@@ -87,16 +89,16 @@ No nested objects. Same pattern as `TrackingSlice`.
 Five new parameters appended to the compiled function signature:
 
 ```
-compiledFn(i, count, target, color, time, THREE, getControl, setInfo,
+compiledFn(i, count, target, color, time, THREE, addControl, setInfo,
   textPoints, camX, camY, camZ, pointerX, pointerY, pointerZ,
   bass, mids, highs, energy, beat)
 ```
 
-When mic is off, values are: `bass=0, mids=0, highs=0, energy=0, beat=false`. Effects don't need conditionals — zero means silence, multiplying by zero is a no-op.
+When mic is off, all values are `0`. Effects don't need conditionals — zero means silence, multiplying by zero is a no-op.
 
 ### Files affected:
-- `src/engine/types.ts` — add `bass`, `mids`, `highs`, `energy`, `beat` to EffectContext
-- `src/engine/compiler.ts` — extend function signature and dry-run call
+- `src/engine/types.ts` — add `bass`, `mids`, `highs`, `energy`, `beat` to EffectContext; update `CompiledEffectFn` type signature
+- `src/engine/compiler.ts` — extend `new Function()` parameter list, dry-run call (line ~57), and NaN guard call (line ~67) — both must include the 5 new audio args
 - `src/engine/ParticleSystem.tsx` — read audio state from store, pass to compiledFn
 
 ## File Structure
@@ -176,11 +178,21 @@ amp = amp + bass * amp * 0.5;
 - **AudioContext suspended**: can happen if created without user gesture. The lazy creation on button click should prevent this, but if it occurs: call `audioContext.resume()`.
 - **Stream ends unexpectedly**: cleanup and set `audioEnabled = false`, `audioReady = false`.
 
+## Tab Visibility
+
+When the tab goes to background (`document.hidden === true`), `requestAnimationFrame` stops firing so the analysis loop pauses naturally. However, the mic stream stays open (browser mic indicator remains active). On `visibilitychange`:
+- **Tab hidden**: suspend `AudioContext` via `audioContext.suspend()` — stops the mic indicator
+- **Tab visible**: resume via `audioContext.resume()` — mic picks back up seamlessly
+
+### Concurrent Use with Hand Tracking
+
+Audio and hand tracking are fully independent. Both use `getUserMedia` (audio vs video) and write to separate store slices from separate rAF loops. No shared state, no conflicts. Both can run simultaneously on desktop. On mobile, only the mic button is shown (hand tracking is already desktop-only per existing design).
+
 ## Performance Considerations
 
 - `AnalyserNode` runs on audio thread — zero main thread cost for FFT
-- `getByteFrequencyData()` copies 128 bytes per frame — negligible
-- Band computation: 3 range sums over 128 values — trivial
-- Store update: single `setState` call per frame with 5 numbers + 1 boolean
+- `getByteFrequencyData()` copies 512 bytes per frame — negligible
+- Band computation: 3 range sums over 512 values — trivial
+- Store update: single `setState` call per frame with 6 numbers
 - No allocations in hot path — reuse `Uint8Array` for frequency data
 - Beat detector history array: fixed size 30, shift/push — minimal GC pressure
