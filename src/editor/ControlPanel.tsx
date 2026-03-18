@@ -3,6 +3,7 @@ import { Pane } from 'tweakpane'
 import { useStore } from '../store'
 import { getCameraSnapshot } from '../engine/camera-bridge'
 import { TrackingSidebar } from './TrackingSidebar'
+import { CURATED_FONTS } from '../text/fonts'
 
 export function ControlPanel() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -12,9 +13,11 @@ export function ControlPanel() {
   // Only rebuild Tweakpane when the SET of controls changes (new effect selected),
   // not when control VALUES change (slider moved). This prevents disposing the pane
   // mid-event which causes a crash.
+  const selectedEffectId = useStore((s) => s.selectedEffect?.id)
+
   const controlSchema = useMemo(
-    () => controls.map((c) => `${c.id}:${c.min}:${c.max}:${c.initial}`).join('|'),
-    [controls],
+    () => `${selectedEffectId}|${controls.map((c) => `${c.id}:${c.min}:${c.max}:${c.initial}`).join('|')}`,
+    [controls, selectedEffectId],
   )
 
   useEffect(() => {
@@ -52,6 +55,35 @@ export function ControlPanel() {
     cameraFolder.addBinding(cameraParams, 'cameraZoom', {
       min: 0.2, max: 10, step: 0.1, label: 'Zoom',
     }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
+
+    // ── Text controls (only for text effects) ────────────
+    const selectedEffect = useStore.getState().selectedEffect
+    if (selectedEffect?.category === 'text') {
+      const textFolder = pane.addFolder({ title: 'Text' })
+      const { textInput, textFont, textWeight } = useStore.getState()
+
+      const fontOptions: Record<string, string> = {}
+      for (const f of CURATED_FONTS) fontOptions[f.family] = f.family
+
+      const textParams = { text: textInput, font: textFont, weight: textWeight }
+
+      textFolder.addBinding(textParams, 'text', { label: 'Text' })
+        .on('change', (ev: { value: string }) => useStore.getState().setTextInput(ev.value))
+
+      textFolder.addBinding(textParams, 'font', { label: 'Font', options: fontOptions })
+        .on('change', (ev: { value: string }) => useStore.getState().setTextFont(ev.value))
+
+      // Weight options — filter by selected font's available weights
+      const currentFontDef = CURATED_FONTS.find(f => f.family === textFont)
+      const weightOptions: Record<string, string> = {}
+      for (const w of (currentFontDef?.weights ?? [300, 400, 700])) {
+        const label = w <= 300 ? 'Light' : w <= 400 ? 'Regular' : 'Bold'
+        weightOptions[label] = String(w)
+      }
+
+      textFolder.addBinding(textParams, 'weight', { label: 'Weight', options: weightOptions })
+        .on('change', (ev: { value: string }) => useStore.getState().setTextWeight(ev.value))
+    }
 
     // ── Effect controls ────────────────────────────────────
     if (currentControls.length > 0) {
