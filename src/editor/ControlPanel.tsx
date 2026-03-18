@@ -40,7 +40,7 @@ export function ControlPanel() {
     }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
 
     globals.addBinding(globalParams, 'pointSize', {
-      min: 0.2, max: 2.5, step: 0.1, label: 'Point Size',
+      min: 0.2, max: 8.0, step: 0.1, label: 'Point Size',
     }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
 
     // ── Camera controls ────────────────────────────────────
@@ -91,6 +91,8 @@ export function ControlPanel() {
       colorMode: { 'PRTCL': 0, 'Spectrum': 1, 'Noir': 2 },
       style: { 'PRTCL': 0, 'Classic': 1, 'Gold': 2, 'Ice': 3 },
       palette: { 'Aurora': 0, 'PRTCL': 1, 'Fire': 2, 'Ocean': 3 },
+      krakenColor: { 'Lava': 0, 'Venom': 1, 'Abyss': 2 },
+      anemonePalette: { 'Reef': 0, 'Neon': 1, 'Deep Sea': 2, 'Blossom': 3 },
     }
 
     if (currentControls.length > 0) {

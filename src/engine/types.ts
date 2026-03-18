@@ -53,7 +53,7 @@ export interface Effect {
   author: string
   code: string
   tags: string[]
-  category: 'organic' | 'math' | 'text' | 'abstract'
+  category: 'organic' | 'math' | 'creature' | 'text' | 'abstract'
   particleCount: number
   pointSize?: number
   cameraDistance: number

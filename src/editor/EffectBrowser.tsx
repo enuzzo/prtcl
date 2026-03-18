@@ -7,10 +7,11 @@ interface EffectBrowserProps {
   onSelect: (effect: Effect) => void
 }
 
-const CATEGORY_ORDER = ['organic', 'math', 'text', 'abstract'] as const
+const CATEGORY_ORDER = ['organic', 'math', 'creature', 'text', 'abstract'] as const
 const CATEGORY_LABELS: Record<string, string> = {
   organic: 'Organic',
   math: 'Math',
+  creature: 'Creature',
   text: 'Text',
   abstract: 'Abstract',
 }

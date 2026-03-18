@@ -9,22 +9,22 @@ export const cliffordTorus: Effect = {
   category: 'math',
   tags: ['4d', 'clifford', 'torus', 'geometry', 'math'],
   particleCount: 23000,
-  pointSize: 2.5,
+  pointSize: 8,
   cameraDistance: 43,
-  cameraPosition: [11.649, 0, -41.581],
+  cameraPosition: [0.586, 4.288, 35.724],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 0.5,
-  cameraZoom: 1,
-  controls: { scale: 38.494, speed: 0.686, wdist: 3.186, morph: 0.407, pulse: 2.314, brightness: 1.038, hueBase: 0.513, hueRange: 0.357 },
+  cameraZoom: 1.2,
+  controls: { scale: 29.516, speed: 0.519, wdist: 2.952, morph: 0.424, pulse: 2.788, brightness: 1.135, hueBase: 0.413, hueRange: 0.357 },
   createdAt: '2026-03-17',
   code: `
-var scale  = addControl("scale",  "Scale",          10, 80,  38.494);
-var speed  = addControl("speed",  "Rotation Speed",  0,  3,  0.686);
-var wDist  = addControl("wdist",  "W Distance",      1,  8,  3.186);
-var morph  = addControl("morph",  "Stereo Strength", 0,  1,  0.407);
-var pulse  = addControl("pulse",  "Pulse Depth",     0,  5,  2.314);
-var bright = addControl("brightness", "Brightness",  0.1, 3, 1.038);
-var hBase  = addControl("hueBase",  "Color Base",    0, 1, 0.513);
+var scale  = addControl("scale",  "Scale",          10, 80,  29.516);
+var speed  = addControl("speed",  "Rotation Speed",  0,  3,  0.519);
+var wDist  = addControl("wdist",  "W Distance",      1,  8,  2.952);
+var morph  = addControl("morph",  "Stereo Strength", 0,  1,  0.424);
+var pulse  = addControl("pulse",  "Pulse Depth",     0,  5,  2.788);
+var bright = addControl("brightness", "Brightness",  0.1, 3, 1.135);
+var hBase  = addControl("hueBase",  "Color Base",    0, 1, 0.413);
 var hRange = addControl("hueRange", "Color Range",   0, 1, 0.357);
 
 setInfo("4D Clifford Torus", "Stereographic projection from 4D");
