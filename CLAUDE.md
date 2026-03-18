@@ -167,7 +167,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
 - [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
-- [ ] **Phase 2**: Export system — 4 modes + modal + live preview
+- [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
