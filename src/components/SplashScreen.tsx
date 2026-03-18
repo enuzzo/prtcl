@@ -7,7 +7,7 @@ const BG = '#08040E'
 const SPLASH_FONT = '"Inconsolata", "JetBrains Mono", monospace'
 
 /* ── Timeline (ms) ─────────────────────────────────────────── */
-// "prtcl" forms → ".es" slides in → spreads to "particles" → explode
+// "PRTCL" forms → ".ES" slides in → spreads to "PARTICLES" → explode
 const T_CONVERGE = 1000    // scatter → "PRTCL"
 const T_HOLD1    = 400     // hold "PRTCL"
 const T_MORPH1   = 600     // ".ES" slides in → "PRTCL.ES"
@@ -117,10 +117,10 @@ function sampleTextPointsSorted(
 
 /* ── Init particles ────────────────────────────────────────── */
 function createParticles(w: number, h: number): Particle[] {
-  // All three sorted by X → particles on "p" in prtcl stay on "p" in particles
-  const targets1 = sampleTextPointsSorted('prtcl', w, h, PARTICLE_COUNT)
-  const targets2 = sampleTextPointsSorted('prtcl.es', w, h, PARTICLE_COUNT)
-  const targets3 = sampleTextPointsSorted('particles', w, h, PARTICLE_COUNT)
+  // All three sorted by X → particles on "P" in PRTCL stay on "P" in PARTICLES
+  const targets1 = sampleTextPointsSorted('PRTCL', w, h, PARTICLE_COUNT)
+  const targets2 = sampleTextPointsSorted('PRTCL.ES', w, h, PARTICLE_COUNT)
+  const targets3 = sampleTextPointsSorted('PARTICLES', w, h, PARTICLE_COUNT)
 
   const cx = w / 2
   const cy = h / 2
