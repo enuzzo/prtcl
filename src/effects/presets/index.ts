@@ -11,6 +11,7 @@ import { paperFleet } from './paper-fleet'
 import { textWave } from './text-wave'
 import { textScatter } from './text-scatter'
 import { textDissolve } from './text-dissolve'
+import { textVarsity } from './text-varsity'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, textWave, textScatter, textDissolve]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, textWave, textScatter, textDissolve, textVarsity]

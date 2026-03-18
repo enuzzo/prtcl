@@ -89,6 +89,7 @@ export function ControlPanel() {
     // Controls that should render as a dropdown instead of a slider
     const DROPDOWN_CONTROLS: Record<string, Record<string, number>> = {
       colorMode: { 'PRTCL': 0, 'Spectrum': 1, 'Noir': 2 },
+      style: { 'PRTCL': 0, 'Classic': 1, 'Gold': 2, 'Ice': 3 },
     }
 
     if (currentControls.length > 0) {
