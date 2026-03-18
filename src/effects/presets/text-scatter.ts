@@ -4,7 +4,7 @@ export const textScatter: Effect = {
   id: 'text-scatter',
   slug: 'text-scatter',
   name: 'Text Scatter',
-  description: 'Your text disassembles in a cascade, orbits around pretending to be lost, then reassembles like it planned the whole thing. Dramatic.',
+  description: 'Letters that dramatically disintegrate in a cascade, drift around as if lost, then casually reform. The theatrics were my idea.',
   category: 'text',
   tags: ['text', 'scatter', 'cascade', 'wled', 'aurora', 'organic'],
   author: 'PRTCL Team',

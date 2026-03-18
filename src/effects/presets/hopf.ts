@@ -12,7 +12,7 @@ export const hopf: Effect = {
   id: 'hopf-fibration',
   slug: 'hopf-fibration',
   name: 'Hopf Fibration',
-  description: 'A 4D hypersphere crammed into your 3D monitor. The math is flawless. Your comprehension of it is not my problem.',
+  description: 'A 4D hypersphere forced through your 3D monitor. The topology is perfect. Your understanding of it is... optional.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['hopf', 'fibration', '4D', 'hypersphere', 'topology', 'math'],

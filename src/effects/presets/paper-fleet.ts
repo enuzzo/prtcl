@@ -13,7 +13,7 @@ export const paperFleet: Effect = {
   id: 'paper-fleet',
   slug: 'paper-fleet',
   name: 'Paper Fleet',
-  description: '10,000 paper planes in a gravitational ballet with zero adult supervision. They orbit because physics doesn\'t need your approval.',
+  description: '10,000 unsupervised paper planes in a gravitational ballet. No air traffic control was consulted. Or needed.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['instanced', 'mesh', 'gravity', 'orbit', 'arrows', 'fleet', '3d'],

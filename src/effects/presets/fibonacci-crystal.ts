@@ -13,7 +13,7 @@ export const fibonacciCrystal: Effect = {
   id: 'fibonacci-crystal',
   slug: 'fibonacci-crystal',
   name: 'Fibonacci Crystal',
-  description: 'Spherical harmonics decided to become a gemstone. Nobody gave them permission. The result is annoyingly beautiful. Don\'t tell them I said that.',
+  description: 'Spherical harmonics pretending to be a gemstone. The audacity. The result is... acceptable. Don\'t tell it I said that.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['fibonacci', 'crystal', 'kaleidoscope', 'fractal', 'symmetry', 'palette', 'gem'],

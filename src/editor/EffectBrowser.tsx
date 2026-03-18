@@ -132,7 +132,7 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                           )}
                         </div>
                         {isSelected && (
-                          <div className="text-xs text-text-muted mt-0.5 line-clamp-3">
+                          <div className="text-xs text-text-muted mt-0.5">
                             {effect.description}
                           </div>
                         )}

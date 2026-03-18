@@ -4,7 +4,7 @@ export const textDissolve: Effect = {
   id: 'text-dissolve',
   slug: 'text-dissolve',
   name: 'Text Dissolve',
-  description: 'Particles with abandonment issues. They drift into the void, panic, and rush back into formation. Every. Single. Time.',
+  description: 'Particles with separation anxiety. They dissolve into noise, regret it immediately, and rush back. Every. Single. Time.',
   category: 'text',
   tags: ['text', 'dissolve', 'noise', 'reform'],
   author: 'PRTCL Team',

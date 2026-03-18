@@ -12,7 +12,7 @@ export const blackhole: Effect = {
   id: 'black-hole',
   slug: 'black-hole',
   name: 'Black Hole',
-  description: '25,000 particles doing a surprisingly convincing impression of a singularity. I\'d recommend not getting too close, but you won\'t listen.',
+  description: 'A singularity, simulated. No real spacetime was harmed. Probably. I make no guarantees about your GPU.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['black hole', 'space', 'gargantua', 'accretion', 'physics'],

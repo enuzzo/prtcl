@@ -4,7 +4,7 @@ export const textWave: Effect = {
   id: 'text-wave',
   slug: 'text-wave',
   name: 'Text Wave',
-  description: 'Your words, undulating through space on a sine wave. It\'s trigonometry. I made it pretty for you. You\'re welcome.',
+  description: 'Your words, surfing a sine wave. It\'s just trigonometry but I\'ve made it look like poetry. Someone had to.',
   category: 'text',
   tags: ['text', 'wave', 'sine', '3d'],
   author: 'PRTCL Team',

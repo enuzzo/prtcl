@@ -4,7 +4,7 @@ export const cliffordTorus: Effect = {
   id: 'clifford-torus',
   slug: 'clifford-torus',
   name: '4D Clifford Torus',
-  description: 'A torus that lives in 4D and merely tolerates your 3D viewport. Six rotation planes. You can see maybe two. Congratulations.',
+  description: 'It rotates through six planes you can\'t perceive. Don\'t worry, nobody else can either. At least it\'s pretty.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['4d', 'clifford', 'torus', 'geometry', 'math'],
