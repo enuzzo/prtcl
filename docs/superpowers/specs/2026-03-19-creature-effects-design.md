@@ -18,8 +18,8 @@ Add `'creature'` to the `Effect['category']` type union in `src/engine/types.ts`
 
 All three effects share a core pattern:
 
-1. **Arm/joint mapping**: `armIndex = floor(i / jointsPerArm)`, `jointIndex = i % jointsPerArm`. Particles beyond `arms × jointsPerArm` are hidden at origin with zero alpha.
-2. **Chain computation**: Each joint's position is computed relative to its parent (previous joint or arm root) using angular offsets and stick lengths. The chain builds sequentially from root to tip.
+1. **Arm/joint mapping**: `armIndex = floor(i / jointsPerArm)`, `jointIndex = i % jointsPerArm`. Arm and joint counts are tuned so that `arms × jointsPerArm ≈ particleCount` — all allocated particles are used. Any excess particles (due to rounding) are positioned at `(99999, 99999, 99999)` with black color to clip off-screen.
+2. **Chain computation**: Each particle independently recomputes the chain from root up to its own joint index. Particle `i` at `jointIndex = 3` computes joints 0, 1, 2, 3 sequentially. This is O(jointIndex) per particle, not O(1). With high joint counts (300+), the last particles do significant work per frame — validated at target counts on desktop hardware.
 3. **Center motion**: A Lissajous curve in 3D drives the organism's center point (except Anemone, which is stationary).
 4. **Visual cohesion**: Particles are spaced closely along each arm. Additive blending creates natural glow "tentacles" without needing line primitives.
 5. **Deterministic randomness**: Per-arm variation (length, phase, color offset) via `sin(armIndex * 127.1 + 311.7)` hash pattern.
@@ -29,7 +29,7 @@ All three effects share a core pattern:
 
 ### Shape
 - Hemispherical bell (top) + long trailing tentacles (bottom)
-- ~12 arms, 30-40 joints each
+- ~50 arms, ~300 joints each (50 × 300 = 15,000 — full particle utilization)
 - Bell formed by shorter arms curving outward/upward; tentacles are longer arms hanging down
 
 ### Motion
@@ -66,8 +66,8 @@ All three effects share a core pattern:
 
 ### Shape
 - Dense nucleus + short muscular arms that coil into spirals
-- ~18 arms, 15-20 joints each, thicker appearance (larger point size near roots)
-- Compact, powerful silhouette
+- ~60 arms, ~300 joints each (60 × 300 = 18,000 — full particle utilization)
+- Thicker appearance (larger point size near roots), compact, powerful silhouette
 
 ### Motion
 - Center orbits aggressively (fast 3D Lissajous with irrational frequency ratios)
@@ -89,7 +89,7 @@ All three effects share a core pattern:
 | `aggression` | Aggression | 0.1 | 3.0 | 1.0 | Speed/chaos of movement |
 | `coil` | Coil | 0.0 | 2.0 | 1.0 | Spiral tightness |
 | `arms` | Arms | 6 | 30 | 18 | Number of arms (step: 1) |
-| `colorMode` | Color Mode | — | — | 0 | Dropdown: Lava/Venom/Abyss |
+| `krakenColor` | Color Mode | — | — | 0 | Dropdown: Lava/Venom/Abyss |
 
 ### Audio Mapping
 - `bass` → arm contraction (coil tighter)
@@ -107,7 +107,7 @@ All three effects share a core pattern:
 ### Shape
 - Fixed base (no center orbit) — rooted to a point
 - Many thin, tall arms reaching upward like a sea anemone
-- ~30-40 arms, 25-30 joints each, thin (small point size)
+- ~80 arms, ~250 joints each (80 × 250 = 20,000 — full particle utilization)
 - Dense forest of gently swaying filaments
 
 ### Motion
@@ -130,7 +130,7 @@ All three effects share a core pattern:
 | `density` | Density | 10 | 50 | 30 | Number of arms (step: 1) |
 | `sway` | Sway | 0.0 | 3.0 | 1.0 | Oscillation amplitude |
 | `current` | Current Speed | 0.0 | 2.0 | 0.5 | Wave propagation speed |
-| `palette` | Palette | — | — | 0 | Dropdown: Reef/Neon/Deep Sea/Blossom |
+| `anemonePalette` | Palette | — | — | 0 | Dropdown: Reef/Neon/Deep Sea/Blossom |
 
 ### Audio Mapping
 - `highs` → tip vibration
@@ -155,7 +155,17 @@ All three effects share a core pattern:
 - `src/effects/presets/index.ts` — import and register in `ALL_PRESETS`
 - `src/editor/EffectBrowser.tsx` — add `'creature'` to category order
 - `src/editor/MobileEffectDropdown.tsx` — add `'creature'` to category order
+- `src/editor/ControlPanel.tsx` — add `krakenColor` and `anemonePalette` to `DROPDOWN_CONTROLS` map
 - `CLAUDE.md` — document new category and presets
+
+## Implementation Notes
+
+### Effect Interface Fields
+Each preset file must provide all required `Effect` fields: `id`, `slug`, `name`, `description`, `author`, `category`, `tags`, `particleCount`, `pointSize`, `cameraDistance`, `autoRotateSpeed`, `createdAt`, `controls`, and `code`. Optional: `cameraPosition`, `cameraTarget`, `cameraZoom`.
+
+Precise camera coordinates and control defaults will be determined during implementation via the Copy Params tuning workflow. The baseline settings above are starting points.
+
+Each effect's code body must call `setInfo(name, description)` at `i === 0` per existing convention.
 
 ## Export Compatibility
 
@@ -169,10 +179,9 @@ Each effect needs a sarcastic/witty description in the GLaDOS tone established b
 - **Kraken**: *"Eighteen arms of pure aggression, coiling and striking at nothing. It has the temperament of a cornered octopus and the attention span of a caffeinated squirrel."*
 - **Anemone**: *"Thirty tendrils swaying in a current that doesn't exist. It sits there. That's it. That's the whole effect. And yet you'll watch it for ten minutes."*
 
-## Collateral Changes
+## Prerequisites (already applied)
 
-### Point Size Cap (already applied)
-Global point size slider max raised from 2.5 to 8.0 in both `ControlPanel.tsx` and `ExportSettings.tsx`.
+These changes were made prior to this spec and are committed separately:
 
-### Clifford Torus Retuning (already applied)
-Updated defaults to user-tuned values: pointSize 8, scale 29.516, camera [0.586, 4.288, 35.724], zoom 1.2, and recalibrated all control defaults.
+- **Point Size Cap**: Global slider max raised from 2.5 → 8.0 (`ControlPanel.tsx`, `ExportSettings.tsx`)
+- **Clifford Torus Retuning**: Updated defaults (pointSize 8, scale 29.516, new camera position, recalibrated controls)
