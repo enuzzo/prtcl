@@ -1,12 +1,10 @@
 import { useEffect, useRef } from 'react'
 
 /* ── Constants ─────────────────────────────────────────────── */
-const PARTICLE_COUNT = 1200
+const PARTICLE_COUNT = 1800
 const COLORS: string[] = ['#FF2BD6', '#7CFF00', '#A98ED1']
 const BG = '#08040E'
-const SPLASH_FONT = 'Pacifico'
-const FONT_URL = 'https://fonts.googleapis.com/css2?family=Pacifico&display=swap'
-const FONT_CSS = `400 80px ${SPLASH_FONT}` // for document.fonts.load()
+const SPLASH_FONT = '"Inconsolata", "JetBrains Mono", monospace'
 
 /* ── Timeline (ms) ─────────────────────────────────────────── */
 // "prtcl" forms → ".es" slides in → spreads to "particles" → explode
@@ -60,8 +58,8 @@ function sampleTextPointsSorted(
   off.height = h
   const ctx = off.getContext('2d')!
 
-  const fontSize = Math.max(48, Math.min(w * 0.14, 140))
-  ctx.font = `400 ${fontSize}px ${SPLASH_FONT}, cursive`
+  const fontSize = Math.max(64, Math.min(w * 0.16, 200))
+  ctx.font = `bold ${fontSize}px ${SPLASH_FONT}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#fff'
@@ -283,20 +281,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       raf = requestAnimationFrame(tick)
     }
 
-    // Inject Pacifico font and wait for it to load before starting
-    const loadFont = async () => {
-      if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = FONT_URL
-        document.head.appendChild(link)
-      }
-      try {
-        await document.fonts.load(FONT_CSS)
-      } catch { /* fallback: start anyway */ }
-      run()
-    }
-    loadFont()
+    document.fonts.ready.then(run).catch(run)
 
     return () => {
       dead = true
