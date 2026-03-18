@@ -17,19 +17,16 @@ const MANIFESTO = "Here's to the ones who never read the manual. The tinkerers. 
 
 const AURELIUS = "The happiness of your life depends upon the quality of your thoughts. Waste no more time arguing about what a good man should be. Be one. The best revenge is to be unlike him who performed the injury. Very little is needed to make a happy life. It is all within yourself in your way of thinking. You have power over your mind not outside events. Realize this and you will find strength. The soul becomes dyed with the color of its thoughts. When you arise in the morning think of what a privilege it is to be alive to think to enjoy to love."
 
-/** Attempt at decent 2D noise from layered sine — produces visible rolling hills */
-function noise2D(x: number, z: number): number {
-  // Layer 1: big rolling hills
-  const n1 = Math.sin(x * 0.8 + 1.3) * Math.cos(z * 0.6 + 0.7)
-  // Layer 2: medium bumps
-  const n2 = Math.sin(x * 1.7 + z * 1.3 + 2.1) * 0.4
-  // Layer 3: small ripples
-  const n3 = Math.cos(x * 3.1 - z * 2.3 + 0.7) * 0.15
+/** Layered sine noise with time for animated rolling hills */
+function noise2D(x: number, z: number, t: number): number {
+  const n1 = Math.sin(x * 0.8 + 1.3 + t * 0.3) * Math.cos(z * 0.6 + 0.7 + t * 0.2)
+  const n2 = Math.sin(x * 1.7 + z * 1.3 + 2.1 + t * 0.5) * 0.4
+  const n3 = Math.cos(x * 3.1 - z * 2.3 + 0.7 + t * 0.7) * 0.15
   return n1 + n2 + n3
 }
 
-function getTerrainY(x: number, z: number): number {
-  return noise2D(x * 0.04, z * 0.04) * 7.5
+function getTerrainY(x: number, z: number, t: number, heightMul: number): number {
+  return noise2D(x * 0.04, z * 0.04, t) * 7.5 * heightMul
 }
 
 function createAtlasTexture(): THREE.CanvasTexture {
@@ -213,9 +210,9 @@ export function TextTerrain() {
         const px = -(tileDim - 1) * 0.5 + x
         const pz = -(tileDim - 1) * 0.5 + z
 
-        const y0 = getTerrainY(px, pz)
-        const y1 = getTerrainY(px, pz - 1)
-        const y2 = getTerrainY(px + 1, pz)
+        const y0 = getTerrainY(px, pz, 0, 1)
+        const y1 = getTerrainY(px, pz - 1, 0, 1)
+        const y2 = getTerrainY(px + 1, pz, 0, 1)
 
         // Normal for tile orientation on terrain surface
         tri.a.set(px, y1, pz - 1)
@@ -284,7 +281,12 @@ export function TextTerrain() {
     }
   }, [controls, totalTiles])
 
-  // Animation loop — faithful to the reference's tween pattern
+  // Reusable objects for terrain normal calculation in the hot loop
+  const triRef = useMemo(() => new THREE.Triangle(), [])
+  const normalRef = useMemo(() => new THREE.Vector3(), [])
+  const laRef = useMemo(() => new THREE.Vector3(), [])
+
+  // Animation loop
   useFrame((_, delta) => {
     if (!meshRef.current) return
     const tiles = tilesRef.current
@@ -293,17 +295,19 @@ export function TextTerrain() {
     clockRef.current += delta
 
     const speed = controls.find(c => c.id === 'speed')?.value ?? 1
+    const waveSpd = controls.find(c => c.id === 'waveSpeed')?.value ?? 0.5
+    const waveHt = controls.find(c => c.id === 'waveHeight')?.value ?? 1.0
     const fallHeight = 30
     const dt = delta * speed
+    const waveTime = clockRef.current * waveSpd
 
-    // Count active and spawn new falling tiles continuously
+    // Spawn falling tiles
     const maxActive = Math.min(Math.floor(totalTiles * 0.15), 5000)
     let activeCount = 0
     for (let i = 0; i < tiles.length; i++) {
       if (tiles[i].inAction) activeCount++
     }
 
-    // Continuously respawn — like the reference which chains action→delay→action
     if (activeCount < maxActive) {
       const toStart = Math.min(Math.ceil(dt * 200), maxActive - activeCount)
       for (let n = 0; n < toStart; n++) {
@@ -322,30 +326,65 @@ export function TextTerrain() {
       }
     }
 
-    // Update all tiles
+    // Update ALL tiles — landed tiles get animated terrain height
     for (let i = 0; i < tiles.length; i++) {
       const tile = tiles[i]
-      if (!tile.inAction) continue
+      const px = tile.pos.x
+      const pz = tile.pos.z
 
-      tile.animProgress += dt / tile.animDuration
-      if (tile.animProgress >= 1) {
-        tile.animProgress = 1
-        tile.inAction = false
+      // Recalculate terrain height with animated time
+      const currentY = getTerrainY(px, pz, waveTime, waveHt)
+
+      if (tile.inAction) {
+        // Falling tile — advance animation
+        tile.animProgress += dt / tile.animDuration
+        if (tile.animProgress >= 1) {
+          tile.animProgress = 1
+          tile.inAction = false
+        }
+
+        const t = tile.animProgress
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+        // Compute current terrain normal for target rotation
+        const y1 = getTerrainY(px, pz - 1, waveTime, waveHt)
+        const y2 = getTerrainY(px + 1, pz, waveTime, waveHt)
+        triRef.a.set(px, y1, pz - 1)
+        triRef.b.set(px, currentY, pz)
+        triRef.c.set(px + 1, y2, pz)
+        triRef.getNormal(normalRef)
+
+        dummy.position.set(px, currentY, pz)
+        laRef.copy(dummy.position).add(normalRef)
+        dummy.lookAt(laRef)
+        dummy.rotation.z = 0
+        const tgtRx = dummy.rotation.x
+        const tgtRy = dummy.rotation.y
+
+        // Lerp rotation from tumble to terrain-aligned
+        const rx = tile.startRot.x * (1 - eased) + tgtRx * eased
+        const ry = tile.startRot.y * (1 - eased) + tgtRy * eased
+        const rz = tile.startRot.z * (1 - eased)
+
+        dummy.position.y = fallHeight * (1 - eased) + currentY * eased
+        dummy.rotation.set(rx, ry, rz)
+      } else {
+        // Landed tile — follow animated terrain surface
+        const y1 = getTerrainY(px, pz - 1, waveTime, waveHt)
+        const y2 = getTerrainY(px + 1, pz, waveTime, waveHt)
+        triRef.a.set(px, y1, pz - 1)
+        triRef.b.set(px, currentY, pz)
+        triRef.c.set(px + 1, y2, pz)
+        triRef.getNormal(normalRef)
+
+        dummy.position.set(px, currentY, pz)
+        laRef.copy(dummy.position).add(normalRef)
+        dummy.lookAt(laRef)
+        dummy.rotation.z = 0
       }
 
-      const t = tile.animProgress
-      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-
-      // Lerp rotation from random tumble to terrain-aligned
-      const rx = tile.startRot.x * (1 - eased) + tile.targetRot.x * eased
-      const ry = tile.startRot.y * (1 - eased) + tile.targetRot.y * eased
-      const rz = tile.startRot.z * (1 - eased) + tile.targetRot.z * eased
-
-      dummy.position.copy(tile.pos)
-      dummy.position.y = fallHeight * (1 - eased) + tile.targetY * eased
-      dummy.rotation.set(rx, ry, rz)
       dummy.updateMatrix()
-      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current!.setMatrixAt(i, dummy.matrix)
     }
 
     meshRef.current.instanceMatrix.needsUpdate = true
