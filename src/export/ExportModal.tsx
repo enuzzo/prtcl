@@ -12,7 +12,7 @@ import type { ExportMode, ExportSettings, ExportPayload } from './types'
 const TABS: { mode: ExportMode; label: string; icon: React.ReactNode }[] = [
   { mode: 'website', label: 'Website Embed', icon: <CodeXmlIcon size={14} /> },
   { mode: 'react', label: 'React Component', icon: <ReactIcon size={14} /> },
-  { mode: 'iframe', label: 'Iframe', icon: <AppWindowIcon size={14} /> },
+  { mode: 'iframe', label: '<iframe>', icon: <AppWindowIcon size={14} /> },
 ]
 
 export function ExportModal() {
