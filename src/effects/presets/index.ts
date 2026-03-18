@@ -8,6 +8,7 @@ import { cliffordTorus } from './clifford-torus'
 import { magneticDust } from './magnetic-dust'
 import { fibonacciCrystal } from './fibonacci-crystal'
 import { paperFleet } from './paper-fleet'
+import { textWave } from './text-wave'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, textWave]
