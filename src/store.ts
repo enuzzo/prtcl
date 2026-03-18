@@ -32,6 +32,13 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   // Export
   exportModalOpen: boolean
 
+  // Text-to-particles
+  textInput: string
+  textFont: string
+  textWeight: string
+  textPoints: Float32Array | null
+  textFontsLoaded: boolean
+
   // Performance (throttled — updated at most once per second)
   fps: number
   actualParticleCount: number
@@ -63,6 +70,13 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   toggleRightPanel: () => void
   setIsFullscreen: (fs: boolean) => void
   setExportModalOpen: (open: boolean) => void
+
+  // Actions: text
+  setTextInput: (text: string) => void
+  setTextFont: (font: string) => void
+  setTextWeight: (weight: string) => void
+  setTextPoints: (points: Float32Array | null) => void
+  setTextFontsLoaded: (loaded: boolean) => void
 
   // Actions: performance (throttled internally)
   setFps: (fps: number) => void
@@ -103,6 +117,13 @@ export const useStore = create<PrtclState>((set) => ({
   // Export
   exportModalOpen: false,
 
+  // Text-to-particles
+  textInput: 'PRTCL',
+  textFont: 'Montserrat',
+  textWeight: '700',
+  textPoints: null,
+  textFontsLoaded: false,
+
   // Performance
   fps: 0,
   actualParticleCount: 0,
@@ -139,6 +160,13 @@ export const useStore = create<PrtclState>((set) => ({
   toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
   setIsFullscreen: (fs) => set({ isFullscreen: fs }),
   setExportModalOpen: (open) => set({ exportModalOpen: open }),
+
+  // Actions: text
+  setTextInput: (text) => set({ textInput: text }),
+  setTextFont: (font) => set({ textFont: font }),
+  setTextWeight: (weight) => set({ textWeight: weight }),
+  setTextPoints: (points) => set({ textPoints: points }),
+  setTextFontsLoaded: (loaded) => set({ textFontsLoaded: loaded }),
 
   // ── Tracking ──────────────────────────────────────────
   trackingEnabled: false,

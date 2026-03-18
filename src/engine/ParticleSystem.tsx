@@ -51,6 +51,8 @@ export function ParticleSystem() {
   useFrame((_state, delta) => {
     const store = useStore.getState()
     const { compiledFn, controls, pointSize, bassBand, midsBand, highsBand, energy, beat } = store
+    const textPoints = store.textPoints
+    const textPts = store.selectedEffect?.category === 'text' ? (textPoints ?? undefined) : undefined
 
     if (!compiledFn) {
       geometry.setDrawRange(0, 0)
@@ -149,7 +151,7 @@ export function ParticleSystem() {
       if (i < count) {
         // Particle within new effect range — compute destination
         try {
-          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ, bassBand, midsBand, highsBand, energy, beat)
+          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, textPts, camX, camY, camZ, pointerX, pointerY, pointerZ, bassBand, midsBand, highsBand, energy, beat)
         } catch {
           // Effect error on this particle — leave at origin
         }
@@ -157,7 +159,7 @@ export function ParticleSystem() {
         // Disappearing particle — morph to a real particle's position in the new cloud
         // so it merges in naturally instead of collapsing to origin
         try {
-          compiledFn(i % count, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ)
+          compiledFn(i % count, count, target, color, time, THREE, getControl, setInfo, textPts, camX, camY, camZ, pointerX, pointerY, pointerZ)
         } catch {
           // fallback: stays at origin
         }
