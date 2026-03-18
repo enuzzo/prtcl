@@ -12,7 +12,7 @@ export const storm: Effect = {
   id: 'storm',
   slug: 'storm',
   name: 'Cumulonimbus Storm',
-  description: 'Ocean, rain, lightning, volumetric clouds. All particles. No textures were harmed.',
+  description: 'An entire weather system built from dots. Ocean, rain, lightning. Zero textures. I could make it rain harder, but I\'m being merciful.',
   author: 'PRTCL Team',
   category: 'organic',
   tags: ['storm', 'ocean', 'lightning', 'rain', 'clouds', 'weather', 'nature'],

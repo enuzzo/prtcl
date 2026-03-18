@@ -4,7 +4,7 @@ export const textDissolve: Effect = {
   id: 'text-dissolve',
   slug: 'text-dissolve',
   name: 'Text Dissolve',
-  description: 'Sand that remembers its shape. Particles drift away into noise, then snap back. Ethereal.',
+  description: 'Particles with abandonment issues. They drift into the void, panic, and rush back into formation. Every. Single. Time.',
   category: 'text',
   tags: ['text', 'dissolve', 'noise', 'reform'],
   author: 'PRTCL Team',

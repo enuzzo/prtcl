@@ -4,7 +4,7 @@ export const textScatter: Effect = {
   id: 'text-scatter',
   slug: 'text-scatter',
   name: 'Text Scatter',
-  description: 'Chaos finds meaning. A cascade ripples through the text — particles drift, orbit, sparkle, and reform in waves.',
+  description: 'Your text disassembles in a cascade, orbits around pretending to be lost, then reassembles like it planned the whole thing. Dramatic.',
   category: 'text',
   tags: ['text', 'scatter', 'cascade', 'wled', 'aurora', 'organic'],
   author: 'PRTCL Team',

@@ -4,7 +4,7 @@ export const starfield: Effect = {
   id: 'starfield',
   slug: 'starfield',
   name: 'Starfield',
-  description: 'Warp speed. Simple premise. Unreasonably mesmerizing.',
+  description: 'Warp speed. The most basic concept imaginable. And yet here you are, still staring. I expected more from you.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['starfield', 'warp', 'space', 'abstract'],

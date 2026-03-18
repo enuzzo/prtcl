@@ -13,7 +13,7 @@ export const frequency: Effect = {
   id: 'frequency',
   slug: 'frequency',
   name: 'Fractal Frequency',
-  description: 'Sound waves and fractal oscillations had a baby. It pulses.',
+  description: 'Sound waves and fractal oscillations had a baby. Nobody asked them to. It pulses anyway, and frankly, it\'s showing off.',
   author: 'PRTCL Team',
   category: 'math',
   tags: ['frequency', 'fractal', 'waves', 'harmonic', 'audio', 'spiral', 'interference'],

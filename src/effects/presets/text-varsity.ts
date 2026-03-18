@@ -4,7 +4,7 @@ export const textVarsity: Effect = {
   id: 'text-varsity',
   slug: 'text-varsity',
   name: 'Text Varsity',
-  description: 'Bold 3D lettering with a crisp offset shadow. Straight from the jersey to the particle cloud.',
+  description: 'Volumetric 3D lettering that breathes and casts its own shadow. Yes, the particles have more depth than most people.',
   category: 'text',
   tags: ['text', '3d', 'varsity', 'bold', 'shadow', 'offset', 'lettering'],
   author: 'PRTCL Team',

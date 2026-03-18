@@ -13,7 +13,7 @@ export const paperFleet: Effect = {
   id: 'paper-fleet',
   slug: 'paper-fleet',
   name: 'Paper Fleet',
-  description: 'Newton\'s laws, 10k paper planes, zero air traffic control. They orbit because math said so.',
+  description: '10,000 paper planes in a gravitational ballet with zero adult supervision. They orbit because physics doesn\'t need your approval.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['instanced', 'mesh', 'gravity', 'orbit', 'arrows', 'fleet', '3d'],

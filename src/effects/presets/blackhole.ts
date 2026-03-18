@@ -12,7 +12,7 @@ export const blackhole: Effect = {
   id: 'black-hole',
   slug: 'black-hole',
   name: 'Black Hole',
-  description: '25,000 particles pretending to be a supermassive singularity. No actual event horizon (probably).',
+  description: '25,000 particles doing a surprisingly convincing impression of a singularity. I\'d recommend not getting too close, but you won\'t listen.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['black hole', 'space', 'gargantua', 'accretion', 'physics'],

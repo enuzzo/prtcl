@@ -15,7 +15,7 @@ export const magneticDust: Effect = {
   id: 'magnetic-dust',
   slug: 'magnetic-dust',
   name: 'Magnetic Dust',
-  description: 'Metallic glitter attracted to your cursor. Move your mouse. You\'re welcome.',
+  description: 'Twenty thousand metallic particles, magnetically obsessed with your cursor. Don\'t flatter yourself. It\'s physics, not affection.',
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['cursor', 'interactive', 'glitter', 'attraction', 'metallic', 'mouse', 'touch'],
