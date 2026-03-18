@@ -124,12 +124,31 @@ getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loo
 
 **Point size range**: Normalized to 0.2–2.5 with step 0.1 for granular control. All preset `pointSize` defaults were recalibrated after the DPI fix (roughly halved from previous values).
 
+### Text-to-Particles
+
+Canvas text sampling produces a `Float32Array` of 3D points. Effects read these via the `textPoints` parameter (9th arg in compiled function signature). Google Fonts loaded lazily on first text effect selection.
+
+```
+User types text → debounce 300ms → offscreen canvas renders text → getImageData()
+→ extract alpha > 128 → normalize to world coords → resample to particleCount
+→ X-sorted Float32Array → Zustand store → ParticleSystem passes to compiledFn
+```
+
+**Text module** (`src/text/`): `sampler.ts` (canvas → Float32Array), `font-loader.ts` (lazy Google Fonts `<link>` + per-font readiness via `document.fonts.load()`), `fonts.ts` (12 curated fonts), `useTextSampling.ts` (debounced hook mounted in EditorLayout).
+
+**3 text effects**: Text Wave (sine displacement), Text Scatter (converge/hold/scatter cycle), Text Dissolve (trig-based noise drift/reform).
+
+**ControlPanel**: TEXT Tweakpane folder (text input, font dropdown, weight selector) shown only for `category: 'text'` effects. Pane rebuilds when `selectedEffectId` changes.
+
+**Export**: `textPoints` baked as inline `Float32Array` in HTML/React generators (rounded to 3 decimals). Iframe embed passes `text`/`font`/`weight` URL params, embed route samples at load time.
+
 ### Key File Locations
 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet)
+src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, text-wave, text-scatter, text-dissolve)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
@@ -198,7 +217,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
 - [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
-- [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
+- [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 3 text effects (Text Wave, Text Scatter, Text Dissolve), Tweakpane TEXT folder, export + embed support with baked textPoints
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
