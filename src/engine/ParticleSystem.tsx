@@ -94,8 +94,10 @@ export function ParticleSystem() {
     const actualPointSize = morphing
       ? fromPointSizeRef.current + (pointSize - fromPointSizeRef.current) * morphT
       : pointSize
+    // Multiply by pixelRatio so particles look the same size on Retina vs standard displays.
+    // gl_PointSize is in framebuffer pixels; without this, particles appear 2x bigger on dpr=1.
     if (material.uniforms['uPointSize']) {
-      material.uniforms['uPointSize'].value = actualPointSize
+      material.uniforms['uPointSize'].value = actualPointSize * _state.gl.getPixelRatio()
     }
 
     // Build control lookup once per frame (not per particle)

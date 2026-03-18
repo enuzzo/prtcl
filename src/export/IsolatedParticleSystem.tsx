@@ -31,7 +31,7 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
     return { geometry, material }
   }, [particleCount, pointSize])
 
-  useFrame(({ clock, camera }) => {
+  useFrame(({ clock, camera, gl }) => {
     const time = clock.getElapsedTime()
     const count = Math.min(particleCount, 20000)
     const addControl = (id: string) => controls[id] ?? 0
@@ -63,7 +63,7 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
     posAttr.needsUpdate = true
     colAttr.needsUpdate = true
     geometry.setDrawRange(0, count)
-    material.uniforms['uPointSize']!.value = pointSize
+    material.uniforms['uPointSize']!.value = pointSize * gl.getPixelRatio()
   })
 
   return <points geometry={geometry} material={material} />

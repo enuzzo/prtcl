@@ -138,7 +138,7 @@ export function generateHtmlEmbed(payload: ExportPayload): string {
     const material = new THREE.ShaderMaterial({
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
-      uniforms: { uPointSize: { value: POINT_SIZE } },
+      uniforms: { uPointSize: { value: POINT_SIZE * Math.min(window.devicePixelRatio, 2) } },
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       transparent: true,
