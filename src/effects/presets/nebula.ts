@@ -16,6 +16,9 @@ var speed = addControl('speed', 'Speed', 0.1, 3, 0.8);
 var scale = addControl('scale', 'Scale', 0.5, 5, 2.5);
 var turbulence = addControl('turbulence', 'Turbulence', 0, 2, 0.8);
 
+// Audio modulation
+turbulence = turbulence + mids * 1.5;
+
 setInfo('Nebula Organica', 'Volumetric gas cloud with breathing animation');
 
 // Deterministic seed from particle index
@@ -48,6 +51,9 @@ target.set(
 var hue = 0.55 + 0.1 * Math.sin(r * 2 + time * speed * 0.3);
 var sat = 0.6 + 0.3 * Math.sin(phi + time * 0.2);
 var lum = 0.4 + 0.3 * (1 - r / scale);
+// Beat flash — spike toward white
+lum = lum + beat * 0.35;
+sat = sat - beat * 0.25;
 color.setHSL(hue, sat, lum);
 `,
 }

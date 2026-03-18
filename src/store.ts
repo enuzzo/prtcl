@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import type { Effect, CompiledEffectFn, Control } from './engine/types'
 import type { TrackingSlice } from './tracking/types'
+import type { AudioSlice } from './audio/types'
 
-export interface PrtclState extends TrackingSlice {
+export interface PrtclState extends TrackingSlice, AudioSlice {
   // Effect state
   selectedEffect: Effect | null
   compiledFn: CompiledEffectFn | null
@@ -145,6 +146,21 @@ export const useStore = create<PrtclState>((set) => ({
   setTrackingReady: (ready) => set({ trackingReady: ready }),
   setTrackingError: (error) => set({ trackingError: error }),
   updateHandState: (state) => set(state),
+
+  // ── Audio ───────────────────────────────────────────────
+  audioEnabled: false,
+  audioReady: false,
+  audioError: null,
+  bassBand: 0,
+  midsBand: 0,
+  highsBand: 0,
+  energy: 0,
+  beat: 0,
+
+  setAudioEnabled: (on) => set({ audioEnabled: on }),
+  setAudioReady: (ready) => set({ audioReady: ready }),
+  setAudioError: (error) => set({ audioError: error }),
+  updateAudioData: (data) => set(data),
 
   // Actions: performance (throttled to once per second, batched together)
   setFps: (fps) => {

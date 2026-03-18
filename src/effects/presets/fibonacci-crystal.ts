@@ -32,6 +32,10 @@ var colorSpeed = addControl('colorSpeed', 'Color Speed', 0, 2, 0.625);
 var breath = addControl('breath', 'Breath', 0, 3, 1.639);
 var complexity = addControl('complexity', 'Complexity', 1, 20, 15.727);
 
+// Audio modulation
+breath = breath + energy * 2.0;
+faceting = faceting + beat * (1.0 - faceting) * 0.5;
+
 var PI = Math.PI;
 var TAU = PI * 2;
 var GOLDEN_ANGLE = TAU / (1 + (1 + Math.sqrt(5)) / 2);

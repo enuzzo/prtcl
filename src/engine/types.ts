@@ -24,6 +24,16 @@ export interface EffectContext {
   pointerY?: number
   /** Pointer world-space Z. 0 for now. */
   pointerZ?: number
+  /** Bass frequency band (20-250 Hz), normalized 0-1. 0 when mic off. */
+  bass?: number
+  /** Mid frequency band (250-2000 Hz), normalized 0-1. 0 when mic off. */
+  mids?: number
+  /** High frequency band (2000-20000 Hz), normalized 0-1. 0 when mic off. */
+  highs?: number
+  /** Average energy across all bands, normalized 0-1. 0 when mic off. */
+  energy?: number
+  /** Beat onset detector: 1.0 on beat, decays to 0.0 over ~100ms. 0 when mic off. */
+  beat?: number
 }
 
 export interface Control {
@@ -75,6 +85,11 @@ export type CompiledEffectFn = (
   pointerX?: number,
   pointerY?: number,
   pointerZ?: number,
+  bass?: number,
+  mids?: number,
+  highs?: number,
+  energy?: number,
+  beat?: number,
 ) => void
 
 export interface CompiledEffect {

@@ -50,7 +50,7 @@ export function ParticleSystem() {
 
   useFrame((_state, delta) => {
     const store = useStore.getState()
-    const { compiledFn, controls, pointSize } = store
+    const { compiledFn, controls, pointSize, bassBand, midsBand, highsBand, energy, beat } = store
 
     if (!compiledFn) {
       geometry.setDrawRange(0, 0)
@@ -147,7 +147,7 @@ export function ParticleSystem() {
       if (i < count) {
         // Particle within new effect range — compute destination
         try {
-          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ)
+          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, undefined, camX, camY, camZ, pointerX, pointerY, pointerZ, bassBand, midsBand, highsBand, energy, beat)
         } catch {
           // Effect error on this particle — leave at origin
         }

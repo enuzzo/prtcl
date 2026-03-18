@@ -24,6 +24,7 @@ export function compileEffect(effect: Effect): Result<CompiledEffect> {
       'addControl', 'setInfo', 'textPoints',
       'camX', 'camY', 'camZ',
       'pointerX', 'pointerY', 'pointerZ',
+      'bass', 'mids', 'highs', 'energy', 'beat',
       effect.code,
     ) as (...args: unknown[]) => void
   } catch (e) {
@@ -54,7 +55,7 @@ export function compileEffect(effect: Effect): Result<CompiledEffect> {
     for (let i = 0; i < Math.min(effect.particleCount, 100); i++) {
       target.set(0, 0, 0)
       color.set(1, 1, 1)
-      rawFn(i, 100, target, color, 0, THREE, addControl, setInfo, undefined, 0, 0, 0, 0, 0, 0)
+      rawFn(i, 100, target, color, 0, THREE, addControl, setInfo, undefined, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     }
   } catch (e) {
     return { ok: false, error: `Runtime error: ${(e as Error).message}` }
@@ -64,7 +65,7 @@ export function compileEffect(effect: Effect): Result<CompiledEffect> {
   target.set(0, 0, 0)
   color.set(1, 1, 1)
   try {
-    rawFn(0, 100, target, color, 0, THREE, addControl, setInfo, undefined, 0, 0, 0)
+    rawFn(0, 100, target, color, 0, THREE, addControl, setInfo, undefined, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
   } catch (e) {
     return { ok: false, error: `Runtime error: ${(e as Error).message}` }
   }

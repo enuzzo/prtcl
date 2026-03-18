@@ -81,6 +81,22 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 
 **Key files**: `hand-camera.ts` (camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay).
 
+### Audio Reactivity
+
+Microphone input via Web Audio API for real-time audio-reactive particle effects (`src/audio/`). Lazy-loaded on first mic toggle (no autoplay policy issues).
+
+```
+getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loop → Zustand store → ParticleSystem (useFrame, 60fps)
+```
+
+**Frequency bands**: FFT splits 512 bins into bass (20-250Hz), mids (250-2kHz), highs (2k-20kHz), plus total energy — all normalized 0-1. Beat detector uses rolling bass average with 1.5× threshold, decays 1.0→0.0 over 100ms.
+
+**Effect integration**: 5 new params (`bass`, `mids`, `highs`, `energy`, `beat`) appended to compiled function signature. All zero when mic is off — effects need no conditionals.
+
+**UI**: Mic toggle button in TopBar (left of hand tracking). On click, 5 mini frequency bars expand leftward (300ms CSS transition). Bars reflect spectral segments in real-time (#FF2BD6 accent color).
+
+**Key files**: `analyser.ts` (band computation + BeatDetector class), `useAudioReactivity.ts` (hook: mic lifecycle, rAF analysis, store updates), `types.ts` (AudioSlice interface).
+
 ### Key File Locations
 
 ```
@@ -88,6 +104,7 @@ src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, val
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
 src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
+src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
 src/hooks/               — Shared React hooks (useIsMobile)
 src/store.ts             — Zustand store (effect state, settings, camera, panels, tracking, throttled perf metrics)
@@ -149,7 +166,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
-- [ ] **Phase 1.11**: Audio reactivity — microphone input, Spotify/external audio sources, frequency analysis driving effect parameters
+- [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery

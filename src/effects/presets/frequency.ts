@@ -37,6 +37,10 @@ var pulse = addControl("pulse", "Pulse Speed", 0.1, 5.0, 0.633);
 var fractal = addControl("fractal", "Fractal Depth", 1.0, 6.0, 3.0);
 var colorSpeed = addControl("colorSpeed", "Color Speed", 0.0, 5.0, 1.0);
 
+// Audio modulation (values are 0 when mic is off — no effect)
+amp = amp + bass * amp * 0.5;
+freq = freq + highs * freq * 0.3;
+
 var t = time * pulse;
 var fi = i / count;
 
@@ -77,11 +81,14 @@ var ry = nx * st + ny * ct;
 target.set(rx * S, ry * S, nz * S);
 
 // color based on frequency energy — colorSpeed controls cycling rate
-var energy = Math.abs(wave);
+var waveEnergy = Math.abs(wave);
 var colorT = time * colorSpeed;
-var hue = 0.6 + 0.4 * Math.sin(energy * 3.0 + colorT);
-var sat = 0.8 + 0.2 * energy;
-var light = 0.4 + 0.3 * energy;
+var hue = 0.6 + 0.4 * Math.sin(waveEnergy * 3.0 + colorT);
+var sat = 0.8 + 0.2 * waveEnergy;
+var light = 0.4 + 0.3 * waveEnergy;
+// Beat flash — spike brightness toward white on onset
+light = light + beat * 0.4;
+sat = sat - beat * 0.3;
 color.setHSL(hue, sat, light);
 
 if (i === 0) {

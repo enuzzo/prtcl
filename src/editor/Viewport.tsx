@@ -8,6 +8,7 @@ import { useStore } from '../store'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
+import { useAudioReactivity } from '../audio/useAudioReactivity'
 import { TrackingThumbnail } from './TrackingThumbnail'
 
 const MORPH_DURATION = 2.0 // seconds — must match ParticleSystem
@@ -138,6 +139,7 @@ export function Viewport() {
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const selectedEffect = useStore((s) => s.selectedEffect)
   const { videoEl } = useHandTracking()
+  useAudioReactivity()
 
   // Determine which renderer to use
   const isCustom = selectedEffect?.renderer === 'custom'

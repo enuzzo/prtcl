@@ -25,7 +25,20 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const trackingReady = useStore((s) => s.trackingReady)
   const trackingError = useStore((s) => s.trackingError)
+  const audioEnabled = useStore((s) => s.audioEnabled)
+  const audioReady = useStore((s) => s.audioReady)
+  const audioError = useStore((s) => s.audioError)
+  const bassBand = useStore((s) => s.bassBand)
+  const midsBand = useStore((s) => s.midsBand)
+  const highsBand = useStore((s) => s.highsBand)
   const selectedEffect = useStore((s) => s.selectedEffect)
+
+  const toggleAudio = useCallback(() => {
+    if (audioError) {
+      useStore.getState().setAudioError(null)
+    }
+    useStore.getState().setAudioEnabled(!audioEnabled)
+  }, [audioEnabled, audioError])
 
   const toggleTracking = useCallback(() => {
     if (trackingError) {
@@ -86,6 +99,59 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          {/* Audio mic toggle + expanding bars */}
+          <div className="flex items-center">
+            {/* Expanding frequency bars — grow left from mic button */}
+            <div
+              className="flex items-end gap-[2px] overflow-hidden transition-all duration-300 ease-in-out"
+              style={{
+                width: audioEnabled && audioReady && !isMobile ? '40px' : '0px',
+                marginRight: audioEnabled && audioReady && !isMobile ? '6px' : '0px',
+                opacity: audioEnabled && audioReady ? 1 : 0,
+              }}
+            >
+              {[
+                bassBand,
+                (bassBand + midsBand) / 2,
+                midsBand,
+                (midsBand + highsBand) / 2,
+                highsBand,
+              ].map((v, idx) => (
+                <div
+                  key={idx}
+                  className="w-[4px] rounded-sm"
+                  style={{
+                    height: `${Math.max(2, v * 16)}px`,
+                    backgroundColor: `rgba(255, 43, 214, ${0.4 + v * 0.6})`,
+                    transition: 'height 50ms ease-out',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Mic button */}
+            <button
+              onClick={toggleAudio}
+              className={`px-3 py-1.5 rounded text-sm font-mono transition-colors ${
+                audioError
+                  ? 'bg-danger/10 text-danger border border-danger/30'
+                  : audioEnabled
+                    ? 'bg-accent2/15 text-accent2 border border-accent2/40'
+                    : 'bg-elevated text-text-muted border border-transparent hover:bg-border/50'
+              } ${audioEnabled && !audioReady ? 'animate-pulse' : ''}`}
+              title={
+                audioError
+                  ?? (audioEnabled && !audioReady
+                    ? 'Requesting mic...'
+                    : audioEnabled
+                      ? 'Mic ON — click to mute'
+                      : 'React to sound')
+              }
+            >
+              🎙️
+            </button>
+          </div>
+
           {/* Hand Tracking toggle */}
           <button
             onClick={toggleTracking}
