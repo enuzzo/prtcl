@@ -32,8 +32,6 @@ export const paperFleet: Effect = {
   code: `
 // Color scheme: 0=PRTCL, 1=Classic, 2=Ocean, 3=Ember, 4=Ghost
 addControl('colorScheme', 'Color Scheme', 0, 4, 0);
-// Discipline: 0=original orbits (default), 1=tighter circles (reversible)
-addControl('discipline', 'Discipline', 0, 1, 0);
 // Speed: time scale multiplier for the simulation
 addControl('speed', 'Speed', 0.1, 3, 1);
 target.set(0, 0, 0);

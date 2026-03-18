@@ -123,12 +123,12 @@ export function PaperFleet() {
     const schemeIdx = schemeControl ? Math.round(schemeControl.value) : 0
     const scheme = COLOR_SCHEMES[schemeIdx % COLOR_SCHEMES.length]!
 
-    const disciplineControl = controls.find(c => c.id === 'discipline')
-    const discipline = disciplineControl ? disciplineControl.value : 0
-
     const speedControl = controls.find(c => c.id === 'speed')
     const speed = speedControl ? speedControl.value : 1.0
     const dt = dtRaw * speed
+
+    // Point size controls arrow scale
+    const arrowScale = store.pointSize
 
     // Initialize or resize arrows array
     const needsReinit = !arrowsRef.current || prevCountRef.current !== count
@@ -188,37 +188,11 @@ export function PaperFleet() {
     for (let i = 0; i < count; i++) {
       const arrow = arrows[i]!
 
-      // ── EXACT original gravity: -PI / distSq ──
-      // This is the ONLY gravity. It creates stable orbits with hollow center.
+      // ── Original gravity: -PI / distSq ──
+      // Creates stable orbits with hollow center
       _v3.copy(arrow.position)
         .multiplyScalar(-Math.PI / arrow.position.lengthSq())
       arrow.velocity.add(_v3)
-
-      // ── Discipline overlay (additive, reversible) ──
-      // When discipline > 0: gently nudge velocity toward circular orbit
-      // When discipline = 0: pure original physics, no modification
-      if (discipline > 0) {
-        const dist = arrow.position.length()
-        if (dist > 1) {
-          // Compute ideal circular orbit velocity at this distance
-          // v_circular = sqrt(PI / dist) for our gravity model
-          const idealSpeed = Math.sqrt(Math.PI / dist)
-          const currentSpeed = arrow.velocity.length()
-
-          // Dampen excess velocity (brings runaways back into orbit)
-          if (currentSpeed > idealSpeed * 1.5) {
-            const dampFactor = 1.0 - discipline * 0.01
-            arrow.velocity.multiplyScalar(dampFactor)
-          }
-
-          // Gently steer velocity perpendicular to radius (circularize)
-          // Project velocity onto tangent plane, blend toward it
-          const radial = _v3.copy(arrow.position).normalize()
-          const radialComponent = arrow.velocity.dot(radial)
-          // Remove some radial velocity (makes orbit more circular)
-          arrow.velocity.addScaledVector(radial, -radialComponent * discipline * 0.005)
-        }
-      }
 
       // Position from velocity
       _v3.copy(arrow.velocity).multiplyScalar(dt)
@@ -228,9 +202,10 @@ export function PaperFleet() {
       _v3.copy(arrow.velocity).normalize()
       arrow.rotation.setFromUnitVectors(ARROW_FORWARD, _v3)
 
-      // Write to instance matrix
+      // Write to instance matrix (pointSize controls arrow scale)
       dummy.position.copy(arrow.position)
       dummy.quaternion.copy(arrow.rotation)
+      dummy.scale.setScalar(arrowScale)
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
     }

@@ -86,7 +86,7 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/components/          — SplashScreen (Canvas 2D particle text animation)
 src/hooks/               — Shared React hooks (useIsMobile)
@@ -148,6 +148,8 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
+- [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
+- [ ] **Phase 1.11**: Audio reactivity — microphone input, Spotify/external audio sources, frequency analysis driving effect parameters
 - [ ] **Phase 2**: Export system — 4 modes + modal + live preview
 - [ ] **Phase 3**: Text-to-particles — canvas sampler, Google Fonts, 3 text effects
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
