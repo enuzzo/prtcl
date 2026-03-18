@@ -15,13 +15,11 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
   const target = useMemo(() => new THREE.Vector3(), [])
   const color = useMemo(() => new THREE.Color(), [])
 
-  const { geometry, material, positions, colors } = useMemo(() => {
+  const { geometry, material } = useMemo(() => {
     const count = Math.min(particleCount, 20000)
-    const positions = new Float32Array(count * 3)
-    const colors = new Float32Array(count * 3)
     const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-    geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3))
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(count * 3), 3))
+    geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(new Float32Array(count * 3), 3))
     const material = new THREE.ShaderMaterial({
       uniforms: { uPointSize: { value: pointSize } },
       vertexShader: VERTEX_SHADER,
@@ -30,13 +28,19 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     })
-    return { geometry, material, positions, colors }
+    return { geometry, material }
   }, [particleCount, pointSize])
 
   useFrame(({ clock, camera }) => {
     const time = clock.getElapsedTime()
     const count = Math.min(particleCount, 20000)
     const addControl = (id: string) => controls[id] ?? 0
+
+    // Three.js v0.183+ copies arrays in BufferAttribute — must read the actual backing arrays
+    const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute
+    const colAttr = geometry.getAttribute('customColor') as THREE.BufferAttribute
+    const pos = posAttr.array as Float32Array
+    const col = colAttr.array as Float32Array
 
     for (let i = 0; i < count; i++) {
       target.set(0, 0, 0)
@@ -52,12 +56,12 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
       } catch { /* skip erroring particles */ }
       if (!isFinite(target.x)) target.set(0, 0, 0)
       const idx = i * 3
-      positions[idx] = target.x; positions[idx + 1] = target.y; positions[idx + 2] = target.z
-      colors[idx] = color.r; colors[idx + 1] = color.g; colors[idx + 2] = color.b
+      pos[idx] = target.x; pos[idx + 1] = target.y; pos[idx + 2] = target.z
+      col[idx] = color.r; col[idx + 1] = color.g; col[idx + 2] = color.b
     }
 
-    geometry.attributes['position']!.needsUpdate = true
-    geometry.attributes['customColor']!.needsUpdate = true
+    posAttr.needsUpdate = true
+    colAttr.needsUpdate = true
     geometry.setDrawRange(0, count)
     material.uniforms['uPointSize']!.value = pointSize
   })
