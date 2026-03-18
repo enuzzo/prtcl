@@ -6,12 +6,13 @@ import { ExportSettingsPanel } from './ExportSettings'
 import { WebsiteEmbedTab } from './tabs/WebsiteEmbedTab'
 import { ReactTab } from './tabs/ReactTab'
 import { IframeTab } from './tabs/IframeTab'
+import { CodeXmlIcon, ReactIcon, AppWindowIcon } from './icons'
 import type { ExportMode, ExportSettings, ExportPayload } from './types'
 
-const TABS: { mode: ExportMode; label: string }[] = [
-  { mode: 'website', label: 'Website Embed' },
-  { mode: 'react', label: 'React Component' },
-  { mode: 'iframe', label: 'Iframe' },
+const TABS: { mode: ExportMode; label: string; icon: React.ReactNode }[] = [
+  { mode: 'website', label: 'Website Embed', icon: <CodeXmlIcon size={14} /> },
+  { mode: 'react', label: 'React Component', icon: <ReactIcon size={14} /> },
+  { mode: 'iframe', label: 'Iframe', icon: <AppWindowIcon size={14} /> },
 ]
 
 export function ExportModal() {
@@ -154,7 +155,7 @@ export function ExportModal() {
                   : 'text-text-muted hover:text-text hover:bg-elevated border border-transparent'
               }`}
             >
-              {tab.label}
+              <span className="flex items-center gap-1.5">{tab.icon} {tab.label}</span>
             </button>
           ))}
         </div>
