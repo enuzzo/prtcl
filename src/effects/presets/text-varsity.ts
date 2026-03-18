@@ -38,10 +38,13 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
   var layerT = numLayers > 1 ? layerIdx / (numLayers - 1) : 1.0; // 0=back, 1=front
 
   // ── Breathing pulse ──
-  // Whole text gently expands/contracts in Z (thickness pulses)
+  // Whole text gently expands/contracts — Z thickness pulses + subtle XY scale
   // Slow sine, stronger on front layers
-  var breathAmt = breathe * 0.06;
-  var breathPhase = Math.sin(time * 0.8) * breathAmt * (0.3 + layerT * 0.7);
+  var breathSine = Math.sin(time * 0.8);
+  var breathZAmt = breathe * 0.25;
+  var breathPhase = breathSine * breathZAmt * (0.3 + layerT * 0.7);
+  // Subtle XY scale pulse — letters gently expand/contract from center
+  var breathScale = 1.0 + breathSine * breathe * 0.04;
 
   // ── Shadow drift ──
   // Back layers' offset angle slowly oscillates — light appears to move
@@ -54,9 +57,9 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
   var offX = Math.cos(driftAngle) * depth;
   var offY = Math.sin(driftAngle) * depth;
 
-  // Each layer is progressively offset
-  var px = tx + offX * invertT;
-  var py = ty + offY * invertT;
+  // Each layer is progressively offset (with breathing XY scale)
+  var px = tx * breathScale + offX * invertT;
+  var py = ty * breathScale + offY * invertT;
 
   // Base Z from layer offset (back layers pushed behind front)
   var baseZ = -depth * invertT * 0.8;
