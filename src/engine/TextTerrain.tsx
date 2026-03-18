@@ -4,30 +4,34 @@ import * as THREE from 'three'
 import { useStore } from '../store'
 
 /**
- * Text Terrain — a landscape of random letters on a simplex-noise terrain.
- * Letters fall from the sky and land on the surface, creating a living
- * typographic landscape. Based on prisoner849's TextTerrain demo.
- *
- * Uses InstancedMesh with a canvas-generated letter atlas texture.
- * Custom shader maps each instance to a different letter from the atlas.
+ * Text Terrain — a landscape of letters on a noise terrain.
+ * Letters fall from the sky tumbling and spinning, then settle onto the
+ * surface. Faithful port of prisoner849's TextTerrain demo adapted
+ * for the PRTCL dark-background aesthetic.
  */
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-const ATLAS_DIM = 8 // 8x8 grid in the atlas texture
+const ATLAS_DIM = 8
 
-// Simple 2D noise using sine combinations (no SimplexNoise import needed)
+const MANIFESTO = "Here's to the ones who never read the manual. The tinkerers. The overthinkers. The dangerously caffeinated. The ones with solder burns and beautiful ideas. The square pegs who 3D-printed their own holes. They ship things that don't scale. They build things nobody asked for. They mass-produce prototypes of problems that don't exist yet. You can ignore them. You can fund them. You can ask them why they didn't just use Canva. About the only thing you can't do is get them to stop making another version. Because they don't optimize they obsess. They don't consume they void warranties. They don't dream they compile. They stare at a blank terminal and see a universe. They look at a datasheet and see a sculpture. They buy one LED and end up with a thousand. They're the reason there's flux on the kitchen table and a Raspberry Pi doing something gorgeous that no one will ever see. Maybe they have to be unreasonable. How else do you turn noise into music code into light or a weekend into a working prototype of something the world didn't know it was missing. We don't make tools for the reasonable ones. We make tools for these idiots. Because the ones absurd enough to think a single particle can change how you see the world are usually right."
+
+const AURELIUS = "The happiness of your life depends upon the quality of your thoughts. Waste no more time arguing about what a good man should be. Be one. The best revenge is to be unlike him who performed the injury. Very little is needed to make a happy life. It is all within yourself in your way of thinking. You have power over your mind not outside events. Realize this and you will find strength. The soul becomes dyed with the color of its thoughts. When you arise in the morning think of what a privilege it is to be alive to think to enjoy to love."
+
+/** Attempt at decent 2D noise from layered sine — produces visible rolling hills */
 function noise2D(x: number, z: number): number {
-  const n1 = Math.sin(x * 0.73 + z * 0.91) * Math.cos(z * 0.67 - x * 0.43)
-  const n2 = Math.sin(x * 0.37 + z * 1.17 + 2.1) * 0.5
-  const n3 = Math.cos(x * 1.31 - z * 0.89 + 0.7) * 0.3
-  return (n1 + n2 + n3) * 0.6
+  // Layer 1: big rolling hills
+  const n1 = Math.sin(x * 0.8 + 1.3) * Math.cos(z * 0.6 + 0.7)
+  // Layer 2: medium bumps
+  const n2 = Math.sin(x * 1.7 + z * 1.3 + 2.1) * 0.4
+  // Layer 3: small ripples
+  const n3 = Math.cos(x * 3.1 - z * 2.3 + 0.7) * 0.15
+  return n1 + n2 + n3
 }
 
-function getTerrainY(x: number, z: number, scale: number): number {
-  return noise2D(x * scale, z * scale) * 7.5
+function getTerrainY(x: number, z: number): number {
+  return noise2D(x * 0.04, z * 0.04) * 7.5
 }
 
-/** Create the letter atlas texture on a canvas */
 function createAtlasTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas')
   const ctx = c.getContext('2d')!
@@ -54,19 +58,38 @@ function createAtlasTexture(): THREE.CanvasTexture {
   return tex
 }
 
-/** Per-tile state for the falling animation */
+/** Map a character to its atlas index */
+function charToIdx(ch: string): number {
+  const idx = ALPHABET.indexOf(ch)
+  return idx >= 0 ? idx : Math.floor(Math.random() * ALPHABET.length)
+}
+
+/** Build letter indices from text content for the grid */
+function textToLetterIndices(text: string, count: number): Float32Array {
+  const arr = new Float32Array(count)
+  // Filter to only alphabetic chars
+  const chars = text.split('').filter(c => ALPHABET.includes(c))
+  if (chars.length === 0) {
+    // Fallback to random
+    for (let i = 0; i < count; i++) arr[i] = Math.floor(Math.random() * ALPHABET.length)
+  } else {
+    for (let i = 0; i < count; i++) {
+      arr[i] = charToIdx(chars[i % chars.length])
+    }
+  }
+  return arr
+}
+
 interface TileState {
   targetY: number
   targetRot: THREE.Euler
   pos: THREE.Vector3
   inAction: boolean
-  animProgress: number // 0 = at height, 1 = landed
-  animDelay: number
+  animProgress: number
   animDuration: number
   startRot: THREE.Vector3
 }
 
-/** Color palette generators */
 const PALETTES = [
   // PRTCL: magenta + lime
   (depth: number) => {
@@ -74,7 +97,7 @@ const PALETTES = [
     c.setHSL(Math.random() < 0.5 ? 0.89 : 0.25, 0.9, 0.3 + depth * 0.4)
     return c
   },
-  // Typewriter: near-white (black letters on white bg simulated as bright particles)
+  // Typewriter: near-white
   (depth: number) => {
     const c = new THREE.Color()
     c.setHSL(0.1, 0.05, 0.6 + depth * 0.35)
@@ -94,37 +117,49 @@ const PALETTES = [
   },
 ]
 
+// Text content presets
+const TEXT_CONTENTS: Record<number, string> = {
+  0: '', // Custom — use random
+  1: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  2: MANIFESTO,
+  3: AURELIUS,
+}
+
 export function TextTerrain() {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const clockRef = useRef(0)
 
-  // Store
   const particleCount = useStore((s) => s.particleCount)
   const controls = useStore((s) => s.controls)
 
-  // Determine grid size from particle count (square grid)
   const tileDim = useMemo(() => Math.max(10, Math.floor(Math.sqrt(Math.min(particleCount, 40000)))), [particleCount])
   const totalTiles = tileDim * tileDim
 
-  // Create atlas texture once
   const atlasTexture = useMemo(() => createAtlasTexture(), [])
 
-  // Per-instance letter indices
+  // Determine text content from control
+  const contentIdx = Math.round(controls.find(c => c.id === 'terrainText')?.value ?? 2)
+  const textContent = TEXT_CONTENTS[contentIdx] ?? ''
+
+  // Per-instance letter indices — from text content or random
   const letterIndices = useMemo(() => {
+    if (textContent) {
+      return textToLetterIndices(textContent, totalTiles)
+    }
     return new Float32Array(Array.from({ length: totalTiles }, () =>
       Math.floor(Math.random() * ALPHABET.length)
     ))
-  }, [totalTiles])
+  }, [totalTiles, textContent])
 
-  // Geometry: a flat plane for each letter tile
+  // Geometry
   const geometry = useMemo(() => {
     const g = new THREE.PlaneGeometry(0.9, 0.9)
     g.setAttribute('letterIdx', new THREE.InstancedBufferAttribute(letterIndices, 1))
     return g
   }, [letterIndices])
 
-  // Custom material with atlas UV mapping per instance
+  // Custom material with atlas UV mapping
   const material = useMemo(() => {
     const m = new THREE.MeshBasicMaterial({
       map: atlasTexture,
@@ -164,44 +199,43 @@ export function TextTerrain() {
     return m
   }, [atlasTexture])
 
-  // Tile states for animation
   const tilesRef = useRef<TileState[]>([])
 
-  // Initialize tile positions on terrain
+  // Initialize terrain + start many tiles falling immediately (like the reference)
   useEffect(() => {
-    const noiseScale = 0.01
     const tiles: TileState[] = []
     const tri = new THREE.Triangle()
     const normal = new THREE.Vector3()
-    const lookAt = new THREE.Vector3()
+    const la = new THREE.Vector3()
 
     for (let z = 0; z < tileDim; z++) {
       for (let x = 0; x < tileDim; x++) {
         const px = -(tileDim - 1) * 0.5 + x
         const pz = -(tileDim - 1) * 0.5 + z
 
-        const y0 = getTerrainY(px, pz, noiseScale)
-        const y1 = getTerrainY(px, pz - 1, noiseScale)
-        const y2 = getTerrainY(px + 1, pz, noiseScale)
+        const y0 = getTerrainY(px, pz)
+        const y1 = getTerrainY(px, pz - 1)
+        const y2 = getTerrainY(px + 1, pz)
 
-        // Compute terrain normal for tile orientation
+        // Normal for tile orientation on terrain surface
         tri.a.set(px, y1, pz - 1)
         tri.b.set(px, y0, pz)
         tri.c.set(px + 1, y2, pz)
         tri.getNormal(normal)
 
         dummy.position.set(px, y0, pz)
-        lookAt.copy(dummy.position).add(normal)
-        dummy.lookAt(lookAt)
+        la.copy(dummy.position).add(normal)
+        dummy.lookAt(la)
         dummy.rotation.z = 0
 
+        // Stagger: most tiles start in-flight, landing over first ~10s
+        const startLanded = Math.random() > 0.7 // 30% start already placed
         tiles.push({
           targetY: y0,
           targetRot: dummy.rotation.clone(),
           pos: new THREE.Vector3(px, y0, pz),
-          inAction: false,
-          animProgress: 1, // start landed
-          animDelay: Math.random() * 8, // initial stagger
+          inAction: !startLanded,
+          animProgress: startLanded ? 1 : Math.random() * 0.3, // in-flight tiles at random early progress
           animDuration: 8 + Math.random() * 4,
           startRot: new THREE.Vector3(
             (Math.random() - 0.5) * Math.PI * 3,
@@ -210,8 +244,19 @@ export function TextTerrain() {
           ),
         })
 
-        // Set initial matrix
-        dummy.updateMatrix()
+        // Set initial matrix — landed tiles at terrain, flying tiles at height
+        if (startLanded) {
+          dummy.updateMatrix()
+        } else {
+          const earlyProgress = tiles[tiles.length - 1].animProgress
+          dummy.position.y = 30 * (1 - earlyProgress) + y0 * earlyProgress
+          dummy.rotation.set(
+            tiles[tiles.length - 1].startRot.x * (1 - earlyProgress),
+            tiles[tiles.length - 1].startRot.y * (1 - earlyProgress),
+            tiles[tiles.length - 1].startRot.z * (1 - earlyProgress),
+          )
+          dummy.updateMatrix()
+        }
         if (meshRef.current) {
           meshRef.current.setMatrixAt(z * tileDim + x, dummy.matrix)
         }
@@ -239,7 +284,7 @@ export function TextTerrain() {
     }
   }, [controls, totalTiles])
 
-  // Animation loop
+  // Animation loop — faithful to the reference's tween pattern
   useFrame((_, delta) => {
     if (!meshRef.current) return
     const tiles = tilesRef.current
@@ -251,16 +296,16 @@ export function TextTerrain() {
     const fallHeight = 30
     const dt = delta * speed
 
-    // Pick random tiles to start falling
-    const maxActive = Math.min(Math.floor(totalTiles * 0.12), 5000)
+    // Count active and spawn new falling tiles continuously
+    const maxActive = Math.min(Math.floor(totalTiles * 0.15), 5000)
     let activeCount = 0
     for (let i = 0; i < tiles.length; i++) {
       if (tiles[i].inAction) activeCount++
     }
 
-    // Start new falling tiles
+    // Continuously respawn — like the reference which chains action→delay→action
     if (activeCount < maxActive) {
-      const toStart = Math.min(Math.floor(dt * 50), maxActive - activeCount)
+      const toStart = Math.min(Math.ceil(dt * 200), maxActive - activeCount)
       for (let n = 0; n < toStart; n++) {
         const idx = Math.floor(Math.random() * tiles.length)
         const tile = tiles[idx]
@@ -277,7 +322,7 @@ export function TextTerrain() {
       }
     }
 
-    // Update all active tiles
+    // Update all tiles
     for (let i = 0; i < tiles.length; i++) {
       const tile = tiles[i]
       if (!tile.inAction) continue
@@ -289,10 +334,9 @@ export function TextTerrain() {
       }
 
       const t = tile.animProgress
-      // Ease in-out cubic
       const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
-      // Lerp rotation
+      // Lerp rotation from random tumble to terrain-aligned
       const rx = tile.startRot.x * (1 - eased) + tile.targetRot.x * eased
       const ry = tile.startRot.y * (1 - eased) + tile.targetRot.y * eased
       const rz = tile.startRot.z * (1 - eased) + tile.targetRot.z * eased
@@ -306,7 +350,6 @@ export function TextTerrain() {
 
     meshRef.current.instanceMatrix.needsUpdate = true
 
-    // Update store metrics
     const store = useStore.getState()
     store.setFps(Math.round(1 / Math.max(delta, 0.001)))
     store.setActualParticleCount(totalTiles)
@@ -314,7 +357,7 @@ export function TextTerrain() {
 
   return (
     <>
-      <fog attach="fog" args={['#08040E', 60, 120]} />
+      <fog attach="fog" args={['#08040E', 50, 110]} />
       <instancedMesh
         ref={meshRef}
         args={[geometry, material, totalTiles]}
