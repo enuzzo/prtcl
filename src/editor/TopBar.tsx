@@ -186,8 +186,20 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
           </button>
 
           {/* Export — desktop only */}
-          {!isMobile && (
-            <button className="px-4 py-1.5 bg-accent2/10 text-accent2 border border-accent2/30 rounded text-sm font-mono hover:bg-accent2/20 transition-colors">
+          {!isMobile && selectedEffect?.renderer !== 'custom' && (
+            <button
+              onClick={() => useStore.getState().setExportModalOpen(true)}
+              className="px-4 py-1.5 bg-accent2/10 text-accent2 border border-accent2/30 rounded text-sm font-mono hover:bg-accent2/20 transition-colors"
+            >
+              Export
+            </button>
+          )}
+          {!isMobile && selectedEffect?.renderer === 'custom' && (
+            <button
+              className="px-4 py-1.5 bg-elevated text-text-muted border border-border rounded text-sm font-mono cursor-not-allowed opacity-50"
+              title="Export not available for custom renderer effects"
+              disabled
+            >
               Export
             </button>
           )}

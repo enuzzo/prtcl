@@ -184,3 +184,9 @@ button, [role="button"], .tp-fldv_b, .tp-btnv_b {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* Export modal entrance animation */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
