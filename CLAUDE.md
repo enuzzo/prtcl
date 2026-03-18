@@ -97,6 +97,33 @@ getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loo
 
 **Key files**: `analyser.ts` (band computation + BeatDetector class), `useAudioReactivity.ts` (hook: mic lifecycle, rAF analysis, store updates), `types.ts` (AudioSlice interface).
 
+### Export System
+
+3 export modes in a modal overlay (`src/export/`). Click Export in TopBar → modal with live preview, settings, and generated code.
+
+**Modes**:
+1. **Website Embed** (default) — self-contained `<div>` + `<script type="module">`, Three.js v0.170.0 from CDN. Copy-paste into Elementor/Webflow/Wix/WordPress HTML widget. Tab shows brand icons + names.
+2. **React Component** — `.tsx` file with R3F + drei. Typed props for count, pointSize, controls, autoRotate.
+3. **`<iframe>` Embed** — `<iframe src="prtcl.es/embed?effect=...">`. Route `/embed` renders stripped canvas (no UI).
+
+**Modal UX**: Left side = live preview (mini R3F canvas, isolated from editor state) + settings (particles, point size, height, background, auto-rotate, orbit controls, pointer reactive, PRTCL badge). Right side = syntax-highlighted code with copy/download. Settings changes regenerate code in real-time.
+
+**Code generation**: Pure functions in `src/export/generators/`. Each generator takes an `ExportPayload` (effect, controls, camera snapshot, settings) and returns a code string. HTML generator inlines shaders, effect code, and a complete render loop. All exports include MIT credits comment.
+
+**Embed route** (`/embed`): `EmbedView.tsx` reads URL params, resolves preset by ID, renders minimal R3F scene. Apache `.htaccess` in `public/` handles SPA routing fallback for SiteGround deployment.
+
+**IsolatedParticleSystem**: Standalone particle renderer that accepts all settings as props (no Zustand dependency). Used by ExportPreview. Includes viewport-relative point size scaling (`canvasHeight / 800`) so the small preview canvas looks proportional to the full viewport.
+
+**Limitations**: Custom renderer effects (Paper Fleet) cannot be exported — Export button shows tooltip. Hand tracking and audio reactivity are not included in exports.
+
+**Key files**: `ExportModal.tsx` (modal container), `IsolatedParticleSystem.tsx` (standalone renderer), `generators/html-generator.ts` (core HTML snippet), `generators/react-generator.ts`, `generators/iframe-generator.ts`, `templates/shader-strings.ts`, `src/embed/EmbedView.tsx`.
+
+### DPI-Aware Point Size
+
+`gl_PointSize` operates in framebuffer pixels, not CSS pixels. On Retina displays (devicePixelRatio=2), the framebuffer is 2× the CSS size, making particles appear half as large in CSS terms compared to standard displays. Fix: multiply `uPointSize` by `renderer.getPixelRatio()` in the `useFrame` loop. This applies in both `ParticleSystem.tsx` (main editor) and `IsolatedParticleSystem.tsx` (export preview).
+
+**Point size range**: Normalized to 0.2–2.5 with step 0.1 for granular control. All preset `pointSize` defaults were recalibrated after the DPI fix (roughly halved from previous values).
+
 ### Key File Locations
 
 ```
@@ -106,9 +133,12 @@ src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, s
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
+src/export/              — Export system: modal, generators (HTML/React/iframe), preview, settings, tabs, icons
+src/embed/               — Embed route: EmbedView (stripped canvas for iframe embeds)
 src/hooks/               — Shared React hooks (useIsMobile)
-src/store.ts             — Zustand store (effect state, settings, camera, panels, tracking, throttled perf metrics)
-src/App.tsx              — Router: /create → Editor, /gallery → placeholder; splash overlay
+src/store.ts             — Zustand store (effect state, settings, camera, panels, tracking, export modal, throttled perf metrics)
+src/App.tsx              — Router: /create → Editor, /embed → EmbedView, /gallery → placeholder; splash overlay
+public/.htaccess         — Apache SPA routing fallback for SiteGround deployment
 ```
 
 ### UI Layout
@@ -180,4 +210,4 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - TypeScript strict — proper types for Effect, Control, CompiledEffect
 - Gallery v1: curated JSON in repo (no database, no auth)
 - Google Fonts: loaded dynamically only when text feature is used
-- Export snippets must include `/* Made with PRTCL — prtcl.es */`
+- Export snippets must include credits: `/* Made with PRTCL — prtcl.es | https://github.com/enuzzo/prtcl | MIT License © enuzzo */`
