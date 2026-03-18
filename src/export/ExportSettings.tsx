@@ -36,7 +36,7 @@ export function ExportSettingsPanel({ settings, onChange, mode, effectUsesPointe
           <span>Point Size</span>
           <span className="text-text">{settings.pointSize}</span>
         </label>
-        <input type="range" min={1} max={12} step={0.5}
+        <input type="range" min={0.2} max={2.5} step={0.1}
           value={settings.pointSize}
           onChange={(e) => update('pointSize', parseFloat(e.target.value))}
           className="w-full accent-accent2" />

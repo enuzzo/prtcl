@@ -50,7 +50,7 @@ export function EditorLayout() {
       store.setControls(result.value.controls)
       store.setInfo(result.value.info)
       store.setParticleCount(effect.particleCount)
-      store.setPointSize(effect.pointSize ?? 4.0)
+      store.setPointSize(effect.pointSize ?? 1.0)
       store.setAutoRotateSpeed(effect.autoRotateSpeed ?? 0)
       store.setCameraZoom(1)
       const cp = effect.cameraPosition ?? [0, 0, 5]
