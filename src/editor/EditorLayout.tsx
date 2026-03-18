@@ -43,6 +43,10 @@ export function EditorLayout() {
   }, [isFullscreen])
 
   const handleSelectEffect = useCallback((effect: Effect) => {
+    // Skip if the same effect is already selected — prevents re-compilation
+    // and broken morph transitions from duplicate snapshots
+    if (useStore.getState().selectedEffect?.id === effect.id) return
+
     const result = compileEffect(effect)
     if (result.ok) {
       const store = useStore.getState()
