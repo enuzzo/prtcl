@@ -7,11 +7,11 @@ import { computeBands, BeatDetector } from './analyser'
  * 0.15 = smooth, organic rise/fall (no hysteria).
  * Higher = snappier but jittery. Lower = sluggish.
  */
-const SMOOTH_UP = 0.18   // rise speed (attack)
-const SMOOTH_DOWN = 0.08 // fall speed (release) — slower = graceful decay
+const SMOOTH_UP = 0.10   // rise speed (attack) — moderate, no snap
+const SMOOTH_DOWN = 0.03 // fall speed (release) — very slow, graceful decay
 
 /** Noise gate — ignore signals below this threshold */
-const NOISE_FLOOR = 0.02
+const NOISE_FLOOR = 0.04
 
 export function useAudioReactivity(): void {
   const audioEnabled = useStore((s) => s.audioEnabled)
@@ -71,7 +71,7 @@ export function useAudioReactivity(): void {
         const source = ctx.createMediaStreamSource(stream)
         const analyser = ctx.createAnalyser()
         analyser.fftSize = 1024
-        analyser.smoothingTimeConstant = 0.5
+        analyser.smoothingTimeConstant = 0.75
         source.connect(analyser)
         analyserRef.current = analyser
 

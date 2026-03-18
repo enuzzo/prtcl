@@ -17,8 +17,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 /** Effects that use audio params (bass/mids/highs/energy/beat) */
 const AUDIO_EFFECTS = new Set(['frequency', 'fibonacci-crystal', 'nebula-organica'])
-/** Effects that use pointer tracking (pointerX/Y) */
-const POINTER_EFFECTS = new Set(['magnetic-dust'])
 
 export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserProps) {
   const [query, setQuery] = useState('')
@@ -121,10 +119,9 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                   >
                     <div className="font-medium flex items-center justify-between gap-1">
                       <span>{effect.name}</span>
-                      <span className="flex items-center gap-1 text-[10px] opacity-50 shrink-0">
-                        {AUDIO_EFFECTS.has(effect.id) && <span title="Audio reactive">🎙️</span>}
-                        {POINTER_EFFECTS.has(effect.id) && <span title="Pointer reactive">✋</span>}
-                      </span>
+                      {AUDIO_EFFECTS.has(effect.id) && (
+                        <span className="text-[10px] opacity-50 shrink-0" title="Audio reactive">🎙️</span>
+                      )}
                     </div>
                     <div
                       className={`text-xs text-text-muted mt-0.5 ${
