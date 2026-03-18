@@ -60,21 +60,10 @@ function sampleTextPointsSorted(
 
   const fontSize = Math.max(64, Math.min(w * 0.16, 200))
   ctx.font = `bold ${fontSize}px ${SPLASH_FONT}`
-  ctx.textAlign = 'left'
+  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#fff'
-  // Tighter letter-spacing: draw char by char with negative tracking
-  var spacing = -fontSize * 0.06  // ~6% tighter
-  var totalW = 0
-  for (var ci = 0; ci < text.length; ci++) {
-    totalW += ctx.measureText(text[ci]!).width + (ci < text.length - 1 ? spacing : 0)
-  }
-  var cx = (w - totalW) / 2
-  for (var ci = 0; ci < text.length; ci++) {
-    var ch = text[ci]!
-    ctx.fillText(ch, cx, h / 2)
-    cx += ctx.measureText(ch).width + spacing
-  }
+  ctx.fillText(text, w / 2, h / 2)
 
   const img = ctx.getImageData(0, 0, w, h)
   const points: Array<[number, number]> = []
