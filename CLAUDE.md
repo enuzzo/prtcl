@@ -58,7 +58,7 @@ Custom `<ParticleSystem>` R3F component (`src/engine/ParticleSystem.tsx`) using 
 
 ### Splash Screen
 
-Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Plays on every page load (no sessionStorage gating — users can rewatch). 1200 particles in acid-pop colors morph through three text phases:
+Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Plays on every page load (no sessionStorage gating — users can rewatch). 1800 particles in acid-pop colors morph through three text phases (Inconsolata bold, larger font up to 200px):
 
 1. **Converge** (1000ms) — scattered particles form "PRTCL"
 2. **Morph 1** (600ms) — ".ES" slides in → "PRTCL.ES"
@@ -136,7 +136,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 
 **Text module** (`src/text/`): `sampler.ts` (canvas → Float32Array), `font-loader.ts` (lazy Google Fonts `<link>` + per-font readiness via `document.fonts.load()`), `fonts.ts` (12 curated fonts), `useTextSampling.ts` (debounced hook mounted in EditorLayout).
 
-**3 text effects**: Text Wave (sine displacement), Text Scatter (converge/hold/scatter cycle), Text Dissolve (trig-based noise drift/reform).
+**4 text effects**: Text Wave (sine displacement), Text Scatter (cascading waves with orbital drift, WLED-inspired palettes, sparkle overlay), Text Dissolve (trig-based noise drift/reform, 3 color modes: PRTCL/Spectrum/Noir), Text Varsity (volumetric 3D lettering with breathing + shadow drift, 4 style presets).
 
 **ControlPanel**: TEXT Tweakpane folder (text input, font dropdown, weight selector) shown only for `category: 'text'` effects. Pane rebuilds when `selectedEffectId` changes.
 
@@ -148,7 +148,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, text-wave, text-scatter, text-dissolve)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, text-wave, text-scatter, text-dissolve, text-varsity)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
@@ -163,9 +163,9 @@ public/.htaccess         — Apache SPA routing fallback for SiteGround deployme
 ### UI Layout
 
 **Desktop** (≥768px): Three-panel layout (280px | flex | 320px) with collapsible sidebars:
-- **Left**: Effect browser — categorized presets (organic, math, text, abstract), search
+- **Left**: Effect browser — categorized presets in rounded cards (organic, math, text, abstract), search. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
 - **Center**: R3F canvas with orbit controls
-- **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), Effect (dynamic controls from `addControl()`), Tools (Copy Params)
+- **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), TEXT (text input, font dropdown, weight — only for text effects), Effect (dynamic controls from `addControl()`, with DROPDOWN_CONTROLS map for named presets like style/colorMode/palette), Tools (Copy Params)
 - **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. In normal mode, canvas resizes (flex reflow). In fullscreen, panels overlay as drawers (position absolute).
 - **Fullscreen = immersive mode**: Both panels auto-collapse on enter, auto-restore on exit (including ESC key). Panels can be temporarily re-opened as overlays.
 
@@ -217,7 +217,8 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
 - [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
-- [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 3 text effects (Text Wave, Text Scatter, Text Dissolve), Tweakpane TEXT folder, export + embed support with baked textPoints
+- [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 4 text effects (Text Wave, Text Scatter, Text Dissolve, Text Varsity), Tweakpane TEXT folder, export + embed support with baked textPoints
+- [x] **Phase 3.5**: Polish & personality — Text Varsity (volumetric 3D lettering, breathing, shadow drift, 4 styles), Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 

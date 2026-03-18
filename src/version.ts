@@ -1,2 +1,2 @@
-export const VERSION = '0.5.0'
-export const CODENAME = 'Neon Scripture'
+export const VERSION = '0.6.0'
+export const CODENAME = 'Acid Serif'
