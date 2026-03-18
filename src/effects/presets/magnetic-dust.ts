@@ -20,7 +20,7 @@ export const magneticDust: Effect = {
   category: 'abstract',
   tags: ['cursor', 'interactive', 'glitter', 'attraction', 'metallic', 'mouse', 'touch'],
   particleCount: 20000,
-  pointSize: 2.5,
+  pointSize: 1.2,
   cameraDistance: 8,
   cameraPosition: [0, 0, 8],
   cameraTarget: [0, 0, 0],

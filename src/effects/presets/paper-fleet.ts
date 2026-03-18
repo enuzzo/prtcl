@@ -18,7 +18,7 @@ export const paperFleet: Effect = {
   category: 'abstract',
   tags: ['instanced', 'mesh', 'gravity', 'orbit', 'arrows', 'fleet', '3d'],
   particleCount: 10000,
-  pointSize: 1,
+  pointSize: 0.5,
   cameraDistance: 200,
   cameraPosition: [-80, 50, 20],
   cameraTarget: [0, 0, 0],

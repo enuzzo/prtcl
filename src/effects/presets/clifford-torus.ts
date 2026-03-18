@@ -9,7 +9,7 @@ export const cliffordTorus: Effect = {
   category: 'math',
   tags: ['4d', 'clifford', 'torus', 'geometry', 'math'],
   particleCount: 23000,
-  pointSize: 23,
+  pointSize: 2.5,
   cameraDistance: 43,
   cameraPosition: [11.649, 0, -41.581],
   cameraTarget: [0, 0, 0],

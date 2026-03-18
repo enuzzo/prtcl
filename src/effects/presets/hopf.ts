@@ -17,7 +17,7 @@ export const hopf: Effect = {
   category: 'math',
   tags: ['hopf', 'fibration', '4D', 'hypersphere', 'topology', 'math'],
   particleCount: 20000,
-  pointSize: 4,
+  pointSize: 2,
   cameraDistance: 5,
   autoRotateSpeed: 2,
   createdAt: '2026-03-16',

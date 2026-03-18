@@ -18,7 +18,7 @@ export const frequency: Effect = {
   category: 'math',
   tags: ['frequency', 'fractal', 'waves', 'harmonic', 'audio', 'spiral', 'interference'],
   particleCount: 20000,
-  pointSize: 2,
+  pointSize: 1,
   cameraDistance: 5,
   cameraPosition: [1.837, 0, 3.063],
   cameraTarget: [0, 0, 0],

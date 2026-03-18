@@ -17,7 +17,7 @@ export const blackhole: Effect = {
   category: 'abstract',
   tags: ['black hole', 'space', 'gargantua', 'accretion', 'physics'],
   particleCount: 25000,
-  pointSize: 2,
+  pointSize: 1,
   cameraDistance: 5,
   cameraPosition: [2.15, 0.975, -2.048],
   cameraTarget: [0, 0, 0],

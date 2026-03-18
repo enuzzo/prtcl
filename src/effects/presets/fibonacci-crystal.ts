@@ -18,7 +18,7 @@ export const fibonacciCrystal: Effect = {
   category: 'math',
   tags: ['fibonacci', 'crystal', 'kaleidoscope', 'fractal', 'symmetry', 'palette', 'gem'],
   particleCount: 18000,
-  pointSize: 2,
+  pointSize: 1,
   cameraDistance: 6,
   cameraPosition: [0.673, 4.252, -5.609],
   cameraTarget: [0, 0, 0],
