@@ -29,6 +29,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   rightPanelOpen: boolean
   isFullscreen: boolean
 
+  // Export
+  exportModalOpen: boolean
+
   // Performance (throttled — updated at most once per second)
   fps: number
   actualParticleCount: number
@@ -59,6 +62,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   toggleLeftPanel: () => void
   toggleRightPanel: () => void
   setIsFullscreen: (fs: boolean) => void
+  setExportModalOpen: (open: boolean) => void
 
   // Actions: performance (throttled internally)
   setFps: (fps: number) => void
@@ -96,6 +100,9 @@ export const useStore = create<PrtclState>((set) => ({
   rightPanelOpen: true,
   isFullscreen: false,
 
+  // Export
+  exportModalOpen: false,
+
   // Performance
   fps: 0,
   actualParticleCount: 0,
@@ -131,6 +138,7 @@ export const useStore = create<PrtclState>((set) => ({
   toggleLeftPanel: () => set((s) => ({ leftPanelOpen: !s.leftPanelOpen })),
   toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
   setIsFullscreen: (fs) => set({ isFullscreen: fs }),
+  setExportModalOpen: (open) => set({ exportModalOpen: open }),
 
   // ── Tracking ──────────────────────────────────────────
   trackingEnabled: false,
