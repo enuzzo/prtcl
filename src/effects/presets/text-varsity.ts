@@ -22,6 +22,7 @@ var layers = addControl("layers", "Layers", 2.0, 8.0, 5.0);
 // Style: 0=PRTCL (magenta/lime), 1=Classic (white/navy), 2=Gold (cream/dark), 3=Ice (cyan/deep blue)
 var style = addControl("style", "Style", 0.0, 3.0, 0.0);
 var shimmer = addControl("shimmer", "Shimmer", 0.0, 1.0, 0.3);
+var thickness = addControl("thickness", "Thickness", 0.0, 1.0, 0.4);
 
 if (textPoints && i * 3 + 2 < textPoints.length) {
   var tx = textPoints[i * 3];
@@ -30,7 +31,6 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
   // How many discrete depth layers to render
   var numLayers = Math.round(layers);
   // Which layer does this particle belong to?
-  // Layer 0 = backmost (shadow), layer numLayers-1 = front
   var layerIdx = Math.floor((i / count) * numLayers);
   if (layerIdx >= numLayers) layerIdx = numLayers - 1;
   var layerT = numLayers > 1 ? layerIdx / (numLayers - 1) : 1.0; // 0=back, 1=front
@@ -39,52 +39,78 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
   var offX = Math.cos(angle) * depth;
   var offY = Math.sin(angle) * depth;
 
-  // Each layer is progressively offset — back layer gets full offset, front gets none
+  // Each layer is progressively offset
   var invertT = 1.0 - layerT;
   var px = tx + offX * invertT;
   var py = ty + offY * invertT;
-  var pz = -depth * invertT * 0.8; // push back layers behind front
 
-  // Subtle shimmer on front layers — gentle sine wobble
+  // Base Z from layer offset (back layers pushed behind front)
+  var baseZ = -depth * invertT * 0.8;
+
+  // ── Volumetric thickness per layer ──
+  // Front layer is thickest (4 sub-planes), back layers thinner (2).
+  // Gives real 3D solidity — each layer is a slab, not a plane.
+  var frontSubs = 4.0;
+  var backSubs = 2.0;
+  var subPlanes = backSubs + layerT * (frontSubs - backSubs); // 2→4
+  var subPlaneCount = Math.round(subPlanes);
+
+  // Deterministic hash to assign this particle to a sub-plane within its layer
+  var subHash = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  subHash = subHash - Math.floor(subHash); // 0-1
+  var subIdx = Math.floor(subHash * subPlaneCount);
+
+  // Spread sub-planes across the layer's Z thickness
+  var layerThickness = thickness * 0.3 * (0.5 + layerT * 0.5); // front thicker
+  var subZ = (subPlaneCount > 1)
+    ? (subIdx / (subPlaneCount - 1) - 0.5) * layerThickness
+    : 0.0;
+
+  var pz = baseZ + subZ;
+
+  // Subtle shimmer on front layers
   if (shimmer > 0.01 && layerT > 0.5) {
     var shimAmt = shimmer * 0.03 * layerT;
     px = px + Math.sin(i * 3.7 + time * 2.0) * shimAmt;
     py = py + Math.cos(i * 2.3 + time * 1.7) * shimAmt;
+    pz = pz + Math.sin(i * 5.1 + time * 1.3) * shimAmt * 0.5;
   }
 
   target.set(px, py, pz);
+
+  // Subtle luminance variation within a layer based on sub-plane depth
+  // Front sub-planes slightly brighter, back sub-planes slightly darker
+  var subLumBoost = (subPlaneCount > 1)
+    ? (subIdx / (subPlaneCount - 1) - 0.5) * 0.08
+    : 0.0;
 
   // Round style to nearest int
   var st = Math.round(style);
 
   if (st <= 0) {
-    // PRTCL — front: lime (#7CFF00), back: magenta (#FF2BD6)
-    // Front: HSL ~0.24, 1.0, 0.50 | Back: HSL ~0.89, 1.0, 0.59
+    // PRTCL — magenta (back) → lime (front)
     var hue = 0.89 + layerT * (-0.65);
     if (hue < 0.0) hue = hue + 1.0;
     var sat = 0.9;
-    var lum = 0.25 + layerT * 0.35;
+    var lum = 0.25 + layerT * 0.35 + subLumBoost;
     color.setHSL(hue, sat, lum);
   } else if (st <= 1) {
-    // Classic — front: bright white, back: deep navy
-    // Back: dark blue HSL(0.62, 0.8, 0.12) → Front: white HSL(0.6, 0.1, 0.95)
+    // Classic — navy (back) → white (front)
     var hue = 0.62;
     var sat = 0.8 - layerT * 0.7;
-    var lum = 0.12 + layerT * 0.83;
+    var lum = 0.12 + layerT * 0.83 + subLumBoost;
     color.setHSL(hue, sat, lum);
   } else if (st <= 2) {
-    // Gold — front: warm cream/gold, back: dark brown
-    // Back: HSL(0.08, 0.7, 0.1) → Front: HSL(0.12, 0.9, 0.65)
+    // Gold — dark brown (back) → cream (front)
     var hue = 0.08 + layerT * 0.04;
     var sat = 0.7 + layerT * 0.2;
-    var lum = 0.1 + layerT * 0.55;
+    var lum = 0.1 + layerT * 0.55 + subLumBoost;
     color.setHSL(hue, sat, lum);
   } else {
-    // Ice — front: bright cyan, back: deep blue
-    // Back: HSL(0.6, 0.9, 0.08) → Front: HSL(0.52, 1.0, 0.6)
+    // Ice — deep blue (back) → bright cyan (front)
     var hue = 0.6 - layerT * 0.08;
     var sat = 0.9 + layerT * 0.1;
-    var lum = 0.08 + layerT * 0.52;
+    var lum = 0.08 + layerT * 0.52 + subLumBoost;
     color.setHSL(hue, sat, lum);
   }
 } else {
