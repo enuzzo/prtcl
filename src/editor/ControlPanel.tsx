@@ -93,6 +93,15 @@ export function ControlPanel() {
       palette: { 'Aurora': 0, 'PRTCL': 1, 'Fire': 2, 'Ocean': 3 },
       krakenColor: { 'Lava': 0, 'Venom': 1, 'Abyss': 2 },
       anemonePalette: { 'Reef': 0, 'Neon': 1, 'Deep Sea': 2, 'Blossom': 3 },
+      terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
+      terrainPalette: { 'PRTCL': 0, 'Typewriter': 1, 'Vintage': 2, 'Matrix': 3 },
+    }
+
+    // Text presets: when a terrainText dropdown changes, also update the text input
+    const TEXT_PRESETS: Record<number, string> = {
+      1: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      2: 'Here\'s to the ones who never read the manual. The tinkerers. The overthinkers. The dangerously caffeinated. The ones with solder burns and beautiful ideas. The square pegs who 3D-printed their own holes. They ship things that don\'t scale. They build things nobody asked for. They mass-produce prototypes of problems that don\'t exist yet. Because the ones absurd enough to think a single particle can change how you see the world are usually right.',
+      3: 'The happiness of your life depends upon the quality of your thoughts. Waste no more time arguing about what a good man should be. Be one. The best revenge is to be unlike him who performed the injury. Very little is needed to make a happy life. It is all within yourself in your way of thinking.',
     }
 
     if (currentControls.length > 0) {
@@ -105,7 +114,13 @@ export function ControlPanel() {
           // Render as dropdown with named options
           effectFolder.addBinding(params, c.id, {
             label: c.label, options: dropdownOpts,
-          }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
+          }).on('change', (ev: { value: number }) => {
+            useStore.getState().updateControlValue(c.id, ev.value)
+            // Text preset switching: update text input when terrainText dropdown changes
+            if (c.id === 'terrainText' && TEXT_PRESETS[ev.value]) {
+              useStore.getState().setTextInput(TEXT_PRESETS[ev.value])
+            }
+          })
         } else {
           effectFolder.addBinding(params, c.id, {
             min: c.min, max: c.max, label: c.label,

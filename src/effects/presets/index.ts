@@ -15,6 +15,7 @@ import { textWave } from './text-wave'
 import { textScatter } from './text-scatter'
 import { textDissolve } from './text-dissolve'
 import { textVarsity } from './text-varsity'
+import { textTerrain } from './text-terrain'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, medusa, kraken, anemone, textWave, textScatter, textDissolve, textVarsity]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, medusa, kraken, anemone, textWave, textScatter, textDissolve, textVarsity, textTerrain]
