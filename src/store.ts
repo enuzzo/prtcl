@@ -118,9 +118,9 @@ export const useStore = create<PrtclState>((set) => ({
   exportModalOpen: false,
 
   // Text-to-particles
-  textInput: 'PRTCL',
-  textFont: 'Montserrat',
-  textWeight: '700',
+  textInput: 'Netmilk',
+  textFont: 'Pacifico',
+  textWeight: '400',
   textPoints: null,
   textFontsLoaded: false,
 

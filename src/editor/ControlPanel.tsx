@@ -86,14 +86,27 @@ export function ControlPanel() {
     }
 
     // ── Effect controls ────────────────────────────────────
+    // Controls that should render as a dropdown instead of a slider
+    const DROPDOWN_CONTROLS: Record<string, Record<string, number>> = {
+      colorMode: { 'PRTCL': 0, 'Spectrum': 1, 'Noir': 2 },
+    }
+
     if (currentControls.length > 0) {
       const effectFolder = pane.addFolder({ title: 'Effect' })
       const params: Record<string, number> = {}
       for (const c of currentControls) {
         params[c.id] = c.value
-        effectFolder.addBinding(params, c.id, {
-          min: c.min, max: c.max, label: c.label,
-        }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
+        const dropdownOpts = DROPDOWN_CONTROLS[c.id]
+        if (dropdownOpts) {
+          // Render as dropdown with named options
+          effectFolder.addBinding(params, c.id, {
+            label: c.label, options: dropdownOpts,
+          }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
+        } else {
+          effectFolder.addBinding(params, c.id, {
+            min: c.min, max: c.max, label: c.label,
+          }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
+        }
       }
     }
 

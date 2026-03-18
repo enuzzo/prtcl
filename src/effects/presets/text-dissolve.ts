@@ -9,17 +9,17 @@ export const textDissolve: Effect = {
   tags: ['text', 'dissolve', 'noise', 'reform'],
   author: 'PRTCL Team',
   particleCount: 12000,
-  pointSize: 1.0,
+  pointSize: 1.7,
   autoRotateSpeed: -0.5,
   cameraDistance: 6,
-  cameraPosition: [6.129, -0.89, 8.539] as [number, number, number],
+  cameraPosition: [5.247, -0.682, 4.658] as [number, number, number],
   cameraTarget: [0, 0, 0] as [number, number, number],
   createdAt: '2026-03-18',
   code: `
 var dissolveSpeed = addControl("dissolveSpeed", "Dissolve Speed", 0.1, 3.0, 0.472);
 var noiseScale = addControl("noiseScale", "Noise Scale", 0.5, 5.0, 2.231);
-var reformSpeed = addControl("reformSpeed", "Reform Speed", 0.5, 5.0, 2.0);
-var intensity = addControl("intensity", "Intensity", 0.5, 5.0, 2.809);
+var reformSpeed = addControl("reformSpeed", "Reform Speed", 0.5, 5.0, 2.783);
+var intensity = addControl("intensity", "Intensity", 0.5, 5.0, 3.31);
 // Color mode: 0=PRTCL (magenta↔lime), 1=Spectrum (full rainbow), 2=Noir (black/grey shadows)
 var colorMode = addControl("colorMode", "Color Mode", 0.0, 2.0, 0.0);
 
