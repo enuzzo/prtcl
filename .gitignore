@@ -29,5 +29,8 @@ dist-ssr
 # Worktrees
 .worktrees/
 
+# Deploy script (contains server details)
+deploy.sh
+
 # Incoming reference material
 incoming/
