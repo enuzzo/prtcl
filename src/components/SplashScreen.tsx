@@ -4,10 +4,12 @@ import { useEffect, useRef } from 'react'
 const PARTICLE_COUNT = 1200
 const COLORS: string[] = ['#FF2BD6', '#7CFF00', '#A98ED1']
 const BG = '#08040E'
-const FONT = '"Inconsolata", "JetBrains Mono", monospace'
+const SPLASH_FONT = 'Pacifico'
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Pacifico&display=swap'
+const FONT_CSS = `400 80px ${SPLASH_FONT}` // for document.fonts.load()
 
 /* ── Timeline (ms) ─────────────────────────────────────────── */
-// "PRTCL" forms → ".ES" slides in → spreads to "PARTICLES" → explode
+// "prtcl" forms → ".es" slides in → spreads to "particles" → explode
 const T_CONVERGE = 1000    // scatter → "PRTCL"
 const T_HOLD1    = 400     // hold "PRTCL"
 const T_MORPH1   = 600     // ".ES" slides in → "PRTCL.ES"
@@ -59,7 +61,7 @@ function sampleTextPointsSorted(
   const ctx = off.getContext('2d')!
 
   const fontSize = Math.max(48, Math.min(w * 0.14, 140))
-  ctx.font = `bold ${fontSize}px ${FONT}`
+  ctx.font = `400 ${fontSize}px ${SPLASH_FONT}, cursive`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#fff'
@@ -106,10 +108,10 @@ function sampleTextPointsSorted(
 
 /* ── Init particles ────────────────────────────────────────── */
 function createParticles(w: number, h: number): Particle[] {
-  // All three sorted by X → particles on "P" in PRTCL stay on "P" in PARTICLES
-  const targets1 = sampleTextPointsSorted('PRTCL', w, h, PARTICLE_COUNT)
-  const targets2 = sampleTextPointsSorted('PRTCL.ES', w, h, PARTICLE_COUNT)
-  const targets3 = sampleTextPointsSorted('PARTICLES', w, h, PARTICLE_COUNT)
+  // All three sorted by X → particles on "p" in prtcl stay on "p" in particles
+  const targets1 = sampleTextPointsSorted('prtcl', w, h, PARTICLE_COUNT)
+  const targets2 = sampleTextPointsSorted('prtcl.es', w, h, PARTICLE_COUNT)
+  const targets3 = sampleTextPointsSorted('particles', w, h, PARTICLE_COUNT)
 
   const cx = w / 2
   const cy = h / 2
@@ -281,7 +283,20 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       raf = requestAnimationFrame(tick)
     }
 
-    document.fonts.ready.then(run).catch(run)
+    // Inject Pacifico font and wait for it to load before starting
+    const loadFont = async () => {
+      if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = FONT_URL
+        document.head.appendChild(link)
+      }
+      try {
+        await document.fonts.load(FONT_CSS)
+      } catch { /* fallback: start anyway */ }
+      run()
+    }
+    loadFont()
 
     return () => {
       dead = true
@@ -337,7 +352,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           left: 0,
           right: 0,
           textAlign: 'center',
-          fontFamily: FONT,
+          fontFamily: '"Inconsolata", "JetBrains Mono", monospace',
           fontSize: 12,
           color: '#A98ED1',
           letterSpacing: '0.05em',
