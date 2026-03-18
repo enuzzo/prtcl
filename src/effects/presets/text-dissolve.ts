@@ -13,6 +13,7 @@ export const textDissolve: Effect = {
   autoRotateSpeed: -0.5,
   cameraDistance: 6,
   cameraPosition: [5.247, -0.682, 4.658] as [number, number, number],
+  cameraZoom: 1.1,
   cameraTarget: [0, 0, 0] as [number, number, number],
   createdAt: '2026-03-18',
   code: `
