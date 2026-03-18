@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ParticleSystem } from '../engine/ParticleSystem'
 import { PaperFleet } from '../engine/PaperFleet'
+import { TextTerrain } from '../engine/TextTerrain'
 import { useStore } from '../store'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { updateHandCamera } from '../tracking/hand-camera'
@@ -132,6 +133,7 @@ function HandCameraSync() {
 /** Registry of custom renderers — maps customRenderer id to R3F component */
 const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'paper-fleet': PaperFleet,
+  'text-terrain': TextTerrain,
 }
 
 export function Viewport() {
