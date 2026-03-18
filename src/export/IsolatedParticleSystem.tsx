@@ -9,9 +9,10 @@ interface Props {
   controls: Record<string, number>
   particleCount: number
   pointSize: number
+  textPoints?: Float32Array | null
 }
 
-export function IsolatedParticleSystem({ compiledFn, controls, particleCount, pointSize }: Props) {
+export function IsolatedParticleSystem({ compiledFn, controls, particleCount, pointSize, textPoints }: Props) {
   const target = useMemo(() => new THREE.Vector3(), [])
   const color = useMemo(() => new THREE.Color(), [])
 
@@ -48,7 +49,7 @@ export function IsolatedParticleSystem({ compiledFn, controls, particleCount, po
       try {
         compiledFn(
           i, count, target, color, time, THREE, addControl, () => {},
-          undefined,
+          textPoints ?? undefined,
           camera.position.x, camera.position.y, camera.position.z,
           0, 0, 0,
           0, 0, 0, 0, 0,

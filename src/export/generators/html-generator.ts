@@ -33,6 +33,12 @@ export function generateHtmlEmbed(payload: ExportPayload): string {
     .split('\n')
     .join('\n    ')
 
+  // Bake textPoints for text effects
+  const textPointsDecl = (payload.textPoints && payload.effect.category === 'text')
+    ? `const TEXT_POINTS = new Float32Array([${Array.from(payload.textPoints).map(v => v.toFixed(3)).join(',')}]);`
+    : ''
+  const textPointsArg = (payload.textPoints && payload.effect.category === 'text') ? 'TEXT_POINTS' : 'undefined'
+
   // Camera values
   const [cx, cy, cz] = cameraPosition
   const [tx, ty, tz] = cameraTarget
@@ -109,7 +115,7 @@ export function generateHtmlEmbed(payload: ExportPayload): string {
     /* ── Baked settings ────────────────────────────────────────────── */
     const PARTICLE_COUNT = ${particleCount};
     const POINT_SIZE     = ${pointSize};
-    const CONTROLS       = ${controlsJson};
+    const CONTROLS       = ${controlsJson};${textPointsDecl ? '\n    ' + textPointsDecl : ''}
 
     /* ── Container & renderer ──────────────────────────────────────── */
     const container = document.getElementById('prtcl-${effect.slug}');
@@ -182,7 +188,7 @@ ${orbitUpdate}
           effectFn(
             i, PARTICLE_COUNT, target, color, time, THREE,
             addControl, setInfo,
-            undefined, camX, camY, camZ,
+            ${textPointsArg}, camX, camY, camZ,
             ${pointerArgs},
             0, 0, 0, 0, 0
           );

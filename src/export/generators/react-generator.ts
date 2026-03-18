@@ -38,6 +38,12 @@ export function generateReactComponent(payload: ExportPayload): string {
   const vertexEscaped = escape(VERTEX_SHADER)
   const fragmentEscaped = escape(FRAGMENT_SHADER)
 
+  // Bake textPoints for text effects
+  const textPointsConst = (payload.textPoints && payload.effect.category === 'text')
+    ? `\nconst TEXT_POINTS = new Float32Array([${Array.from(payload.textPoints).map(v => v.toFixed(3)).join(',')}])\n`
+    : ''
+  const textPointsUsage = (payload.textPoints && payload.effect.category === 'text') ? 'TEXT_POINTS' : 'undefined'
+
   // OrbitControls import line (conditional)
   const orbitImport = orbitControls
     ? `import { OrbitControls } from '@react-three/drei'`
@@ -76,7 +82,7 @@ import * as THREE from 'three'
 const PARTICLE_COUNT = ${particleCount}
 const POINT_SIZE     = ${pointSize}
 const DEFAULT_CONTROLS = ${controlsObj}
-
+${textPointsConst}
 /* ── Shaders ──────────────────────────────────────────────────────────── */
 const VERTEX_SHADER = \`${vertexEscaped}\`
 
@@ -170,7 +176,7 @@ function ParticleCloud({
         effectFn(
           i, count, target, color, time, THREE,
           addControl, setInfo,
-          undefined, camX, camY, camZ,
+          ${textPointsUsage}, camX, camY, camZ,
           0, 0, 0,
           0, 0, 0, 0, 0
         )

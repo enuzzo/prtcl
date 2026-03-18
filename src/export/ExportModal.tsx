@@ -24,6 +24,7 @@ export function ExportModal() {
   const pointSize = useStore((s) => s.pointSize)
   const backgroundColor = useStore((s) => s.backgroundColor)
   const autoRotateSpeed = useStore((s) => s.autoRotateSpeed)
+  const textPoints = useStore((s) => s.textPoints)
 
   const [activeTab, setActiveTab] = useState<ExportMode>('website')
   const [settings, setSettings] = useState<ExportSettings>({
@@ -102,8 +103,9 @@ export function ExportModal() {
       cameraPosition: cameraSnap.position,
       cameraTarget: cameraSnap.target,
       settings,
+      textPoints: selectedEffect.category === 'text' ? textPoints : undefined,
     }
-  }, [selectedEffect, controlValues, cameraSnap, settings])
+  }, [selectedEffect, controlValues, cameraSnap, settings, textPoints])
 
   if (!isOpen || !selectedEffect) return null
 
@@ -173,6 +175,7 @@ export function ExportModal() {
               autoRotateSpeed={settings.autoRotateSpeed}
               cameraPosition={cameraSnap.position}
               cameraTarget={cameraSnap.target}
+              textPoints={selectedEffect.category === 'text' ? textPoints : undefined}
             />
             <ExportSettingsPanel
               settings={settings}

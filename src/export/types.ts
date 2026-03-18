@@ -20,4 +20,5 @@ export interface ExportPayload {
   cameraPosition: [number, number, number]
   cameraTarget: [number, number, number]
   settings: ExportSettings
+  textPoints?: Float32Array | null
 }

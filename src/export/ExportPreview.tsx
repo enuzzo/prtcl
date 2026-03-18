@@ -12,11 +12,12 @@ interface ExportPreviewProps {
   autoRotateSpeed: number
   cameraPosition: [number, number, number]
   cameraTarget: [number, number, number]
+  textPoints?: Float32Array | null
 }
 
 export function ExportPreview({
   compiledFn, controls, particleCount, pointSize,
-  backgroundColor, autoRotateSpeed, cameraPosition, cameraTarget,
+  backgroundColor, autoRotateSpeed, cameraPosition, cameraTarget, textPoints,
 }: ExportPreviewProps) {
   if (!compiledFn) return null
 
@@ -34,6 +35,7 @@ export function ExportPreview({
           controls={controls}
           particleCount={particleCount}
           pointSize={pointSize}
+          textPoints={textPoints}
         />
         <OrbitControls
           target={cameraTarget}
