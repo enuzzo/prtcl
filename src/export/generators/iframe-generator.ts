@@ -1,5 +1,6 @@
 import { CREDITS_HTML_COMMENT } from '../templates/credits'
 import type { ExportPayload } from '../types'
+import { useStore } from '../../store'
 
 /**
  * Build the embed URL for a given payload.
@@ -34,6 +35,14 @@ export function buildEmbedUrl(payload: ExportPayload): string {
   // Only include badge param when it's explicitly disabled
   if (!settings.showBadge) {
     params.set('badge', '0')
+  }
+
+  // Text params for text effects
+  if (effect.category === 'text') {
+    const { textInput, textFont, textWeight } = useStore.getState()
+    params.set('text', textInput)
+    params.set('font', textFont)
+    params.set('weight', textWeight)
   }
 
   // Use current origin in dev so the iframe works locally for testing

@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { ALL_PRESETS } from '../effects/presets'
 import { compileEffect } from '../engine/compiler'
 import { IsolatedParticleSystem } from '../export/IsolatedParticleSystem'
+import { sampleText } from '../text/sampler'
+import { waitForFont, ensureFontsInjected } from '../text/font-loader'
 
 export function EmbedView() {
   const [searchParams] = useSearchParams()
@@ -24,6 +26,11 @@ export function EmbedView() {
     try { return JSON.parse(raw) as Record<string, number> } catch { return {} }
   }, [searchParams])
 
+  // Text params for text effects
+  const textParam = searchParams.get('text')
+  const fontParam = searchParams.get('font') || 'Montserrat'
+  const weightParam = searchParams.get('weight') || '700'
+
   const { compiledFn, controlValues, effect } = useMemo(() => {
     const preset = ALL_PRESETS.find((p) => p.id === effectId)
     if (!preset) return { compiledFn: null, controlValues: {}, effect: null }
@@ -35,6 +42,20 @@ export function EmbedView() {
     }
     return { compiledFn: result.value.fn, controlValues: vals, effect: preset }
   }, [effectId, controlOverrides])
+
+  const isTextEffect = effect?.category === 'text'
+  const [textPoints, setTextPoints] = useState<Float32Array | null>(null)
+
+  const effectiveCount = particleCount ?? effect?.particleCount ?? 15000
+
+  useEffect(() => {
+    if (!isTextEffect || !effect) return
+    const text = textParam || 'PRTCL'
+    ensureFontsInjected()
+    waitForFont(fontParam, weightParam).then(() => {
+      setTextPoints(sampleText(text, fontParam, weightParam, effectiveCount))
+    })
+  }, [isTextEffect, textParam, fontParam, weightParam, effectiveCount, effect])
 
   if (!effect) {
     return (
@@ -73,6 +94,7 @@ export function EmbedView() {
           controls={controlValues}
           particleCount={count}
           pointSize={size}
+          textPoints={isTextEffect ? textPoints : undefined}
         />
         {orbitEnabled && (
           <OrbitControls
