@@ -138,11 +138,13 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 → X-sorted Float32Array → Zustand store → ParticleSystem passes to compiledFn
 ```
 
-**Text module** (`src/text/`): `sampler.ts` (canvas → Float32Array), `font-loader.ts` (lazy Google Fonts `<link>` + per-font readiness via `document.fonts.load()`), `fonts.ts` (12 curated fonts), `useTextSampling.ts` (debounced hook mounted in EditorLayout).
+**Text module** (`src/text/`): `sampler.ts` (canvas → Float32Array), `font-loader.ts` (lazy Google Fonts `<link>` + per-font readiness via `document.fonts.load()`), `fonts.ts` (12 curated fonts — selected for visual distinctiveness: display faces like Monoton, Rubik Glitch, Press Start 2P alongside classics like Orbitron, Sacramento, Abril Fatface), `useTextSampling.ts` (debounced hook mounted in EditorLayout).
 
-**5 text effects**: Text Wave (sine displacement), Text Scatter (cascading waves with orbital drift, WLED-inspired palettes, sparkle overlay), Text Dissolve (trig-based noise drift/reform, 3 color modes: PRTCL/Spectrum/Noir), Text Varsity (volumetric 3D lettering with breathing + shadow drift, 4 style presets), Text Terrain (custom renderer — InstancedMesh letter grid on animated noise terrain with falling letters, 4 palettes, 3 text presets).
+**3 text effects**: Text Wave (sine displacement), Text Scatter (cascading waves with orbital drift, WLED-inspired palettes, sparkle overlay), Text Dissolve (trig-based noise drift/reform, 3 color modes: PRTCL/Spectrum/Noir). Text Terrain is a custom renderer effect (InstancedMesh letter grid on animated noise terrain with falling letters, 4 palettes, 3 text presets).
 
-**ControlPanel**: TEXT Tweakpane folder (text input, font dropdown, weight selector) shown only for `category: 'text'` effects. Pane rebuilds when `selectedEffectId` changes.
+**Multiline text**: Line 1 and Line 2 input fields allow two-line text. Line Spacing control adjusts vertical distance between lines. Both lines are sampled together into a single `Float32Array`.
+
+**ControlPanel**: TEXT Tweakpane folder (Line 1, Line 2, font dropdown, line spacing, weight selector) shown only for `category: 'text'` effects. Weight selector is hidden for single-weight fonts (e.g., Monoton, Press Start 2P). Pane rebuilds when `selectedEffectId` changes.
 
 **Export**: `textPoints` baked as inline `Float32Array` in HTML/React generators (rounded to 3 decimals). Iframe embed passes `text`/`font`/`weight` URL params, embed route samples at load time.
 
@@ -152,7 +154,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, medusa, kraken, anemone, text-wave, text-scatter, text-dissolve, text-varsity, text-terrain)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, perlin-noise, fibonacci-crystal, paper-fleet, medusa, kraken, anemone, text-wave, text-scatter, text-dissolve, text-terrain)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
@@ -169,7 +171,7 @@ public/.htaccess         — Apache SPA routing fallback for SiteGround deployme
 **Desktop** (≥768px): Three-panel layout (280px | flex | 320px) with collapsible sidebars:
 - **Left**: Effect browser — categorized presets in rounded cards (math, organic, creature, text, abstract), search. Math first so Fractal Frequency is the top effect. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
 - **Center**: R3F canvas with orbit controls
-- **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), TEXT (text input, font dropdown, weight — only for text effects), Effect (dynamic controls from `addControl()`, with DROPDOWN_CONTROLS map for named presets like style/colorMode/palette), Tools (Copy Params)
+- **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), TEXT (Line 1, Line 2, font dropdown, line spacing — only for text effects), Effect (dynamic controls from `addControl()`, with DROPDOWN_CONTROLS map for named presets like style/colorMode/palette), Tools (Copy Params)
 - **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. After intro, sidebars start as overlays (no canvas reflow) and switch to flex/margin mode only after the user first toggles a panel. In fullscreen, panels always overlay as drawers (position absolute).
 - **Fullscreen = immersive mode**: Both panels auto-collapse on enter, auto-restore on exit (including ESC key). Panels can be temporarily re-opened as overlays.
 
@@ -194,7 +196,7 @@ Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and Orbi
 
 ### Store Design
 
-Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions.
+Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions. Sidebars stay as overlays (position absolute) until the user first toggles a panel, preventing canvas reflow glitch during the intro animation.
 
 ## Design System (in `src/index.css`)
 
@@ -218,12 +220,13 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.7**: Splash screen — Canvas 2D particle text intro (PRTCL → PRTCL.ES → PARTICLES → explode), Netmilk branding, StatusBar footer with copyright + GitHub link
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
-- [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Magnetic Dust (cursor-reactive glitter), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy.
+- [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy, Magnetic Dust.
 - [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
-- [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 4 text effects (Text Wave, Text Scatter, Text Dissolve, Text Varsity), Tweakpane TEXT folder, export + embed support with baked textPoints
-- [x] **Phase 3.5**: Polish & personality — Text Varsity (volumetric 3D lettering, breathing, shadow drift, 4 styles), Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
+- [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 3 text effects (Text Wave, Text Scatter, Text Dissolve), Tweakpane TEXT folder, export + embed support with baked textPoints
+- [x] **Phase 3.5**: Polish & personality — Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
 - [x] **Phase 3.6**: New effects — Creature category (Medusa, Kraken, Anemone) with IK-inspired tentacles, Text Terrain (InstancedMesh letter landscape with falling animation), point size cap raised to 8.0, Clifford Torus retuning
+- [x] **Phase 3.7**: Perlin Noise effect (3D Perlin noise flow field with turbulence controls), multiline text support (Line 1/Line 2 fields + Line Spacing control), font curation for visual distinctiveness (added Monoton, Rubik Glitch, Orbitron, Press Start 2P, Silkscreen, Sacramento, Abril Fatface; removed generic sans-serif fonts), weight selector hidden for single-weight fonts, removed Text Varsity
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 

@@ -39,6 +39,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   textInput: string
   textFont: string
   textWeight: string
+  textLineSpacing: number
   textPoints: Float32Array | null
   textFontsLoaded: boolean
 
@@ -81,6 +82,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   setTextInput: (text: string) => void
   setTextFont: (font: string) => void
   setTextWeight: (weight: string) => void
+  setTextLineSpacing: (spacing: number) => void
   setTextPoints: (points: Float32Array | null) => void
   setTextFontsLoaded: (loaded: boolean) => void
 
@@ -130,6 +132,7 @@ export const useStore = create<PrtclState>((set) => ({
   textInput: 'Netmilk',
   textFont: 'Pacifico',
   textWeight: '400',
+  textLineSpacing: 1.0,
   textPoints: null,
   textFontsLoaded: false,
 
@@ -177,6 +180,7 @@ export const useStore = create<PrtclState>((set) => ({
   setTextInput: (text) => set({ textInput: text }),
   setTextFont: (font) => set({ textFont: font }),
   setTextWeight: (weight) => set({ textWeight: weight }),
+  setTextLineSpacing: (spacing) => set({ textLineSpacing: spacing }),
   setTextPoints: (points) => set({ textPoints: points }),
   setTextFontsLoaded: (loaded) => set({ textFontsLoaded: loaded }),
 

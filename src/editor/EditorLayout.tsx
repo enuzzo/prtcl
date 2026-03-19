@@ -76,6 +76,8 @@ export function EditorLayout() {
       store.setControls(result.value.controls)
       store.setInfo(result.value.info)
       store.setParticleCount(effect.particleCount)
+      if (effect.defaultText) store.setTextInput(effect.defaultText)
+      if (effect.defaultFont) store.setTextFont(effect.defaultFont)
       store.setPointSize(effect.pointSize ?? 1.0)
       store.setAutoRotateSpeed(effect.autoRotateSpeed ?? 0)
       store.setCameraZoom(1)

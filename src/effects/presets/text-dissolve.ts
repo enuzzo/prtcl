@@ -8,25 +8,26 @@ export const textDissolve: Effect = {
   category: 'text',
   tags: ['text', 'dissolve', 'noise', 'reform'],
   author: 'PRTCL Team',
-  particleCount: 12000,
-  pointSize: 1.7,
-  autoRotateSpeed: -0.5,
+  particleCount: 16000,
+  pointSize: 2.2,
+  autoRotateSpeed: 1,
   cameraDistance: 6,
-  cameraPosition: [5.247, -0.682, 4.658] as [number, number, number],
-  cameraZoom: 1.1,
+  cameraPosition: [-3.218, 2.426, -15.501] as [number, number, number],
+  cameraZoom: 1,
   cameraTarget: [0, 0, 0] as [number, number, number],
+  defaultText: '★ Netmilk ★',
   createdAt: '2026-03-18',
   code: `
-var dissolveSpeed = addControl("dissolveSpeed", "Dissolve Speed", 0.1, 3.0, 0.472);
-var noiseScale = addControl("noiseScale", "Noise Scale", 0.5, 5.0, 2.231);
-var reformSpeed = addControl("reformSpeed", "Reform Speed", 0.5, 5.0, 2.783);
-var intensity = addControl("intensity", "Intensity", 0.5, 5.0, 3.31);
+var dissolveSpeed = addControl("dissolveSpeed", "Dissolve Speed", 0.1, 3.0, 0.828);
+var noiseScale = addControl("noiseScale", "Noise Scale", 0.5, 5.0, 2.658);
+var reformSpeed = addControl("reformSpeed", "Reform Speed", 0.5, 5.0, 3.637);
+var intensity = addControl("intensity", "Intensity", 0.5, 5.0, 3.762);
 // Color mode: 0=PRTCL (magenta↔lime), 1=Spectrum (full rainbow), 2=Noir (black/grey shadows)
-var colorMode = addControl("colorMode", "Color Mode", 0.0, 2.0, 0.0);
+var colorMode = addControl("colorMode", "Color Mode", 0.0, 2.0, 2.0);
 
-if (textPoints && i * 3 + 2 < textPoints.length) {
-  var tx = textPoints[i * 3];
-  var ty = textPoints[i * 3 + 1];
+if (textPoints && i * 6 + 5 < textPoints.length) {
+  var tx = textPoints[i * 6];
+  var ty = textPoints[i * 6 + 1];
 
   // Phase: dissolve out → reform back (sawtooth with smoothstep)
   var cycle = 4.0 / dissolveSpeed;
@@ -59,25 +60,31 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
 
   var driftDist = Math.sqrt(nx * nx + ny * ny + nz * nz) * driftScale;
 
+  // Emoji color detection: use sampled RGB if not white
+  var eR = textPoints[i * 6 + 3];
+  var eG = textPoints[i * 6 + 4];
+  var eB = textPoints[i * 6 + 5];
+  var isEmoji = (eR < 0.93 || eG < 0.93 || eB < 0.93);
+
   // Round colorMode to nearest int for clean switching
   var mode = Math.round(colorMode);
 
-  if (mode <= 0) {
-    // PRTCL — magenta (#FF2BD6) ↔ lime (#7CFF00) signature palette
-    // Particles shimmer between the two brand colors based on drift + position
-    var blend = Math.sin(i * 0.37 + time * 0.5 + driftDist * 2.0) * 0.5 + 0.5;
-    // Magenta: HSL ~0.89, 1.0, 0.59 | Lime: HSL ~0.24, 1.0, 0.50
-    var hue = 0.89 + blend * (-0.65); // 0.89 → 0.24 (wraps via negative)
-    if (hue < 0.0) hue = hue + 1.0;
-    var sat = 0.85 + drift * 0.15;
-    var lum = 0.45 + blend * 0.15 + (1.0 - drift) * 0.1;
-    color.setHSL(hue, sat, lum);
+  if (isEmoji) {
+    // Use native emoji colors, modulated by drift for dissolve effect
+    var lumMod = 0.7 + (1.0 - drift) * 0.3;
+    color.setRGB(eR * lumMod, eG * lumMod, eB * lumMod);
+  } else if (mode <= 0) {
+    // PRTCL — smooth magenta↔lime gradient based on drift + position
+    var t = Math.sin(i * 0.37 + time * 0.5 + driftDist * 2.0) * 0.5 + 0.5;
+    color.setRGB(
+      1.0 - t * 0.51,   // 1.0 → 0.49
+      0.17 + t * 0.83,   // 0.17 → 1.0
+      0.84 - t * 0.84    // 0.84 → 0.0
+    );
   } else if (mode <= 1) {
-    // Spectrum — full rainbow cycling through position + time
-    var hue = (i / count + time * 0.08 + driftDist * 0.15) % 1.0;
-    var sat = 0.9 - drift * 0.2;
-    var lum = 0.5 + drift * 0.15;
-    color.setHSL(hue, sat, lum);
+    // Spectrum — vivid rainbow, smooth hue rotation across particles
+    var hue = (i * 1.0 / count + time * 0.05) % 1.0;
+    color.setHSL(hue, 1.0, 0.55);
   } else {
     // Noir — monochrome dark, shadows that breathe
     // Particles flicker between near-black and grey, ghostly appearance

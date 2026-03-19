@@ -5,7 +5,7 @@ import { hopf } from './hopf'
 import { storm } from './storm'
 import { frequency } from './frequency'
 import { cliffordTorus } from './clifford-torus'
-import { magneticDust } from './magnetic-dust'
+
 import { fibonacciCrystal } from './fibonacci-crystal'
 import { paperFleet } from './paper-fleet'
 import { medusa } from './medusa'
@@ -14,8 +14,8 @@ import { anemone } from './anemone'
 import { textWave } from './text-wave'
 import { textScatter } from './text-scatter'
 import { textDissolve } from './text-dissolve'
-import { textVarsity } from './text-varsity'
 import { textTerrain } from './text-terrain'
+import { perlinNoise } from './perlin-noise'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, magneticDust, fibonacciCrystal, paperFleet, medusa, kraken, anemone, textWave, textScatter, textDissolve, textVarsity, textTerrain]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, fibonacciCrystal, perlinNoise, paperFleet, medusa, kraken, anemone, textWave, textScatter, textDissolve, textTerrain]

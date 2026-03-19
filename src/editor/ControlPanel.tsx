@@ -65,24 +65,40 @@ export function ControlPanel() {
       const fontOptions: Record<string, string> = {}
       for (const f of CURATED_FONTS) fontOptions[f.family] = f.family
 
-      const textParams = { text: textInput, font: textFont, weight: textWeight }
+      const { textLineSpacing } = useStore.getState()
+      const lines = textInput.split('\n')
+      const textParams = { line1: lines[0] || '', line2: lines[1] || '', font: textFont, weight: textWeight, lineSpacing: textLineSpacing }
 
-      textFolder.addBinding(textParams, 'text', { label: 'Text' })
-        .on('change', (ev: { value: string }) => useStore.getState().setTextInput(ev.value))
+      textFolder.addBinding(textParams, 'line1', { label: 'Line 1' })
+        .on('change', (ev: { value: string }) => {
+          const l2 = useStore.getState().textInput.split('\n')[1] || ''
+          useStore.getState().setTextInput(l2 ? ev.value + '\n' + l2 : ev.value)
+        })
+      textFolder.addBinding(textParams, 'line2', { label: 'Line 2' })
+        .on('change', (ev: { value: string }) => {
+          const l1 = useStore.getState().textInput.split('\n')[0] || ''
+          useStore.getState().setTextInput(ev.value ? l1 + '\n' + ev.value : l1)
+        })
 
       textFolder.addBinding(textParams, 'font', { label: 'Font', options: fontOptions })
         .on('change', (ev: { value: string }) => useStore.getState().setTextFont(ev.value))
 
-      // Weight options — filter by selected font's available weights
+      // Weight options — only show if font has multiple weights
       const currentFontDef = CURATED_FONTS.find(f => f.family === textFont)
-      const weightOptions: Record<string, string> = {}
-      for (const w of (currentFontDef?.weights ?? [300, 400, 700])) {
-        const label = w <= 300 ? 'Light' : w <= 400 ? 'Regular' : 'Bold'
-        weightOptions[label] = String(w)
+      const fontWeights = currentFontDef?.weights ?? [400]
+      if (fontWeights.length > 1) {
+        const weightOptions: Record<string, string> = {}
+        for (const w of fontWeights) {
+          const label = w <= 300 ? 'Light' : w <= 400 ? 'Regular' : 'Bold'
+          weightOptions[label] = String(w)
+        }
+        textFolder.addBinding(textParams, 'weight', { label: 'Weight', options: weightOptions })
+          .on('change', (ev: { value: string }) => useStore.getState().setTextWeight(ev.value))
       }
 
-      textFolder.addBinding(textParams, 'weight', { label: 'Weight', options: weightOptions })
-        .on('change', (ev: { value: string }) => useStore.getState().setTextWeight(ev.value))
+      // Line spacing — useful for multiline text
+      textFolder.addBinding(textParams, 'lineSpacing', { label: 'Line Spacing', min: 0.8, max: 2.0, step: 0.05 })
+        .on('change', (ev: { value: number }) => useStore.getState().setTextLineSpacing(ev.value))
     }
 
     // ── Effect controls ────────────────────────────────────
@@ -95,6 +111,7 @@ export function ControlPanel() {
       anemonePalette: { 'Reef': 0, 'Neon': 1, 'Deep Sea': 2, 'Blossom': 3 },
       terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
       terrainPalette: { 'PRTCL': 0, 'Typewriter': 1, 'Vintage': 2, 'Matrix': 3 },
+      wavePalette: { 'PRTCL': 0, 'Ocean': 1, 'Sunset': 2, 'Neon': 3, 'Spectrum': 4 },
     }
 
     // Text presets: when a terrainText dropdown changes, also update the text input

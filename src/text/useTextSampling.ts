@@ -7,6 +7,7 @@ export function useTextSampling(): void {
   const textInput = useStore((s) => s.textInput)
   const textFont = useStore((s) => s.textFont)
   const textWeight = useStore((s) => s.textWeight)
+  const textLineSpacing = useStore((s) => s.textLineSpacing)
   const particleCount = useStore((s) => s.particleCount)
   const selectedEffect = useStore((s) => s.selectedEffect)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -29,10 +30,10 @@ export function useTextSampling(): void {
       useStore.getState().setTextFontsLoaded(true)
 
       // Sample and store
-      const points = sampleText(textInput, textFont, textWeight, particleCount)
+      const points = sampleText(textInput, textFont, textWeight, particleCount, textLineSpacing)
       useStore.getState().setTextPoints(points)
     }, 300)
 
     return () => clearTimeout(timerRef.current)
-  }, [isTextEffect, textInput, textFont, textWeight, particleCount])
+  }, [isTextEffect, textInput, textFont, textWeight, textLineSpacing, particleCount])
 }

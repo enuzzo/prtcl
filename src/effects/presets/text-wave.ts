@@ -14,16 +14,20 @@ export const textWave: Effect = {
   cameraDistance: 7,
   cameraPosition: [0, 0, 7] as [number, number, number],
   cameraTarget: [0, 0, 0] as [number, number, number],
+  defaultText: 'Netmilk\nStudio',
+  defaultFont: 'Pacifico',
   createdAt: '2026-03-18',
   code: `
 var waveAmp = addControl("waveAmp", "Wave Amplitude", 0.1, 3.0, 0.8);
 var waveFreq = addControl("waveFreq", "Wave Frequency", 0.5, 5.0, 2.0);
 var waveSpeed = addControl("waveSpeed", "Wave Speed", 0.1, 3.0, 1.0);
 var colorShift = addControl("colorShift", "Color Shift", 0.0, 2.0, 1.0);
+// 0=PRTCL, 1=Ocean, 2=Sunset, 3=Neon, 4=Spectrum
+var palette = addControl("wavePalette", "Palette", 0.0, 4.0, 0.0);
 
-if (textPoints && i * 3 + 2 < textPoints.length) {
-  var tx = textPoints[i * 3];
-  var ty = textPoints[i * 3 + 1];
+if (textPoints && i * 6 + 5 < textPoints.length) {
+  var tx = textPoints[i * 6];
+  var ty = textPoints[i * 6 + 1];
 
   // Sine wave displacement in Z based on X position and time
   var phase = tx * waveFreq + time * waveSpeed;
@@ -35,12 +39,58 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
 
   target.set(tx, ty, zDisp + zDisp2);
 
-  // Color based on Z displacement — warm peaks, cool troughs
+  // Wave phase for color: -1 to 1 normalized
+  var wavePhase = Math.sin(phase);
   var normalizedZ = (zDisp + waveAmp) / (waveAmp * 2);
-  var hue = 0.85 - normalizedZ * colorShift * 0.4; // pink→cyan range
-  color.setHSL(hue, 0.9, 0.55 + normalizedZ * 0.2);
+
+  // Emoji color detection
+  var eR = textPoints[i * 6 + 3];
+  var eG = textPoints[i * 6 + 4];
+  var eB = textPoints[i * 6 + 5];
+  var isEmoji = (eR < 0.93 || eG < 0.93 || eB < 0.93);
+
+  var mode = Math.round(palette);
+
+  if (isEmoji) {
+    // Native emoji color, modulated by wave height
+    var bright = 0.8 + normalizedZ * 0.2;
+    color.setRGB(eR * bright, eG * bright, eB * bright);
+  } else if (mode <= 0) {
+    // PRTCL — smooth magenta→lime gradient following the wave
+    var t = normalizedZ;
+    color.setRGB(
+      1.0 - t * 0.51,   // 1.0 → 0.49
+      0.17 + t * 0.83,   // 0.17 → 1.0
+      0.84 - t * 0.84    // 0.84 → 0.0
+    );
+  } else if (mode <= 1) {
+    // Ocean — deep blue troughs, white foam crests, cyan mid
+    var foam = normalizedZ * normalizedZ;
+    var r = foam * 0.9;
+    var g = 0.2 + normalizedZ * 0.6 + foam * 0.2;
+    var b = 0.4 + normalizedZ * 0.3 + (1.0 - normalizedZ) * 0.3;
+    color.setRGB(r, g, b);
+  } else if (mode <= 2) {
+    // Sunset — deep red/orange troughs, golden/pink peaks
+    var r = 0.9 + normalizedZ * 0.1;
+    var g = 0.15 + normalizedZ * 0.55;
+    var b = 0.05 + normalizedZ * 0.35;
+    color.setRGB(r, g, b);
+  } else if (mode <= 3) {
+    // Neon — smooth cyan↔magenta gradient with wave motion
+    var t = Math.sin(phase * 0.5 + time * 0.3) * 0.5 + 0.5;
+    color.setRGB(
+      t,                 // 0→1 (cyan→magenta)
+      1.0 - t,           // 1→0
+      1.0 - t * 0.4      // 1→0.6
+    );
+  } else {
+    // Spectrum — full rainbow following the wave propagation
+    var hue = (phase * 0.08 + time * 0.02) % 1.0;
+    if (hue < 0.0) hue = hue + 1.0;
+    color.setHSL(hue, 1.0, 0.5 + normalizedZ * 0.15);
+  }
 } else {
-  // Fallback: origin with dim color
   target.set(0, 0, 0);
   color.setHSL(0.8, 0.5, 0.1);
 }

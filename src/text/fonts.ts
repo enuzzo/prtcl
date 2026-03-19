@@ -1,16 +1,23 @@
 import type { FontDefinition } from './types'
 
 export const CURATED_FONTS: FontDefinition[] = [
-  { family: 'Montserrat', category: 'sans', weights: [300, 400, 700], vibe: 'Clean, modern' },
-  { family: 'Inter', category: 'sans', weights: [300, 400, 700], vibe: 'Neutral, readable' },
-  { family: 'Bebas Neue', category: 'display', weights: [400], vibe: 'Bold, condensed' },
-  { family: 'Oswald', category: 'sans', weights: [300, 400, 700], vibe: 'Strong, editorial' },
-  { family: 'Playfair Display', category: 'serif', weights: [400, 700], vibe: 'Elegant' },
-  { family: 'Cormorant Garamond', category: 'serif', weights: [300, 400, 700], vibe: 'Classic, light' },
-  { family: 'Righteous', category: 'display', weights: [400], vibe: 'Fun, rounded' },
+  // ── Script / Handwriting ──
   { family: 'Pacifico', category: 'handwriting', weights: [400], vibe: 'Script, playful' },
+  { family: 'Sacramento', category: 'handwriting', weights: [400], vibe: 'Elegant script' },
   { family: 'Permanent Marker', category: 'handwriting', weights: [400], vibe: 'Handwritten, rough' },
+  // ── Display / Personality ──
+  { family: 'Bebas Neue', category: 'display', weights: [400], vibe: 'Bold, condensed' },
   { family: 'Bungee', category: 'display', weights: [400], vibe: 'Blocky, bold' },
+  { family: 'Righteous', category: 'display', weights: [400], vibe: 'Fun, rounded' },
+  { family: 'Monoton', category: 'display', weights: [400], vibe: 'Retro neon outline' },
+  { family: 'Rubik Glitch', category: 'display', weights: [400], vibe: 'Glitchy, digital' },
+  { family: 'Orbitron', category: 'display', weights: [400, 700], vibe: 'Futuristic, sci-fi' },
+  { family: 'Press Start 2P', category: 'display', weights: [400], vibe: '8-bit pixel' },
+  { family: 'Silkscreen', category: 'display', weights: [400, 700], vibe: 'Pixel bitmap' },
+  // ── Serif / Editorial ──
+  { family: 'Playfair Display', category: 'serif', weights: [400, 700], vibe: 'Elegant' },
+  { family: 'Abril Fatface', category: 'serif', weights: [400], vibe: 'Thick, editorial' },
+  // ── Mono ──
   { family: 'Space Mono', category: 'mono', weights: [400, 700], vibe: 'Technical' },
   { family: 'Fira Code', category: 'mono', weights: [300, 400, 700], vibe: 'Developer' },
 ]

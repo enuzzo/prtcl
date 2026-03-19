@@ -14,6 +14,7 @@ export const textScatter: Effect = {
   cameraDistance: 6,
   cameraPosition: [4.5, -0.5, 5.0] as [number, number, number],
   cameraTarget: [0, 0, 0] as [number, number, number],
+  defaultText: '⚡🦋🔥★🌈💎🌸♠',
   createdAt: '2026-03-18',
   code: `
 var cascade = addControl("cascade", "Cascade Width", 0.1, 1.0, 0.35);
@@ -22,9 +23,9 @@ var orbitSpeed = addControl("orbitSpeed", "Orbit Speed", 0.0, 3.0, 1.2);
 var sparkle = addControl("sparkle", "Sparkle", 0.0, 1.0, 0.6);
 var palette = addControl("palette", "Palette", 0.0, 3.0, 0.0);
 
-if (textPoints && i * 3 + 2 < textPoints.length) {
-  var tx = textPoints[i * 3];
-  var ty = textPoints[i * 3 + 1];
+if (textPoints && i * 6 + 5 < textPoints.length) {
+  var tx = textPoints[i * 6];
+  var ty = textPoints[i * 6 + 1];
 
   // ── Per-particle deterministic seeds ──
   var h1 = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -90,62 +91,82 @@ if (textPoints && i * 3 + 2 < textPoints.length) {
     driftZ
   );
 
-  // ── WLED-inspired progressive color ──
-  var pal = Math.round(palette);
+  // ── Emoji color detection ──
+  var eR = textPoints[i * 6 + 3];
+  var eG = textPoints[i * 6 + 4];
+  var eB = textPoints[i * 6 + 5];
+  var isEmoji = (eR < 0.93 || eG < 0.93 || eB < 0.93);
 
-  // Color chase position — sweeps across text over time
-  var chase = (time * 0.15 + posNorm) % 1.0;
-  // Secondary wave for depth
-  var wave2 = (time * 0.08 - posNorm * 0.5 + h1 * 0.2) % 1.0;
-  if (wave2 < 0.0) wave2 = wave2 + 1.0;
+  if (isEmoji) {
+    // Use native emoji colors, modulated by scatter/form state
+    var lumMod = (0.6 + formT * 0.4);
+    color.setRGB(eR * lumMod, eG * lumMod, eB * lumMod);
 
-  var hue = 0.0;
-  var sat = 0.85;
-  var lum = 0.0;
-
-  if (pal <= 0) {
-    // Aurora — bands of cyan, green, purple that sweep across
-    hue = 0.45 + chase * 0.25 + wave2 * 0.15;
-    if (hue > 1.0) hue = hue - 1.0;
-    sat = 0.7 + scatterT * 0.2;
-    lum = 0.35 + formT * 0.2 + wave2 * 0.1;
-  } else if (pal <= 1) {
-    // PRTCL chase — magenta/lime wipe that rolls across the text
-    var blend = (chase + wave2 * 0.3) % 1.0;
-    hue = blend < 0.5 ? 0.89 + blend * 0.44 : 0.24 + (blend - 0.5) * 1.3;
-    if (hue > 1.0) hue = hue - 1.0;
-    if (hue < 0.0) hue = hue + 1.0;
-    sat = 0.9;
-    lum = 0.35 + formT * 0.25;
-  } else if (pal <= 2) {
-    // Fire — warm flickering chase
-    hue = 0.0 + chase * 0.1 + wave2 * 0.05;
-    sat = 0.85 + wave2 * 0.15;
-    lum = 0.25 + chase * 0.3 + formT * 0.15;
-  } else {
-    // Ocean — deep blue to teal progressive
-    hue = 0.55 + chase * 0.12 - wave2 * 0.08;
-    if (hue < 0.0) hue = hue + 1.0;
-    sat = 0.75 + scatterT * 0.2;
-    lum = 0.2 + formT * 0.3 + wave2 * 0.15;
-  }
-
-  // ── Sparkle overlay ──
-  // Random particles flash white for a frame, like fairy lights
-  if (sparkle > 0.01) {
-    var sparkHash = Math.sin(i * 93.17 + Math.floor(time * 12.0) * 7.31) * 43758.5453;
-    sparkHash = sparkHash - Math.floor(sparkHash);
-    if (sparkHash > 1.0 - sparkle * 0.08) {
-      hue = 0.0;
-      sat = 0.0;
-      lum = 0.85 + sparkHash * 0.15;
+    // Sparkle overlay still applies on emoji
+    if (sparkle > 0.01) {
+      var sparkHash = Math.sin(i * 93.17 + Math.floor(time * 12.0) * 7.31) * 43758.5453;
+      sparkHash = sparkHash - Math.floor(sparkHash);
+      if (sparkHash > 1.0 - sparkle * 0.08) {
+        color.setRGB(0.85 + sparkHash * 0.15, 0.85 + sparkHash * 0.15, 0.85 + sparkHash * 0.15);
+      }
     }
+  } else {
+    // ── WLED-inspired progressive color (for regular text) ──
+    var pal = Math.round(palette);
+
+    // Color chase position — sweeps across text over time
+    var chase = (time * 0.15 + posNorm) % 1.0;
+    // Secondary wave for depth
+    var wave2 = (time * 0.08 - posNorm * 0.5 + h1 * 0.2) % 1.0;
+    if (wave2 < 0.0) wave2 = wave2 + 1.0;
+
+    var hue = 0.0;
+    var sat = 0.85;
+    var lum = 0.0;
+
+    if (pal <= 0) {
+      // Aurora — bands of cyan, green, purple that sweep across
+      hue = 0.45 + chase * 0.25 + wave2 * 0.15;
+      if (hue > 1.0) hue = hue - 1.0;
+      sat = 0.7 + scatterT * 0.2;
+      lum = 0.35 + formT * 0.2 + wave2 * 0.1;
+    } else if (pal <= 1) {
+      // PRTCL chase — magenta/lime wipe that rolls across the text
+      var blend = (chase + wave2 * 0.3) % 1.0;
+      hue = blend < 0.5 ? 0.89 + blend * 0.44 : 0.24 + (blend - 0.5) * 1.3;
+      if (hue > 1.0) hue = hue - 1.0;
+      if (hue < 0.0) hue = hue + 1.0;
+      sat = 0.9;
+      lum = 0.35 + formT * 0.25;
+    } else if (pal <= 2) {
+      // Fire — warm flickering chase
+      hue = 0.0 + chase * 0.1 + wave2 * 0.05;
+      sat = 0.85 + wave2 * 0.15;
+      lum = 0.25 + chase * 0.3 + formT * 0.15;
+    } else {
+      // Ocean — deep blue to teal progressive
+      hue = 0.55 + chase * 0.12 - wave2 * 0.08;
+      if (hue < 0.0) hue = hue + 1.0;
+      sat = 0.75 + scatterT * 0.2;
+      lum = 0.2 + formT * 0.3 + wave2 * 0.15;
+    }
+
+    // ── Sparkle overlay ──
+    if (sparkle > 0.01) {
+      var sparkHash = Math.sin(i * 93.17 + Math.floor(time * 12.0) * 7.31) * 43758.5453;
+      sparkHash = sparkHash - Math.floor(sparkHash);
+      if (sparkHash > 1.0 - sparkle * 0.08) {
+        hue = 0.0;
+        sat = 0.0;
+        lum = 0.85 + sparkHash * 0.15;
+      }
+    }
+
+    // Dim scattered particles slightly for depth
+    lum = lum * (0.6 + formT * 0.4);
+
+    color.setHSL(hue, sat, lum);
   }
-
-  // Dim scattered particles slightly for depth
-  lum = lum * (0.6 + formT * 0.4);
-
-  color.setHSL(hue, sat, lum);
 } else {
   target.set(0, 0, 0);
   color.setHSL(0, 0, 0.05);

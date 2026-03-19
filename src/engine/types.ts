@@ -67,6 +67,10 @@ export interface Effect {
   renderer?: 'particles' | 'custom'
   /** For custom renderers: which component to mount (e.g. 'paper-fleet') */
   customRenderer?: string
+  /** Default text input for text-category effects (overrides store default when selected) */
+  defaultText?: string
+  /** Default font for text-category effects (overrides store default when selected) */
+  defaultFont?: string
 }
 
 export type CompiledEffectFn = (

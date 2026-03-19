@@ -21,8 +21,15 @@ export async function waitForFont(family: string, weight: string): Promise<boole
   ensureFontsInjected()
   if (!document.fonts?.load) return false
   try {
+    // Wait for stylesheet to finish loading @font-face definitions
+    await document.fonts.ready
     const result = await document.fonts.load(`${weight} 120px "${family}"`)
-    return result.length > 0
+    if (result.length > 0) return true
+    // Retry once — stylesheet may still be fetching the font file
+    await new Promise(r => setTimeout(r, 500))
+    await document.fonts.ready
+    const retry = await document.fonts.load(`${weight} 120px "${family}"`)
+    return retry.length > 0
   } catch {
     return false
   }

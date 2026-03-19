@@ -5,6 +5,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { ParticleSystem } from '../engine/ParticleSystem'
 import { PaperFleet } from '../engine/PaperFleet'
 import { TextTerrain } from '../engine/TextTerrain'
+import { PerlinNoise } from '../engine/PerlinNoise'
 import { useStore } from '../store'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { updateHandCamera } from '../tracking/hand-camera'
@@ -134,6 +135,7 @@ function HandCameraSync() {
 const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'paper-fleet': PaperFleet,
   'text-terrain': TextTerrain,
+  'perlin-noise': PerlinNoise,
 }
 
 export function Viewport() {
