@@ -227,13 +227,13 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.5**: Polish & personality — Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
 - [x] **Phase 3.6**: New effects — Creature category (Medusa, Kraken, Anemone) with IK-inspired tentacles, Text Terrain (InstancedMesh letter landscape with falling animation), point size cap raised to 8.0, Clifford Torus retuning
 - [x] **Phase 3.7**: Perlin Noise effect (3D Perlin noise flow field with turbulence controls), multiline text support (Line 1/Line 2 fields + Line Spacing control), font curation for visual distinctiveness (added Monoton, Rubik Glitch, Orbitron, Press Start 2P, Silkscreen, Sacramento, Abril Fatface; removed generic sans-serif fonts), weight selector hidden for single-weight fonts, removed Text Varsity
-- [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
+- [ ] **Phase 3.8**: Background picker — solid colors, gradients (linear/radial/conic), patterns, presets. `backgroundType` + `backgroundPreset` in store. Tweakpane UI in Global section.
+- [ ] **Phase 3.9**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state.
+- [ ] **Phase 4**: Landing page at `/` (static HTML, SEO, bento cards, PRTCL text morph loop in hero, live particle background). Editor stays at `/create` with splash animation. Brand voice from `incoming/netmilk-brand-voice/` adapted to English.
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
 ## Future Ideas
 
-- **Shareable URLs (Deep Links)** — encode effect + slider values in URL hash with shortener. `prtcl.es/create#effect=fibonacci-crystal&faceting=0.65&breath=1.6&cam=-80,50,20`. Zero backend, instant sharing.
-- **Background Color Picker** — `backgroundColor` is in the store but no UI. Add color picker in Global Tweakpane section. Dark for glow, white for silhouette, custom for brand embeds.
 - **Effect Transition Options** — currently morph is always 2s easeInOutSine. Add dropdown: Morph (current), Explode→Reform, Dissolve (alpha fade), Instant (hard cut).
 
 ## Conventions
