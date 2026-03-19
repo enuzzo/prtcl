@@ -87,4 +87,6 @@ var depthShadow = Math.max(0.0, 1.5 - dSafe) * 0.4;
 var lum = 0.15 + pGlow * 0.65 * intensity + depthShadow;
 color.setHSL(hue, 0.9, Math.max(0.01, Math.min(1.0, lum)));
 `,
+  disturbMode: 'vortex',
+  disturbStrength: 1.5,
 }

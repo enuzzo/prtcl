@@ -116,4 +116,7 @@ color.setHSL(hue, sat, Math.min(lit, 1.0));
 
 }
 `,
+  disturbMode: 'attract',
+  disturbStrength: 0.6,
+  disturbRadius: 5.0,
 }

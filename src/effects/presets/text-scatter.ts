@@ -172,4 +172,6 @@ if (textPoints && i * 6 + 5 < textPoints.length) {
   color.setHSL(0, 0, 0.05);
 }
 `,
+  disturbMode: 'vortex',
+  disturbStrength: 1.0,
 }

@@ -95,4 +95,6 @@ if (textPoints && i * 6 + 5 < textPoints.length) {
   color.setHSL(0.8, 0.5, 0.1);
 }
 `,
+  disturbMode: 'repel',
+  disturbStrength: 1.5,
 }

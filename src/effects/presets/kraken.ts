@@ -109,4 +109,7 @@ color.setHSL(hue, sat, Math.min(lit, 1.0));
 
 }
 `,
+  disturbMode: 'repel',
+  disturbStrength: 2.5,
+  disturbRadius: 5.0,
 }

@@ -10,6 +10,18 @@ import type { CompiledEffectFn } from './types'
 const MAX_PARTICLES = 30000
 const MORPH_DURATION = 2.0 // seconds
 
+// ── Hand disturb constants ─────────────────────────────
+const DISTURB_RADIUS = 4.0    // world units — how far the hand "reaches"
+const DISTURB_STRENGTH = 1.2  // max displacement per frame at center
+const DISTURB_POS_LERP = 0.08 // how fast the 3D hand position tracks the real palm
+const DISTURB_FADE_IN = 0.06  // how fast the force ramps up when hand appears
+const DISTURB_FADE_OUT = 0.02 // how slowly the force fades when hand disappears
+
+// ── Hand disturb smoothed state (module-level, zero GC) ──
+let _disturbX = 0, _disturbY = 0, _disturbZ = 0
+let _disturbActive = 0 // 0..1 fade multiplier
+let _disturbInitialized = false
+
 /** Sine ease-in-out — the gentlest S-curve, like a breath */
 function easeInOutSine(t: number): number {
   const c = t < 0 ? 0 : t > 1 ? 1 : t
@@ -190,6 +202,117 @@ export function ParticleSystem() {
         colors[idx] = color.r
         colors[idx + 1] = color.g
         colors[idx + 2] = color.b
+      }
+    }
+
+    // ── Hand disturb: smoothed repulsion force from palm position ──
+    if (store.trackingMode === 'disturb') {
+      const handVisible = store.gesture === 'open_palm' && store.palmPosition != null
+
+      if (handVisible) {
+        // Map palm 2D → NDC (mirror X for natural screen-space mapping)
+        const ndcX = (1 - store.palmPosition!.x) * 2 - 1
+        const ndcY = -(store.palmPosition!.y * 2 - 1)
+
+        // Unproject to world space on z=0 plane (same technique as pointer)
+        target.set(ndcX, ndcY, 0.5).unproject(_state.camera)
+        const ddir = target.sub(_state.camera.position).normalize()
+        const ddist = -_state.camera.position.z / ddir.z
+        const rawX = _state.camera.position.x + ddir.x * ddist
+        const rawY = _state.camera.position.y + ddir.y * ddist
+        const rawZ = _state.camera.position.z + ddir.z * ddist
+
+        // Smooth the 3D position — no jitter, organic movement
+        if (!_disturbInitialized) {
+          _disturbX = rawX; _disturbY = rawY; _disturbZ = rawZ
+          _disturbInitialized = true
+        } else {
+          _disturbX += (rawX - _disturbX) * DISTURB_POS_LERP
+          _disturbY += (rawY - _disturbY) * DISTURB_POS_LERP
+          _disturbZ += (rawZ - _disturbZ) * DISTURB_POS_LERP
+        }
+
+        // Fade in
+        _disturbActive += (1 - _disturbActive) * DISTURB_FADE_IN
+      } else {
+        // Fade out gently
+        _disturbActive *= (1 - DISTURB_FADE_OUT)
+        if (_disturbActive < 0.001) {
+          _disturbActive = 0
+          _disturbInitialized = false
+        }
+      }
+
+      // Apply force if there's any active strength
+      if (_disturbActive > 0.001) {
+        const effect = store.selectedEffect
+        const mode = effect?.disturbMode ?? 'repel'
+        const rad = (effect?.disturbRadius ?? DISTURB_RADIUS)
+        const str = (effect?.disturbStrength ?? DISTURB_STRENGTH) * _disturbActive
+
+        for (let i = 0; i < renderCount; i++) {
+          const idx = i * 3
+          const px = positions[idx]!, py = positions[idx + 1]!, pz = positions[idx + 2]!
+          const dx = px - _disturbX
+          const dy = py - _disturbY
+          const dz = pz - _disturbZ
+          const d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+          if (d >= rad || d < 0.001) continue
+
+          const t = 1 - d / rad // 0 at edge, 1 at center
+          const t3 = t * t * t  // cubic falloff
+
+          if (mode === 'repel') {
+            // Push radially outward from hand
+            const f = t3 * str / d
+            positions[idx] = px + dx * f
+            positions[idx + 1] = py + dy * f
+            positions[idx + 2] = pz + dz * f
+
+          } else if (mode === 'attract') {
+            // Pull radially toward hand
+            const f = t3 * str / d
+            positions[idx] = px - dx * f * 0.5
+            positions[idx + 1] = py - dy * f * 0.5
+            positions[idx + 2] = pz - dz * f * 0.5
+
+          } else if (mode === 'swirl') {
+            // Tangential force — particles orbit around the hand (Y-up cross product)
+            const f = t3 * str
+            const invD = 1 / d
+            // Cross product of radial direction with up vector [0,1,0]
+            const tx = -dz * invD
+            const tz = dx * invD
+            positions[idx] = px + tx * f
+            positions[idx + 1] = py + dy * t3 * str * 0.1 / d // gentle vertical lift
+            positions[idx + 2] = pz + tz * f
+
+          } else if (mode === 'scatter') {
+            // Chaotic displacement — pseudo-random per particle, coherent per frame
+            const seed = i * 73856093
+            const rx = ((seed & 0xFFFF) / 32768.0 - 1.0)
+            const ry = (((seed >> 8) & 0xFFFF) / 32768.0 - 1.0)
+            const rz = (((seed >> 16) & 0xFFFF) / 32768.0 - 1.0)
+            const f = t3 * str * 0.6
+            positions[idx] = px + rx * f
+            positions[idx + 1] = py + ry * f
+            positions[idx + 2] = pz + rz * f
+
+          } else if (mode === 'vortex') {
+            // Attract + swirl combined — particles spiral inward
+            const f = t3 * str
+            const invD = 1 / d
+            // Tangential (swirl)
+            const tx = -dz * invD
+            const tz = dx * invD
+            // Radial (attract)
+            const ax = -dx * invD * 0.3
+            const az = -dz * invD * 0.3
+            positions[idx] = px + (tx + ax) * f
+            positions[idx + 1] = py - dy * f * 0.15 * invD // gentle pull down
+            positions[idx + 2] = pz + (tz + az) * f
+          }
+        }
       }
     }
 

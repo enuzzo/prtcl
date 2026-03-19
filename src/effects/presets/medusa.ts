@@ -107,4 +107,6 @@ color.setHSL(hue, sat, Math.min(lit, 1.0));
 
 }
 `,
+  disturbMode: 'vortex',
+  disturbStrength: 1.2,
 }

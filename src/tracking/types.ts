@@ -15,12 +15,14 @@ export interface Landmark {
 }
 
 export type HandGesture = 'none' | 'open_palm'
+export type TrackingMode = 'control' | 'disturb'
 
 export interface TrackingSlice {
   // State
   trackingEnabled: boolean
   trackingReady: boolean
   trackingError: string | null
+  trackingMode: TrackingMode
 
   // Hand data
   gesture: HandGesture
@@ -33,7 +35,8 @@ export interface TrackingSlice {
   setTrackingEnabled: (on: boolean) => void
   setTrackingReady: (ready: boolean) => void
   setTrackingError: (error: string | null) => void
+  setTrackingMode: (mode: TrackingMode) => void
   updateHandState: (state: Partial<Omit<TrackingSlice,
-    'setTrackingEnabled' | 'setTrackingReady' | 'setTrackingError' | 'updateHandState'
+    'setTrackingEnabled' | 'setTrackingReady' | 'setTrackingError' | 'setTrackingMode' | 'updateHandState'
   >>) => void
 }

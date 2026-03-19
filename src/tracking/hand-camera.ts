@@ -5,9 +5,8 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 // ── Constants ──────────────────────────────────────────
 const ROTATE_SPEED = 0.06          // radians per frame at full offset
 const ZOOM_ALPHA = 0.05            // lerp speed for zoom smoothing
-const DEAD_ZONE = 0.06             // ignore palm movement within this radius of center
+const DEAD_ZONE = 0.06             // ignore palm movement within this radius of anchor
 const RETURN_ALPHA = 0.025        // lerp speed for returning to home position
-const TIMEOUT_MS = 5000           // ms before resetting to home position
 const INPUT_ALPHA = 0.12          // lerp speed for smoothing raw hand inputs
 
 // ── Pre-allocated objects (zero GC in render loop) ─────
@@ -20,29 +19,36 @@ const _homePosition = new Vector3()
 const _homeTarget = new Vector3()
 let _homeRadius = 5
 let _baselineHandSize = 0
-let _lastHandSeenMs = 0
+let _wasOpenPalm = false
 let _smoothRadius = 0
 let _smoothPalmX = 0.5
 let _smoothPalmY = 0.5
 let _smoothHandSize = 0
 
+/** Anchor point — where the palm was when tracking began (the "joystick zero") */
+let _anchorX = 0.5
+let _anchorY = 0.5
+
 export function resetHandCamera(): void {
   _engaged = false
   _baselineHandSize = 0
-  _lastHandSeenMs = 0
   _smoothRadius = 0
   _smoothPalmX = 0.5
   _smoothPalmY = 0.5
   _smoothHandSize = 0
+  _anchorX = 0.5
+  _anchorY = 0.5
+  _wasOpenPalm = false
 }
 
 /**
  * Controls camera rotation + zoom from hand tracking data.
- * Called every frame from CameraSync's useFrame.
+ * Called every frame from HandCameraSync's useFrame.
  *
- * Palm X/Y → orbit rotation (with dead zone + mirrored X).
- * Hand size (wrist–finger distance) → zoom (relative to baseline on first detection).
- * 5s timeout → smooth return to home camera position.
+ * On first detection, the palm position becomes the "anchor" — all movement
+ * is relative to that point, like grabbing a joystick wherever your hand is.
+ * Hand size (wrist–finger distance) → zoom (relative to baseline).
+ * 5s timeout with no hand → smooth return to home camera position.
  */
 export function updateHandCamera(
   controls: OrbitControlsImpl,
@@ -51,12 +57,8 @@ export function updateHandCamera(
   handSize: number,
   gesture: string,
 ): void {
-  const now = performance.now()
-
   if (gesture === 'open_palm' && palmPosition) {
-    _lastHandSeenMs = now
-
-    // Capture home state on first engagement
+    // Capture home state on very first engagement
     if (!_engaged) {
       _engaged = true
       _homePosition.copy(camera.position)
@@ -70,14 +72,21 @@ export function updateHandCamera(
       _smoothHandSize = handSize
     }
 
+    // Re-anchor every time the palm reappears (fist → open, or hand gone → back)
+    if (!_wasOpenPalm) {
+      _anchorX = _smoothPalmX
+      _anchorY = _smoothPalmY
+    }
+    _wasOpenPalm = true
+
     // Smooth raw inputs to avoid jerks on tracking flicker
     _smoothPalmX += (palmPosition.x - _smoothPalmX) * INPUT_ALPHA
     _smoothPalmY += (palmPosition.y - _smoothPalmY) * INPUT_ALPHA
     _smoothHandSize += (handSize - _smoothHandSize) * INPUT_ALPHA
 
-    // Compute offsets from center (mirrored X for natural control)
-    const dx = 0.5 - _smoothPalmX
-    const dy = 0.5 - _smoothPalmY
+    // Offset from anchor — X inverted so hand "pushes" the object naturally
+    const dx = _smoothPalmX - _anchorX
+    const dy = _anchorY - _smoothPalmY
     const mag = Math.sqrt(dx * dx + dy * dy)
 
     // Current spherical state
@@ -108,13 +117,11 @@ export function updateHandCamera(
     return
   }
 
-  // ── Hand not detected ──────────────────────────────
+  // ── Palm not open (fist, gone, other gesture) ──────
+  _wasOpenPalm = false
   if (!_engaged) return
 
-  const elapsed = now - _lastHandSeenMs
-  if (elapsed <= TIMEOUT_MS) return // grace period — hold position
-
-  // Timeout expired — animate back to home
+  // Immediately return to home position — pugno/mano via = reset
   camera.position.lerp(_homePosition, RETURN_ALPHA)
   controls.target.lerp(_homeTarget, RETURN_ALPHA)
 

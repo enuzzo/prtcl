@@ -162,4 +162,6 @@ color.setRGB(
   Math.max(0, cb * brightness)
 );
 `,
+  disturbMode: 'repel',
+  disturbStrength: 2.0,
 }

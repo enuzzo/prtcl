@@ -135,4 +135,7 @@ if (group < 92) {
 target.set(x, y, z);
 color.setHSL(hue, sat, Math.min(1.0, Math.max(0.0, light)));
 `,
+  disturbMode: 'vortex',
+  disturbRadius: 5.0,
+  disturbStrength: 1.8,
 }

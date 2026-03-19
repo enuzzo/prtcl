@@ -93,4 +93,6 @@ var lit    = (0.04 + 0.72 * energy * energy) * bright;
 
 color.setHSL(hue, sat, Math.min(lit, 1.0));
 `,
+  disturbMode: 'swirl',
+  disturbStrength: 1.0,
 }

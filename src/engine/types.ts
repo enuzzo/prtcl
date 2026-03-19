@@ -71,6 +71,12 @@ export interface Effect {
   defaultText?: string
   /** Default font for text-category effects (overrides store default when selected) */
   defaultFont?: string
+  /** Hand tracking disturb mode — how particles react to the hand */
+  disturbMode?: 'repel' | 'attract' | 'swirl' | 'scatter' | 'vortex'
+  /** Disturb radius override (world units, default 4.0) */
+  disturbRadius?: number
+  /** Disturb strength override (default 1.2) */
+  disturbStrength?: number
 }
 
 export type CompiledEffectFn = (

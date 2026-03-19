@@ -209,4 +209,6 @@ if (i < oceanCount) {
 target.set(px, py, pz);
 color.setHSL(hue, sat, Math.min(1.0, Math.max(0.0, lit)));
 `,
+  disturbMode: 'scatter',
+  disturbStrength: 1.8,
 }

@@ -48,4 +48,7 @@ var brightness = 1 - (z + depth * 0.5) / depth;
 var lum = 0.3 + brightness * 0.7;
 color.setHSL(0.6 + brightness * 0.1, 0.3, lum);
 `,
+  disturbMode: 'scatter',
+  disturbRadius: 5.0,
+  disturbStrength: 1.5,
 }

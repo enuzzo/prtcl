@@ -105,7 +105,7 @@ export function TrackingThumbnail({ videoEl }: TrackingThumbnailProps) {
 
   return (
     <div
-      className="absolute bottom-3 right-3 transition-opacity duration-200"
+      className="absolute bottom-3 right-3 z-50 transition-opacity duration-200"
       style={{ opacity: landmarks ? 1 : 0.5 }}
     >
       <div

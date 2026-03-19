@@ -63,4 +63,7 @@ lum = lum + beat * 0.25;
 sat = sat - beat * 0.15;
 color.setHSL(hue, sat, lum);
 `,
+  disturbMode: 'attract',
+  disturbRadius: 5.0,
+  disturbStrength: 0.8,
 }

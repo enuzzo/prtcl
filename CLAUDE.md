@@ -79,11 +79,21 @@ MediaPipe Hands WASM for real-time hand gesture control of the camera (`src/trac
 MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → HandCameraSync (useFrame, 60fps)
 ```
 
-**Single gesture — open palm**: 3+ of 4 fingers extended (thumb excluded — unreliable across camera angles). Palm X/Y controls camera orbit rotation (with dead zone + mirrored X). Hand distance from camera (wrist-to-middle-finger-tip) controls zoom — hand closer to monitor pushes shape away (zoom out), hand farther pulls shape closer (zoom in). All inputs are smoothed via lerp (`INPUT_ALPHA = 0.12`) to prevent jerks on tracking flicker.
+**Single gesture — open palm**: 3+ of 4 fingers extended (thumb excluded — unreliable across camera angles). All inputs are smoothed via lerp (`INPUT_ALPHA = 0.12`) to prevent jerks on tracking flicker.
 
-**Camera control**: `HandCameraSync` runs as a separate R3F component rendered after `CameraSync`, so its `useFrame` executes after OrbitControls' update. Manipulates camera via spherical coordinates on the OrbitControls offset. Captures home camera position on first engagement; returns smoothly after 5s timeout.
+**Two tracking modes** (toggle in TrackingSidebar):
+1. **Control** — palm orbit + zoom. Hand position relative to anchor controls camera rotation via spherical coordinates. Hand distance (wrist-to-finger-tip) controls zoom relative to baseline captured at first engagement. Auto-rotate is killed while tracking is active — shape sits still until the hand moves it.
+2. **Disturb** — hand passes through the particle cloud and disrupts motion. 2D palm position is unprojected to 3D via camera ray → z=0 plane intersection. A per-particle force is applied in ParticleSystem's `useFrame` loop as a post-processing step after the effect computes target positions.
 
-**Key files**: `hand-camera.ts` (camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init with generation-counter cancellation), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay).
+**Palm-anchor-relative tracking**: The "zero point" is wherever the user's palm is when first detected — like grabbing a joystick. Movement is computed as delta from this anchor. Re-anchors every time the hand reappears (after fist or hand leaving scene). Horizontal axis is inverted so moving hand right pushes the object right (natural "pushing" feel).
+
+**Disturb force types**: `repel` (radial outward), `attract` (radial inward), `swirl` (tangential orbit around hand), `scatter` (pseudo-random noise displacement), `vortex` (attract + swirl combined spiral). Each effect declares its own `disturbMode`, `disturbRadius`, `disturbStrength` in the Effect interface for unique per-effect behavior. Default: `repel` with radius 4.0 and strength 1.2.
+
+**Smooth transitions**: Disturb force has fade-in (`DISTURB_FADE_IN = 0.06`) and fade-out (`DISTURB_FADE_OUT = 0.02`) so there's no snap when the hand enters/leaves. 3D hand position itself is smoothed via lerp (`DISTURB_POS_LERP = 0.08`). On effect switch with tracking active, camera resets to the new effect's natural position; when hand reappears, current view becomes the new anchor.
+
+**Camera control**: `HandCameraSync` runs as a separate R3F component rendered after `CameraSync`, so its `useFrame` executes after OrbitControls' update. Manipulates camera via spherical coordinates on the OrbitControls offset. Captures home camera position on first engagement; returns smoothly via lerp when palm closes.
+
+**Key files**: `hand-camera.ts` (palm-anchor camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init with generation-counter cancellation), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay), `TrackingSidebar.tsx` (Control/Disturb mode toggle UI).
 
 **MediaPipe loader pattern**: Uses a generation counter (`_gen`) to safely handle React StrictMode double-mount and rapid toggle scenarios. `closeMediaPipe()` bumps the generation, invalidating any in-flight async load. Concurrent callers share the same pending promise instead of throwing. This prevents the `_loading` flag from getting stuck and silently breaking subsequent tracking attempts.
 
@@ -216,7 +226,7 @@ Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and Orbi
 
 ### Store Design
 
-Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions. Sidebars stay as overlays (position absolute) until the user first toggles a panel, preventing canvas reflow glitch during the intro animation.
+Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions. Sidebars stay as overlays (position absolute) until the user first toggles a panel, preventing canvas reflow glitch during the intro animation. `trackingMode` (`'control' | 'disturb'`) selects between camera-orbit and particle-disruption hand tracking.
 
 ## Design System (in `src/index.css`)
 
@@ -248,6 +258,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.6**: New effects — Creature category (Medusa, Kraken, Anemone) with IK-inspired tentacles, Text Terrain (InstancedMesh letter landscape with falling animation), point size cap raised to 8.0, Clifford Torus retuning
 - [x] **Phase 3.7**: Perlin Noise effect (3D Perlin noise flow field with turbulence controls), multiline text support (Line 1/Line 2 fields + Line Spacing control), font curation for visual distinctiveness (added Monoton, Rubik Glitch, Orbitron, Press Start 2P, Silkscreen, Sacramento, Abril Fatface; removed generic sans-serif fonts), weight selector hidden for single-weight fonts, removed Text Varsity
 - [x] **Phase 3.8**: Background picker — 22 presets (6 solids, 11 gradients, 5 patterns), SceneBackground R3F component with CanvasTexture rendering, BackgroundPicker swatch UI, custom color picker, export compatibility (CSS backgrounds for HTML, hex fallback for iframe). Hand tracking fix: rewrote mediapipe-loader with generation-counter pattern for React StrictMode safety.
+- [x] **Phase 3.85**: Hand tracking v2 — two modes (Control + Disturb), palm-anchor-relative tracking (re-anchors on each hand reappearance), inverted horizontal axis for natural feel, per-effect disturbance with 5 force types (repel/attract/swirl/scatter/vortex), smooth fade-in/out on hand enter/exit, camera reset on effect switch, auto-rotate killed during tracking, TrackingSidebar mode toggle UI, overflow-hidden fix for Mac scrollbar during intro animation.
 - [ ] **Phase 3.9**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state.
 - [ ] **Phase 4**: Landing page at `/` (static HTML, SEO, bento cards, PRTCL text morph loop in hero, live particle background). Editor stays at `/create` with splash animation. Brand voice from `incoming/netmilk-brand-voice/` adapted to English.
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public

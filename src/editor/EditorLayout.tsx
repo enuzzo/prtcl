@@ -10,6 +10,7 @@ import { useStore } from '../store'
 import { compileEffect } from '../engine/compiler'
 import { ALL_PRESETS } from '../effects/presets'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { resetHandCamera } from '../tracking/hand-camera'
 import type { Effect } from '../engine/types'
 
 const LEFT_W = 280
@@ -89,6 +90,8 @@ export function EditorLayout() {
         store.setCameraPosition(effect.cameraPosition ?? null)
         store.setCameraTarget(effect.cameraTarget ?? null)
       }
+      // Reset hand camera so new effect starts from its natural position
+      resetHandCamera()
     } else {
       console.error('Failed to compile effect:', result.error)
     }
@@ -151,7 +154,7 @@ export function EditorLayout() {
     : 'opacity-0 pointer-events-none'
 
   return (
-    <div className="flex flex-col h-dvh bg-bg text-text">
+    <div className="flex flex-col h-dvh bg-bg text-text overflow-hidden">
       <div style={topBarStyle}>
         <TopBar isMobile={isMobile} onSelectEffect={handleSelectEffect} />
       </div>

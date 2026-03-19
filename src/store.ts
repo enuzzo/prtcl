@@ -196,6 +196,7 @@ export const useStore = create<PrtclState>((set) => ({
   trackingEnabled: false,
   trackingReady: false,
   trackingError: null,
+  trackingMode: 'control',
   gesture: 'none',
   palmPosition: null,
   handSize: 0,
@@ -205,6 +206,7 @@ export const useStore = create<PrtclState>((set) => ({
   setTrackingEnabled: (on) => set({ trackingEnabled: on }),
   setTrackingReady: (ready) => set({ trackingReady: ready }),
   setTrackingError: (error) => set({ trackingError: error }),
+  setTrackingMode: (mode) => set({ trackingMode: mode }),
   updateHandState: (state) => set(state),
 
   // ── Audio ───────────────────────────────────────────────

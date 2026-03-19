@@ -123,9 +123,13 @@ function HandCameraSync() {
 
   useFrame(() => {
     const state = useStore.getState()
-    if (!state.trackingEnabled) return
+    if (!state.trackingEnabled || state.trackingMode !== 'control') return
     const ctrl = getControlsRef()
     if (!ctrl) return
+
+    // Kill auto-rotate while hand tracking is active — hand is the only controller
+    ctrl.autoRotate = false
+
     updateHandCamera(ctrl, camera, state.palmPosition, state.handSize, state.gesture)
   })
 
