@@ -246,7 +246,7 @@ export function TextTerrain() {
           dummy.updateMatrix()
         } else {
           const earlyProgress = tiles[tiles.length - 1].animProgress
-          dummy.position.y = 30 * (1 - earlyProgress) + y0 * earlyProgress
+          dummy.position.y = 30 * (1 - earlyProgress) + y0 * earlyProgress // init height, skyHeight applied at runtime
           dummy.rotation.set(
             tiles[tiles.length - 1].startRot.x * (1 - earlyProgress),
             tiles[tiles.length - 1].startRot.y * (1 - earlyProgress),
@@ -297,7 +297,8 @@ export function TextTerrain() {
     const speed = controls.find(c => c.id === 'speed')?.value ?? 1
     const waveSpd = controls.find(c => c.id === 'waveSpeed')?.value ?? 0.5
     const waveHt = controls.find(c => c.id === 'waveHeight')?.value ?? 1.0
-    const fallHeight = 30
+    const skyHt = controls.find(c => c.id === 'skyHeight')?.value ?? 1.0
+    const fallHeight = 30 * skyHt
     const dt = delta * speed
     const waveTime = clockRef.current * waveSpd
 
@@ -396,7 +397,7 @@ export function TextTerrain() {
 
   return (
     <>
-      <fog attach="fog" args={['#08040E', 50, 110]} />
+      <fog attach="fog" args={['#08040E', 60, 180]} />
       <instancedMesh
         ref={meshRef}
         args={[geometry, material, totalTiles]}
