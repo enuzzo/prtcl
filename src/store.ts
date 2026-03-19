@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Effect, CompiledEffectFn, Control } from './engine/types'
 import type { TrackingSlice } from './tracking/types'
 import type { AudioSlice } from './audio/types'
+import { getBackgroundPreset } from './editor/background-presets'
 
 export interface PrtclState extends TrackingSlice, AudioSlice {
   // Effect state
@@ -14,6 +15,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   particleCount: number
   pointSize: number
   backgroundColor: string
+  backgroundPreset: string
   bloomEnabled: boolean
 
   // Camera
@@ -58,6 +60,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   setParticleCount: (count: number) => void
   setPointSize: (size: number) => void
   setBackgroundColor: (color: string) => void
+  setBackgroundPreset: (presetId: string) => void
   setBloomEnabled: (enabled: boolean) => void
 
   // Actions: camera
@@ -107,7 +110,8 @@ export const useStore = create<PrtclState>((set) => ({
   // Settings
   particleCount: 15000,
   pointSize: 1.0,
-  backgroundColor: '#08040E',
+  backgroundColor: 'radial-gradient(ellipse at center, #1a0533, #08040E)',
+  backgroundPreset: 'nebula',
   bloomEnabled: false,
 
   // Camera
@@ -156,6 +160,10 @@ export const useStore = create<PrtclState>((set) => ({
   setParticleCount: (count) => set({ particleCount: count }),
   setPointSize: (size) => set({ pointSize: size }),
   setBackgroundColor: (color) => set({ backgroundColor: color }),
+  setBackgroundPreset: (presetId) => {
+    const preset = getBackgroundPreset(presetId)
+    if (preset) set({ backgroundPreset: presetId, backgroundColor: preset.css })
+  },
   setBloomEnabled: (enabled) => set({ bloomEnabled: enabled }),
 
   // Actions: camera

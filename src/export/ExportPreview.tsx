@@ -26,10 +26,9 @@ export function ExportPreview({
       <Canvas
         camera={{ position: cameraPosition, fov: 60 }}
         style={{ height: 260 }}
-        gl={{ antialias: false }}
+        gl={{ antialias: false, alpha: true }}
         dpr={[1, 1.5]}
       >
-        <color attach="background" args={[backgroundColor]} />
         <IsolatedParticleSystem
           compiledFn={compiledFn}
           controls={controls}

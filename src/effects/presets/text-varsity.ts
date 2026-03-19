@@ -14,6 +14,7 @@ export const textVarsity: Effect = {
   cameraDistance: 7,
   cameraPosition: [4.214, -0.477, 5.569] as [number, number, number],
   cameraTarget: [0, 0, 0] as [number, number, number],
+  defaultText: 'Netmilk',
   createdAt: '2026-03-18',
   code: `
 var depth = addControl("depth", "3D Depth", 0.05, 1.5, 0.365);
@@ -26,9 +27,9 @@ var thickness = addControl("thickness", "Thickness", 0.0, 1.0, 0.753);
 var breathe = addControl("breathe", "Breathe", 0.0, 1.0, 0.4);
 var shadowDrift = addControl("shadowDrift", "Shadow Drift", 0.0, 1.0, 0.35);
 
-if (textPoints && i * 3 + 2 < textPoints.length) {
-  var tx = textPoints[i * 3];
-  var ty = textPoints[i * 3 + 1];
+if (textPoints && i * 6 + 5 < textPoints.length) {
+  var tx = textPoints[i * 6];
+  var ty = textPoints[i * 6 + 1];
 
   // How many discrete depth layers to render
   var numLayers = Math.round(layers);

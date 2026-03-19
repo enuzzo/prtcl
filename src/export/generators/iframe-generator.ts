@@ -24,7 +24,9 @@ export function buildEmbedUrl(payload: ExportPayload): string {
   params.set('effect', effect.id)
   params.set('particles', String(settings.particleCount))
   params.set('pointSize', String(settings.pointSize))
-  params.set('bg', settings.backgroundColor.replace(/^#/, ''))
+  // For gradients, extract the first hex color as a fallback
+  const bgHex = settings.backgroundColor.match(/#[0-9a-fA-F]{6}/)?.[0] ?? settings.backgroundColor
+  params.set('bg', bgHex.replace(/^#/, ''))
   params.set('rotate', String(settings.autoRotateSpeed))
   params.set('orbit', settings.orbitControls ? '1' : '0')
 

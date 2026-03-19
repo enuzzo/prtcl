@@ -122,7 +122,7 @@ export function generateHtmlEmbed(payload: ExportPayload): string {
     const canvas    = container.querySelector('canvas');
     const renderer  = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x${backgroundColor.replace('#', '')}, 1);
+    renderer.setClearColor(0x000000, 0);
 
     /* ── Scene & camera ────────────────────────────────────────────── */
     const scene  = new THREE.Scene();

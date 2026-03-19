@@ -3,6 +3,7 @@ import { Pane } from 'tweakpane'
 import { useStore } from '../store'
 import { getCameraSnapshot } from '../engine/camera-bridge'
 import { TrackingSidebar } from './TrackingSidebar'
+import { BackgroundPicker } from './BackgroundPicker'
 import { CURATED_FONTS } from '../text/fonts'
 
 export function ControlPanel() {
@@ -156,6 +157,7 @@ export function ControlPanel() {
         global: {
           particleCount: s.particleCount,
           pointSize: s.pointSize,
+          backgroundPreset: s.backgroundPreset,
         },
         camera: {
           autoRotateSpeed: s.autoRotateSpeed,
@@ -198,6 +200,7 @@ export function ControlPanel() {
     <div className="w-[320px] h-full bg-surface border-l border-border overflow-y-auto">
       <TrackingSidebar />
       <div ref={containerRef} className="p-2" />
+      <BackgroundPicker />
     </div>
   )
 }

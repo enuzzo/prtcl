@@ -60,11 +60,21 @@ export function ExportSettingsPanel({ settings, onChange, mode, effectUsesPointe
       <div>
         <label className="flex items-center justify-between text-text-secondary mb-1">
           <span>Background</span>
-          <span className="text-text">{settings.backgroundColor}</span>
+          <span className="text-text text-xs truncate max-w-[140px]">
+            {settings.backgroundColor.startsWith('#') ? settings.backgroundColor : 'Gradient'}
+          </span>
         </label>
-        <input type="color" value={settings.backgroundColor}
-          onChange={(e) => update('backgroundColor', e.target.value)}
-          className="w-8 h-8 rounded border border-border cursor-pointer" />
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded border border-border shrink-0"
+            style={{ background: settings.backgroundColor }}
+          />
+          {settings.backgroundColor.startsWith('#') && (
+            <input type="color" value={settings.backgroundColor}
+              onChange={(e) => update('backgroundColor', e.target.value)}
+              className="w-8 h-8 rounded border border-border cursor-pointer" />
+          )}
+        </div>
       </div>
 
       {/* Auto-rotate */}

@@ -12,6 +12,7 @@ import { updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
 import { useAudioReactivity } from '../audio/useAudioReactivity'
 import { TrackingThumbnail } from './TrackingThumbnail'
+import { SceneBackground } from './SceneBackground'
 
 const MORPH_DURATION = 2.0 // seconds — must match ParticleSystem
 
@@ -139,7 +140,6 @@ const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
 }
 
 export function Viewport() {
-  const backgroundColor = useStore((s) => s.backgroundColor)
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const selectedEffect = useStore((s) => s.selectedEffect)
   const { videoEl } = useHandTracking()
@@ -156,8 +156,8 @@ export function Viewport() {
       <Canvas
         camera={{ position: [0, 0, 14], fov: 60 }}
         gl={{ antialias: false, alpha: false }}
-        style={{ background: backgroundColor }}
       >
+        <SceneBackground />
         {CustomRenderer ? <CustomRenderer /> : <ParticleSystem />}
         <CameraSync />
         <HandCameraSync />

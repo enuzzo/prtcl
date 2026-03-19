@@ -63,16 +63,19 @@ export function useHandTracking(): {
     const start = async () => {
       try {
         // Request webcam
+        console.log('[PRTCL] Tracking: requesting webcam...')
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 320, height: 240, facingMode: 'user' },
         })
 
         if (dead) {
+          console.log('[PRTCL] Tracking: dead after getUserMedia, bailing')
           stream.getTracks().forEach((t) => t.stop())
           return
         }
 
         // Setup video element
+        console.log('[PRTCL] Tracking: webcam acquired, setting up video')
         const video = document.createElement('video')
         video.srcObject = stream
         video.setAttribute('playsinline', '')
@@ -82,13 +85,16 @@ export function useHandTracking(): {
         setVideoEl(video)  // Trigger re-render so TrackingThumbnail receives the element
 
         // Load MediaPipe
+        console.log('[PRTCL] Tracking: loading MediaPipe...')
         const hands = await loadMediaPipe(handler)
 
         if (dead) {
+          console.log('[PRTCL] Tracking: dead after loadMediaPipe, bailing')
           stream.getTracks().forEach((t) => t.stop())
           return
         }
 
+        console.log('[PRTCL] Tracking: ready! Starting frame loop')
         useStore.getState().setTrackingReady(true)
         useStore.getState().setTrackingError(null)
         activeRef.current = true
@@ -110,13 +116,14 @@ export function useHandTracking(): {
         }
         sendFrame()
       } catch (e) {
-        if (!dead) {
-          const msg = e instanceof DOMException && e.name === 'NotAllowedError'
-            ? 'Camera permission required for hand tracking'
-            : `Hand tracking unavailable: ${(e as Error).message}`
-          useStore.getState().setTrackingError(msg)
-          useStore.getState().setTrackingEnabled(false)
-        }
+        // Ignore expected errors from cleanup/strict-mode superseding a stale load
+        if (dead) return
+        console.warn('[PRTCL] Hand tracking start() failed:', e)
+        const msg = e instanceof DOMException && e.name === 'NotAllowedError'
+          ? 'Camera permission required for hand tracking'
+          : `Hand tracking unavailable: ${(e as Error).message}`
+        useStore.getState().setTrackingError(msg)
+        useStore.getState().setTrackingEnabled(false)
       }
     }
 

@@ -83,7 +83,9 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 
 **Camera control**: `HandCameraSync` runs as a separate R3F component rendered after `CameraSync`, so its `useFrame` executes after OrbitControls' update. Manipulates camera via spherical coordinates on the OrbitControls offset. Captures home camera position on first engagement; returns smoothly after 5s timeout.
 
-**Key files**: `hand-camera.ts` (camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay).
+**Key files**: `hand-camera.ts` (camera controller), `gesture-classifier.ts` (landmark math + debounce), `useHandTracking.ts` (MediaPipe hook), `mediapipe-loader.ts` (WASM init with generation-counter cancellation), `TrackingThumbnail.tsx` (mirrored webcam + skeleton overlay).
+
+**MediaPipe loader pattern**: Uses a generation counter (`_gen`) to safely handle React StrictMode double-mount and rapid toggle scenarios. `closeMediaPipe()` bumps the generation, invalidating any in-flight async load. Concurrent callers share the same pending promise instead of throwing. This prevents the `_loading` flag from getting stuck and silently breaking subsequent tracking attempts.
 
 ### Audio Reactivity
 
@@ -100,6 +102,24 @@ getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loo
 **UI**: Mic toggle button in TopBar (left of hand tracking). On click, 5 mini frequency bars expand leftward (300ms CSS transition). Bars reflect spectral segments in real-time (#FF2BD6 accent color).
 
 **Key files**: `analyser.ts` (band computation + BeatDetector class), `useAudioReactivity.ts` (hook: mic lifecycle, rAF analysis, store updates), `types.ts` (AudioSlice interface).
+
+### Background Picker
+
+Customizable scene backgrounds with presets organized in 3 categories: solid colors, gradients (linear/radial), and patterns. Default is Nebula (radial gradient).
+
+**Architecture**: WebGL `scene.background` is set via the `SceneBackground` R3F component, not CSS backgrounds (the Canvas uses `alpha: false`, so CSS is invisible behind the WebGL framebuffer). Solid presets use `THREE.Color`. Gradient and pattern presets render to an offscreen `<canvas>` at 512×512 and create a `THREE.CanvasTexture`.
+
+**Preset data** (`src/editor/background-presets.ts`): Each preset defines `id`, `name`, `category`, `baseColor` (hex fallback for WebGL clear), `css` (for HTML export/UI swatches), optional `gradient` (Canvas2D gradient definition with stops), optional `renderToCanvas` callback (Canvas2D drawing for patterns).
+
+**Presets**: 6 solids (Void, Abyss, Deep Space, Graphite, Obsidian, Midnight), 6 subtle gradients (Nebula, Aurora, Sunset, Arctic, Ember, Cosmos), 5 vivid gradients (Plasma, Electric, Magma, Toxic, Ultraviolet), 5 patterns (Grid, Dots, Scanlines, Circuit, Noise).
+
+**UI** (`BackgroundPicker.tsx`): Collapsible folder styled to match Tweakpane, with swatch grids per category (7×N flex-wrap, 28px swatches). Custom color picker (+) button with hidden `<input type="color">`. Rendered below Tweakpane in ControlPanel.
+
+**Store**: `backgroundPreset` (string ID, default `'nebula'`) and `backgroundColor` (CSS string). `setBackgroundPreset(id)` looks up the preset and sets both fields atomically.
+
+**Export compatibility**: HTML exports use CSS `background` on the container div with transparent WebGL clear (`alpha: true`). Iframe embeds extract a hex fallback from gradient CSS for the `bg` URL param.
+
+**Key files**: `background-presets.ts` (preset data + types), `SceneBackground.tsx` (R3F component), `BackgroundPicker.tsx` (UI).
 
 ### Export System
 
@@ -152,7 +172,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
-src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
+src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown, BackgroundPicker, SceneBackground, background-presets
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
 src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, perlin-noise, fibonacci-crystal, paper-fleet, medusa, kraken, anemone, text-wave, text-scatter, text-dissolve, text-terrain)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
@@ -227,7 +247,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.5**: Polish & personality — Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
 - [x] **Phase 3.6**: New effects — Creature category (Medusa, Kraken, Anemone) with IK-inspired tentacles, Text Terrain (InstancedMesh letter landscape with falling animation), point size cap raised to 8.0, Clifford Torus retuning
 - [x] **Phase 3.7**: Perlin Noise effect (3D Perlin noise flow field with turbulence controls), multiline text support (Line 1/Line 2 fields + Line Spacing control), font curation for visual distinctiveness (added Monoton, Rubik Glitch, Orbitron, Press Start 2P, Silkscreen, Sacramento, Abril Fatface; removed generic sans-serif fonts), weight selector hidden for single-weight fonts, removed Text Varsity
-- [ ] **Phase 3.8**: Background picker — solid colors, gradients (linear/radial/conic), patterns, presets. `backgroundType` + `backgroundPreset` in store. Tweakpane UI in Global section.
+- [x] **Phase 3.8**: Background picker — 22 presets (6 solids, 11 gradients, 5 patterns), SceneBackground R3F component with CanvasTexture rendering, BackgroundPicker swatch UI, custom color picker, export compatibility (CSS backgrounds for HTML, hex fallback for iframe). Hand tracking fix: rewrote mediapipe-loader with generation-counter pattern for React StrictMode safety.
 - [ ] **Phase 3.9**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state.
 - [ ] **Phase 4**: Landing page at `/` (static HTML, SEO, bento cards, PRTCL text morph loop in hero, live particle background). Editor stays at `/create` with splash animation. Brand voice from `incoming/netmilk-brand-voice/` adapted to English.
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public

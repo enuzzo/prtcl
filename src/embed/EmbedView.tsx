@@ -85,10 +85,9 @@ export function EmbedView() {
     <div className="relative w-full h-dvh" style={{ background: backgroundColor }}>
       <Canvas
         camera={{ position: camPos, fov: 60 }}
-        gl={{ antialias: false }}
+        gl={{ antialias: false, alpha: true }}
         dpr={[1, 2]}
       >
-        <color attach="background" args={[backgroundColor]} />
         <IsolatedParticleSystem
           compiledFn={compiledFn}
           controls={controlValues}
