@@ -114,7 +114,7 @@ getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loo
 
 **IsolatedParticleSystem**: Standalone particle renderer that accepts all settings as props (no Zustand dependency). Used by ExportPreview. Includes viewport-relative point size scaling (`canvasHeight / 800`) so the small preview canvas looks proportional to the full viewport.
 
-**Limitations**: Custom renderer effects (Paper Fleet) cannot be exported — Export button shows tooltip. Hand tracking and audio reactivity are not included in exports.
+**Limitations**: Custom renderer effects (Paper Fleet, Text Terrain) cannot be exported — Export button shows tooltip. Hand tracking and audio reactivity are not included in exports.
 
 **Key files**: `ExportModal.tsx` (modal container), `IsolatedParticleSystem.tsx` (standalone renderer), `generators/html-generator.ts` (core HTML snippet), `generators/react-generator.ts`, `generators/iframe-generator.ts`, `templates/shader-strings.ts`, `src/embed/EmbedView.tsx`.
 
@@ -122,7 +122,7 @@ getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loo
 
 `gl_PointSize` operates in framebuffer pixels, not CSS pixels. On Retina displays (devicePixelRatio=2), the framebuffer is 2× the CSS size, making particles appear half as large in CSS terms compared to standard displays. Fix: multiply `uPointSize` by `renderer.getPixelRatio()` in the `useFrame` loop. This applies in both `ParticleSystem.tsx` (main editor) and `IsolatedParticleSystem.tsx` (export preview).
 
-**Point size range**: Normalized to 0.2–2.5 with step 0.1 for granular control. All preset `pointSize` defaults were recalibrated after the DPI fix (roughly halved from previous values).
+**Point size range**: Normalized to 0.2–8.0 with step 0.1 for granular control. All preset `pointSize` defaults were recalibrated after the DPI fix (roughly halved from previous values).
 
 ### Text-to-Particles
 
@@ -136,7 +136,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 
 **Text module** (`src/text/`): `sampler.ts` (canvas → Float32Array), `font-loader.ts` (lazy Google Fonts `<link>` + per-font readiness via `document.fonts.load()`), `fonts.ts` (12 curated fonts), `useTextSampling.ts` (debounced hook mounted in EditorLayout).
 
-**4 text effects**: Text Wave (sine displacement), Text Scatter (cascading waves with orbital drift, WLED-inspired palettes, sparkle overlay), Text Dissolve (trig-based noise drift/reform, 3 color modes: PRTCL/Spectrum/Noir), Text Varsity (volumetric 3D lettering with breathing + shadow drift, 4 style presets).
+**5 text effects**: Text Wave (sine displacement), Text Scatter (cascading waves with orbital drift, WLED-inspired palettes, sparkle overlay), Text Dissolve (trig-based noise drift/reform, 3 color modes: PRTCL/Spectrum/Noir), Text Varsity (volumetric 3D lettering with breathing + shadow drift, 4 style presets), Text Terrain (custom renderer — InstancedMesh letter grid on animated noise terrain with falling letters, 4 palettes, 3 text presets).
 
 **ControlPanel**: TEXT Tweakpane folder (text input, font dropdown, weight selector) shown only for `category: 'text'` effects. Pane rebuilds when `selectedEffectId` changes.
 
@@ -148,7 +148,7 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, text-wave, text-scatter, text-dissolve, text-varsity)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, magnetic-dust, fibonacci-crystal, paper-fleet, medusa, kraken, anemone, text-wave, text-scatter, text-dissolve, text-varsity, text-terrain)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
 src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
@@ -219,6 +219,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
 - [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 4 text effects (Text Wave, Text Scatter, Text Dissolve, Text Varsity), Tweakpane TEXT folder, export + embed support with baked textPoints
 - [x] **Phase 3.5**: Polish & personality — Text Varsity (volumetric 3D lettering, breathing, shadow drift, 4 styles), Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
+- [x] **Phase 3.6**: New effects — Creature category (Medusa, Kraken, Anemone) with IK-inspired tentacles, Text Terrain (InstancedMesh letter landscape with falling animation), point size cap raised to 8.0, Clifford Torus retuning
 - [ ] **Phase 4**: Landing page (static HTML, SEO), gallery
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
