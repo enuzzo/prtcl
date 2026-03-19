@@ -7,7 +7,7 @@ interface EffectBrowserProps {
   onSelect: (effect: Effect) => void
 }
 
-const CATEGORY_ORDER = ['organic', 'math', 'creature', 'text', 'abstract'] as const
+const CATEGORY_ORDER = ['math', 'organic', 'creature', 'text', 'abstract'] as const
 const CATEGORY_LABELS: Record<string, string> = {
   organic: 'Organic',
   math: 'Math',
@@ -66,7 +66,7 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
   const isSearching = query.trim().length > 0
 
   return (
-    <div className="w-[280px] bg-surface border-r border-border flex flex-col overflow-hidden">
+    <div className="w-[280px] h-full bg-surface border-r border-border flex flex-col overflow-hidden">
       {/* Search + collapse controls */}
       <div className="p-3 border-b border-border space-y-2">
         <input

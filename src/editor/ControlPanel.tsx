@@ -117,8 +117,8 @@ export function ControlPanel() {
           }).on('change', (ev: { value: number }) => {
             useStore.getState().updateControlValue(c.id, ev.value)
             // Text preset switching: update text input when terrainText dropdown changes
-            if (c.id === 'terrainText' && TEXT_PRESETS[ev.value]) {
-              useStore.getState().setTextInput(TEXT_PRESETS[ev.value])
+            if (c.id === 'terrainText' && TEXT_PRESETS[ev.value] != null) {
+              useStore.getState().setTextInput(TEXT_PRESETS[ev.value]!)
             }
           })
         } else {
@@ -178,7 +178,7 @@ export function ControlPanel() {
   }, [controlSchema]) // Depend on schema (ids+ranges), NOT on array reference
 
   return (
-    <div className="w-[320px] bg-surface border-l border-border overflow-y-auto">
+    <div className="w-[320px] h-full bg-surface border-l border-border overflow-y-auto">
       <TrackingSidebar />
       <div ref={containerRef} className="p-2" />
     </div>

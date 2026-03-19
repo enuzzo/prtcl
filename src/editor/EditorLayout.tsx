@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTextSampling } from '../text/useTextSampling'
 import { TopBar } from './TopBar'
 import { StatusBar } from './StatusBar'
@@ -21,17 +21,40 @@ export function EditorLayout() {
   const leftOpen = useStore((s) => s.leftPanelOpen)
   const rightOpen = useStore((s) => s.rightPanelOpen)
   const isFullscreen = useStore((s) => s.isFullscreen)
+  const introPhase = useStore((s) => s.introPhase)
 
-  // Skip transition on initial mount (prevents panels sliding in on page load)
-  const mounted = useRef(false)
+  // Intro reveal: stagger panel entrance after splash completes
+  const [topBarRevealed, setTopBarRevealed] = useState(false)
+  const [statusBarRevealed, setStatusBarRevealed] = useState(false)
+  const [togglesRevealed, setTogglesRevealed] = useState(false)
+  // Keep overlay mode until user first toggles a sidebar (prevents canvas reflow glitch)
+  const [userToggledPanel, setUserToggledPanel] = useState(false)
+
   useEffect(() => {
-    const t = requestAnimationFrame(() => { mounted.current = true })
-    return () => cancelAnimationFrame(t)
-  }, [])
+    if (introPhase !== 'revealing') return
+
+    // Stagger: TopBar → sidebars (overlay) → StatusBar → toggles → complete
+    const t1 = setTimeout(() => setTopBarRevealed(true), 50)
+    const t2 = setTimeout(() => {
+      useStore.getState().setLeftPanelOpen(true)
+      useStore.getState().setRightPanelOpen(true)
+    }, 150)
+    const t3 = setTimeout(() => setStatusBarRevealed(true), 250)
+    const t4 = setTimeout(() => setTogglesRevealed(true), 600)
+    const t5 = setTimeout(() => {
+      useStore.getState().setIntroPhase('complete')
+    }, 900)
+
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5) }
+  }, [introPhase])
+
+  // Enable transitions only after intro reveal begins (prevents flash on mount)
+  const transitionsEnabled = introPhase !== 'splash'
 
   // Auto-collapse panels when entering fullscreen, restore when exiting
   const prevFullscreen = useRef(false)
   useEffect(() => {
+    if (introPhase === 'splash') return
     if (isFullscreen && !prevFullscreen.current) {
       useStore.getState().setLeftPanelOpen(false)
       useStore.getState().setRightPanelOpen(false)
@@ -40,11 +63,9 @@ export function EditorLayout() {
       useStore.getState().setRightPanelOpen(true)
     }
     prevFullscreen.current = isFullscreen
-  }, [isFullscreen])
+  }, [isFullscreen, introPhase])
 
-  const handleSelectEffect = useCallback((effect: Effect) => {
-    // Skip if the same effect is already selected — prevents re-compilation
-    // and broken morph transitions from duplicate snapshots
+  const handleSelectEffect = useCallback((effect: Effect, opts?: { skipCamera?: boolean }) => {
     if (useStore.getState().selectedEffect?.id === effect.id) return
 
     const result = compileEffect(effect)
@@ -62,8 +83,10 @@ export function EditorLayout() {
       const ct = effect.cameraTarget ?? [0, 0, 0]
       const dx = cp[0] - ct[0], dy = cp[1] - ct[1], dz = cp[2] - ct[2]
       store.setBaseZoomDistance(Math.sqrt(dx * dx + dy * dy + dz * dz))
-      store.setCameraPosition(effect.cameraPosition ?? null)
-      store.setCameraTarget(effect.cameraTarget ?? null)
+      if (!opts?.skipCamera) {
+        store.setCameraPosition(effect.cameraPosition ?? null)
+        store.setCameraTarget(effect.cameraTarget ?? null)
+      }
     } else {
       console.error('Failed to compile effect:', result.error)
     }
@@ -71,45 +94,67 @@ export function EditorLayout() {
 
   useEffect(() => {
     if (!selectedEffect && ALL_PRESETS.length > 0) {
-      handleSelectEffect(ALL_PRESETS[0]!)
+      // Skip camera on initial load — explosion callback will trigger the zoom-in
+      handleSelectEffect(ALL_PRESETS[0]!, { skipCamera: true })
     }
   }, [selectedEffect, handleSelectEffect])
 
   useTextSampling()
 
-  const transition = mounted.current ? 'sidebar-transition' : ''
+  const transition = transitionsEnabled ? 'sidebar-transition' : ''
 
-  // --- Left sidebar style + classes (inline style for dynamic values) ---
-  const leftStyle: React.CSSProperties = isFullscreen
+  // Sidebars are overlays during intro (no canvas reflow) and until user first toggles
+  const useOverlay = isFullscreen || introPhase === 'revealing' || (introPhase === 'complete' && !userToggledPanel)
+
+  // --- Left sidebar style + classes ---
+  const leftStyle: React.CSSProperties = useOverlay
     ? { width: LEFT_W, left: leftOpen ? 0 : -LEFT_W }
     : { width: LEFT_W, marginLeft: leftOpen ? 0 : -LEFT_W }
 
-  const leftClasses = isFullscreen
+  const leftClasses = useOverlay
     ? `absolute top-0 bottom-0 z-40 ${transition} ${leftOpen ? 'shadow-[4px_0_24px_rgba(0,0,0,0.5)]' : ''}`
     : `shrink-0 h-full overflow-hidden ${transition}`
 
   // --- Right sidebar style + classes ---
-  const rightStyle: React.CSSProperties = isFullscreen
+  const rightStyle: React.CSSProperties = useOverlay
     ? { width: RIGHT_W, right: rightOpen ? 0 : -RIGHT_W }
     : { width: RIGHT_W, marginRight: rightOpen ? 0 : -RIGHT_W }
 
-  const rightClasses = isFullscreen
+  const rightClasses = useOverlay
     ? `absolute top-0 bottom-0 z-40 ${transition} ${rightOpen ? 'shadow-[-4px_0_24px_rgba(0,0,0,0.5)]' : ''}`
     : `shrink-0 h-full overflow-hidden ${transition}`
 
   // --- Toggle button positions ---
   const leftToggleStyle: React.CSSProperties = {
-    left: leftOpen && !isFullscreen ? LEFT_W : 0,
+    left: leftOpen && !useOverlay ? LEFT_W : 0,
   }
   const rightToggleStyle: React.CSSProperties = {
-    right: rightOpen && !isFullscreen ? RIGHT_W : 0,
+    right: rightOpen && !useOverlay ? RIGHT_W : 0,
   }
+
+  // --- Intro transforms for TopBar/StatusBar (smooth breath easing) ---
+  const breathEase = 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)'
+  const topBarStyle: React.CSSProperties = {
+    transform: topBarRevealed || isMobile ? 'translateY(0)' : 'translateY(-100%)',
+    transition: transitionsEnabled ? breathEase : 'none',
+  }
+  const statusBarStyle: React.CSSProperties = {
+    transform: statusBarRevealed || isMobile ? 'translateY(0)' : 'translateY(100%)',
+    transition: transitionsEnabled ? breathEase : 'none',
+  }
+
+  // Toggle arrows: hidden until panels are revealed
+  const toggleOpacity = togglesRevealed || introPhase === 'complete'
+    ? 'opacity-60 hover:opacity-100'
+    : 'opacity-0 pointer-events-none'
 
   return (
     <div className="flex flex-col h-dvh bg-bg text-text">
-      <TopBar isMobile={isMobile} onSelectEffect={handleSelectEffect} />
+      <div style={topBarStyle}>
+        <TopBar isMobile={isMobile} onSelectEffect={handleSelectEffect} />
+      </div>
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Left sidebar — always rendered on desktop, never unmounted */}
+        {/* Left sidebar */}
         {!isMobile && (
           <div className={leftClasses} style={leftStyle}>
             <EffectBrowser
@@ -123,11 +168,11 @@ export function EditorLayout() {
         {/* Left toggle arrow */}
         {!isMobile && (
           <button
-            onClick={() => useStore.getState().toggleLeftPanel()}
+            onClick={() => { setUserToggledPanel(true); useStore.getState().toggleLeftPanel() }}
             className={`absolute top-1/2 -translate-y-1/2 z-[45] w-5 h-10 flex items-center justify-center
               bg-surface/60 backdrop-blur-sm border border-border rounded-r-md
               text-text-muted hover:text-accent hover:bg-surface/90
-              opacity-60 hover:opacity-100 ${transition}`}
+              transition-opacity duration-300 ${toggleOpacity} ${transition}`}
             style={leftToggleStyle}
             title={leftOpen ? 'Hide effects' : 'Show effects'}
           >
@@ -140,11 +185,11 @@ export function EditorLayout() {
         {/* Right toggle arrow */}
         {!isMobile && (
           <button
-            onClick={() => useStore.getState().toggleRightPanel()}
+            onClick={() => { setUserToggledPanel(true); useStore.getState().toggleRightPanel() }}
             className={`absolute top-1/2 -translate-y-1/2 z-[45] w-5 h-10 flex items-center justify-center
               bg-surface/60 backdrop-blur-sm border border-border rounded-l-md
               text-text-muted hover:text-accent hover:bg-surface/90
-              opacity-60 hover:opacity-100 ${transition}`}
+              transition-opacity duration-300 ${toggleOpacity} ${transition}`}
             style={rightToggleStyle}
             title={rightOpen ? 'Hide controls' : 'Show controls'}
           >
@@ -152,14 +197,16 @@ export function EditorLayout() {
           </button>
         )}
 
-        {/* Right sidebar — always rendered on desktop */}
+        {/* Right sidebar */}
         {!isMobile && (
           <div className={rightClasses} style={rightStyle}>
             <ControlPanel />
           </div>
         )}
       </div>
-      <StatusBar isMobile={isMobile} />
+      <div style={statusBarStyle}>
+        <StatusBar isMobile={isMobile} />
+      </div>
       <ExportModal />
     </div>
   )

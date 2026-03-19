@@ -7,14 +7,13 @@ const BG = '#08040E'
 const SPLASH_FONT = '"Inconsolata", "JetBrains Mono", monospace'
 
 /* ── Timeline (ms) ─────────────────────────────────────────── */
-// "PRTCL" forms → ".ES" slides in → spreads to "PARTICLES" → explode
 const T_CONVERGE = 1000    // scatter → "PRTCL"
 const T_HOLD1    = 400     // hold "PRTCL"
 const T_MORPH1   = 600     // ".ES" slides in → "PRTCL.ES"
 const T_HOLD2    = 450     // hold "PRTCL.ES"
 const T_MORPH2   = 800     // letters spread → "PARTICLES"
 const T_HOLD3    = 500     // hold "PARTICLES"
-const T_EXPLODE  = 1400    // explode outward (slow & scenic)
+const T_FADE     = 1400    // crossfade to reveal 3D scene
 
 // Cumulative timestamps
 const C1 = T_CONVERGE                                          // 1000
@@ -23,162 +22,119 @@ const C3 = C2 + T_MORPH1                                       // 2000
 const C4 = C3 + T_HOLD2                                        // 2450
 const C5 = C4 + T_MORPH2                                       // 3250
 const C6 = C5 + T_HOLD3                                        // 3750
-const C7 = C6 + T_EXPLODE                                      // 5150
+const C7 = C6 + T_FADE                                         // 5150
 
 /* ── Easing ────────────────────────────────────────────────── */
 function easeOutCubic(t: number) { return 1 - Math.pow(1 - t, 3) }
+function easeInQuad(t: number) { return t * t }
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
-function easeInQuad(t: number) { return t * t }
 function clamp01(t: number) { return Math.max(0, Math.min(1, t)) }
 
 /* ── Particle ──────────────────────────────────────────────── */
 interface Particle {
   x: number; y: number
+  vx: number; vy: number
   color: string
   size: number
   alpha: number
-  // Scatter origin
   sx: number; sy: number
-  // Target positions for each text phase
-  t1x: number; t1y: number   // "PRTCL"
-  t2x: number; t2y: number   // "PRTCL.ES"
-  t3x: number; t3y: number   // "PARTICLES"
-  // Explode velocity
-  vx: number; vy: number
+  t1x: number; t1y: number
+  t2x: number; t2y: number
+  t3x: number; t3y: number
 }
 
-/* ── Text sampling (sorted by X then Y for spatial coherence) ── */
+/* ── Text sampling ─────────────────────────────────────────── */
 function sampleTextPointsSorted(
   text: string, w: number, h: number, count: number
 ): Array<[number, number]> {
   const off = document.createElement('canvas')
-  off.width = w
-  off.height = h
+  off.width = w; off.height = h
   const ctx = off.getContext('2d')!
-
   const fontSize = Math.max(64, Math.min(w * 0.16, 200))
   ctx.font = `bold ${fontSize}px ${SPLASH_FONT}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
   ctx.fillStyle = '#fff'
   ctx.fillText(text, w / 2, h / 2)
-
   const img = ctx.getImageData(0, 0, w, h)
   const points: Array<[number, number]> = []
-
-  const step = 2
-  for (let py = 0; py < h; py += step) {
-    for (let px = 0; px < w; px += step) {
-      const idx = (py * w + px) * 4
-      if ((img.data[idx + 3] ?? 0) > 128) {
-        points.push([px, py])
-      }
+  for (let py = 0; py < h; py += 2) {
+    for (let px = 0; px < w; px += 2) {
+      if ((img.data[(py * w + px) * 4 + 3] ?? 0) > 128) points.push([px, py])
     }
   }
-
-  // Shuffle first to randomize within similar positions
   for (let i = points.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    const tmp = points[i]!
-    points[i] = points[j]!
-    points[j] = tmp
+    ;[points[i], points[j]] = [points[j]!, points[i]!]
   }
-
-  // Pad if needed
   while (points.length < count) {
-    const src = points[Math.floor(Math.random() * points.length)]!
-    points.push([src[0] + (Math.random() - 0.5) * 2, src[1] + (Math.random() - 0.5) * 2])
+    const s = points[Math.floor(Math.random() * points.length)]!
+    points.push([s[0] + (Math.random() - 0.5) * 2, s[1] + (Math.random() - 0.5) * 2])
   }
-
   const selected = points.slice(0, count)
-
-  // Sort by X position (primary), Y (secondary) — this ensures spatial coherence
-  // Particles on the left of "PRTCL" will map to the left of "PARTICLES"
-  selected.sort((a, b) => {
-    const dx = a[0] - b[0]
-    return dx !== 0 ? dx : a[1] - b[1]
-  })
-
+  selected.sort((a, b) => a[0] !== b[0] ? a[0] - b[0] : a[1] - b[1])
   return selected
 }
 
-/* ── Init particles ────────────────────────────────────────── */
 function createParticles(w: number, h: number): Particle[] {
-  // All three sorted by X → particles on "P" in PRTCL stay on "P" in PARTICLES
   const targets1 = sampleTextPointsSorted('PRTCL', w, h, PARTICLE_COUNT)
   const targets2 = sampleTextPointsSorted('PRTCL.ES', w, h, PARTICLE_COUNT)
   const targets3 = sampleTextPointsSorted('PARTICLES', w, h, PARTICLE_COUNT)
-
-  const cx = w / 2
-  const cy = h / 2
-
-  const particles: Particle[] = []
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const cx = w / 2, cy = h / 2
+  return Array.from({ length: PARTICLE_COUNT }, (_, i) => {
     const [t1x, t1y] = targets1[i]!
     const [t2x, t2y] = targets2[i]!
     const [t3x, t3y] = targets3[i]!
-
-    const sx = cx + (Math.random() + Math.random() - 1) * w * 0.6
-    const sy = cy + (Math.random() + Math.random() - 1) * h * 0.6
-
-    particles.push({
-      x: sx, y: sy,
-      sx, sy,
-      t1x, t1y,
-      t2x, t2y,
-      t3x, t3y,
-      vx: 0, vy: 0,
+    return {
+      x: 0, y: 0, vx: 0, vy: 0,
+      sx: cx + (Math.random() + Math.random() - 1) * w * 0.6,
+      sy: cy + (Math.random() + Math.random() - 1) * h * 0.6,
+      t1x, t1y, t2x, t2y, t3x, t3y,
       color: COLORS[Math.floor(Math.random() * COLORS.length)] ?? '#FF2BD6',
       size: 1 + Math.random() * 1.5,
       alpha: 1,
-    })
-  }
-  return particles
+    }
+  })
 }
 
 /* ── Component ─────────────────────────────────────────────── */
-interface SplashScreenProps {
-  onComplete: () => void
-}
+interface SplashScreenProps { onComplete: () => void; onExplodeStart?: () => void }
 
-export function SplashScreen({ onComplete }: SplashScreenProps) {
+export function SplashScreen({ onComplete, onExplodeStart }: SplashScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const logoRef = useRef<HTMLImageElement>(null)
+  const copyrightRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     const wrap = wrapRef.current
+    const logo = logoRef.current
+    const copyright = copyrightRef.current
     if (!canvas || !wrap) return
 
-    let raf = 0
-    let dead = false
+    let raf = 0, dead = false
 
     const run = () => {
       const dpr = window.devicePixelRatio || 1
-      const w = window.innerWidth
-      const h = window.innerHeight
-
-      canvas.width = w * dpr
-      canvas.height = h * dpr
-      canvas.style.width = w + 'px'
-      canvas.style.height = h + 'px'
-
+      const w = window.innerWidth, h = window.innerHeight
+      canvas.width = w * dpr; canvas.height = h * dpr
+      canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
       const ctx = canvas.getContext('2d')!
       ctx.scale(dpr, dpr)
 
       const particles = createParticles(w, h)
-      const cx = w / 2
-      const cy = h / 2
+      const cx = w / 2, cy = h / 2
       let startTime = 0
+
+      let explodeFired = false
 
       const tick = (now: number) => {
         if (dead) return
         if (!startTime) startTime = now
         const elapsed = now - startTime
 
-        /* ── Phase updates ── */
         if (elapsed < C1) {
           const t = easeOutCubic(clamp01(elapsed / T_CONVERGE))
           for (const p of particles) {
@@ -222,7 +178,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             p.alpha = 0.85 + 0.15 * Math.sin(elapsed * 0.012 + i)
           }
         } else if (elapsed < C7) {
-          const raw = clamp01((elapsed - C6) / T_EXPLODE)
+          /* ── Explode: particles fly off-screen edges at high velocity ── */
+          if (!explodeFired) { explodeFired = true; onExplodeStart?.() }
+          const raw = clamp01((elapsed - C6) / T_FADE)
           const t = easeInQuad(raw)
           for (const p of particles) {
             if (p.vx === 0 && p.vy === 0) {
@@ -243,6 +201,16 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             const fadeT = easeInOutCubic((raw - 0.35) / 0.65)
             wrap.style.opacity = String(1 - fadeT)
           }
+          // Logo rises and fades
+          if (logo) {
+            const logoT = easeInOutCubic(clamp01(raw / 0.6))
+            logo.style.transform = `translateX(-50%) translateY(${-logoT * 120}px)`
+            logo.style.opacity = String(1 - logoT)
+          }
+          // Copyright fades quickly
+          if (copyright) {
+            copyright.style.opacity = String(1 - clamp01(raw / 0.3))
+          }
         } else {
           wrap.style.opacity = '0'
           onComplete()
@@ -254,7 +222,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         ctx.globalAlpha = 1
         ctx.fillStyle = BG
         ctx.fillRect(0, 0, w, h)
-
         for (const p of particles) {
           ctx.globalAlpha = p.alpha
           ctx.fillStyle = p.color
@@ -262,7 +229,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
           ctx.fill()
         }
-
         ctx.globalCompositeOperation = 'lighter'
         for (let i = 0; i < particles.length; i += 6) {
           const p = particles[i]!
@@ -273,74 +239,36 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           ctx.fill()
         }
         ctx.globalCompositeOperation = 'source-over'
-
         ctx.restore()
+
         raf = requestAnimationFrame(tick)
       }
-
       raf = requestAnimationFrame(tick)
     }
 
     document.fonts.ready.then(run).catch(run)
-
-    return () => {
-      dead = true
-      cancelAnimationFrame(raf)
-    }
-  }, [onComplete])
+    return () => { dead = true; cancelAnimationFrame(raf) }
+  }, [onComplete, onExplodeStart])
 
   return (
     <div
       ref={wrapRef}
       aria-hidden="true"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        width: '100vw',
-        height: '100vh',
-        pointerEvents: 'none',
-        background: BG,
-      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, width: '100vw', height: '100vh', pointerEvents: 'none', background: BG }}
     >
-      {/* Particle canvas */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-        }}
-      />
-
-      {/* Netmilk logo — top center */}
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
       <img
+        ref={logoRef}
         src="/img/netmilk-logo.svg"
         alt=""
-        style={{
-          position: 'absolute',
-          top: 50,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 160,
-          height: 'auto',
-          opacity: 1,
-        }}
+        style={{ position: 'absolute', top: 50, left: '50%', transform: 'translateX(-50%)', width: 160, height: 'auto', opacity: 1 }}
       />
-
-      {/* Copyright — bottom center */}
       <div
+        ref={copyrightRef}
         style={{
-          position: 'absolute',
-          bottom: 32,
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontFamily: '"Inconsolata", "JetBrains Mono", monospace',
-          fontSize: 12,
-          color: '#A98ED1',
-          letterSpacing: '0.05em',
+          position: 'absolute', bottom: 32, left: 0, right: 0, textAlign: 'center',
+          fontFamily: '"Inconsolata", "JetBrains Mono", monospace', fontSize: 12,
+          color: '#A98ED1', letterSpacing: '0.05em',
         }}
       >
         &copy; {new Date().getFullYear()} Netmilk Studio &middot; MIT License

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { EditorLayout } from './editor/EditorLayout'
 import { EmbedView } from './embed/EmbedView'
 import { SplashScreen } from './components/SplashScreen'
+import { useStore } from './store'
 
 function AppRoutes() {
   const [showSplash, setShowSplash] = useState(true)
@@ -11,11 +12,22 @@ function AppRoutes() {
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)
+    // Trigger staggered UI panel reveal
+    useStore.getState().setIntroPhase('revealing')
+  }, [])
+
+  // When explosion starts, trigger camera zoom from far → preset position
+  const handleExplodeStart = useCallback(() => {
+    const effect = useStore.getState().selectedEffect
+    if (effect) {
+      useStore.getState().setCameraPosition(effect.cameraPosition ?? [0, 0, 5])
+      useStore.getState().setCameraTarget(effect.cameraTarget ?? [0, 0, 0])
+    }
   }, [])
 
   return (
     <>
-      {showSplash && !isEmbed && <SplashScreen onComplete={handleSplashComplete} />}
+      {showSplash && !isEmbed && <SplashScreen onComplete={handleSplashComplete} onExplodeStart={handleExplodeStart} />}
       <Routes>
         <Route path="/create" element={<EditorLayout />} />
         <Route path="/embed" element={<EmbedView />} />

@@ -47,7 +47,7 @@ function createAtlasTexture(): THREE.CanvasTexture {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.font = `bold ${dimStep * 0.9}px Arial`
-    ctx.fillText(ALPHABET[i], x, y)
+    ctx.fillText(ALPHABET[i]!, x, y)
   }
 
   const tex = new THREE.CanvasTexture(c)
@@ -56,7 +56,8 @@ function createAtlasTexture(): THREE.CanvasTexture {
 }
 
 /** Map a character to its atlas index */
-function charToIdx(ch: string): number {
+function charToIdx(ch: string | undefined): number {
+  if (!ch) return Math.floor(Math.random() * ALPHABET.length)
   const idx = ALPHABET.indexOf(ch)
   return idx >= 0 ? idx : Math.floor(Math.random() * ALPHABET.length)
 }
@@ -245,12 +246,13 @@ export function TextTerrain() {
         if (startLanded) {
           dummy.updateMatrix()
         } else {
-          const earlyProgress = tiles[tiles.length - 1].animProgress
+          const lastTile = tiles[tiles.length - 1]!
+          const earlyProgress = lastTile.animProgress
           dummy.position.y = 30 * (1 - earlyProgress) + y0 * earlyProgress // init height, skyHeight applied at runtime
           dummy.rotation.set(
-            tiles[tiles.length - 1].startRot.x * (1 - earlyProgress),
-            tiles[tiles.length - 1].startRot.y * (1 - earlyProgress),
-            tiles[tiles.length - 1].startRot.z * (1 - earlyProgress),
+            lastTile.startRot.x * (1 - earlyProgress),
+            lastTile.startRot.y * (1 - earlyProgress),
+            lastTile.startRot.z * (1 - earlyProgress),
           )
           dummy.updateMatrix()
         }
@@ -270,7 +272,7 @@ export function TextTerrain() {
   useEffect(() => {
     if (!meshRef.current) return
     const paletteIdx = Math.round(controls.find(c => c.id === 'terrainPalette')?.value ?? 0)
-    const paletteFn = PALETTES[paletteIdx] ?? PALETTES[0]
+    const paletteFn = (PALETTES[paletteIdx] ?? PALETTES[0])!
 
     for (let i = 0; i < totalTiles; i++) {
       const depth = Math.random()
@@ -288,7 +290,8 @@ export function TextTerrain() {
 
   // Animation loop
   useFrame((_, delta) => {
-    if (!meshRef.current) return
+    const mesh = meshRef.current
+    if (!mesh) return
     const tiles = tilesRef.current
     if (tiles.length === 0) return
 
@@ -306,14 +309,14 @@ export function TextTerrain() {
     const maxActive = Math.min(Math.floor(totalTiles * 0.15), 5000)
     let activeCount = 0
     for (let i = 0; i < tiles.length; i++) {
-      if (tiles[i].inAction) activeCount++
+      if (tiles[i]!.inAction) activeCount++
     }
 
     if (activeCount < maxActive) {
       const toStart = Math.min(Math.ceil(dt * 200), maxActive - activeCount)
       for (let n = 0; n < toStart; n++) {
         const idx = Math.floor(Math.random() * tiles.length)
-        const tile = tiles[idx]
+        const tile = tiles[idx]!
         if (!tile.inAction) {
           tile.inAction = true
           tile.animProgress = 0
@@ -329,7 +332,7 @@ export function TextTerrain() {
 
     // Update ALL tiles — landed tiles get animated terrain height
     for (let i = 0; i < tiles.length; i++) {
-      const tile = tiles[i]
+      const tile = tiles[i]!
       const px = tile.pos.x
       const pz = tile.pos.z
 
@@ -385,10 +388,10 @@ export function TextTerrain() {
       }
 
       dummy.updateMatrix()
-      meshRef.current!.setMatrixAt(i, dummy.matrix)
+      mesh.setMatrixAt(i, dummy.matrix)
     }
 
-    meshRef.current.instanceMatrix.needsUpdate = true
+    mesh.instanceMatrix.needsUpdate = true
 
     const store = useStore.getState()
     store.setFps(Math.round(1 / Math.max(delta, 0.001)))

@@ -24,6 +24,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   pendingCameraPosition: [number, number, number] | null
   pendingCameraTarget: [number, number, number] | null
 
+  // Intro orchestration
+  introPhase: 'splash' | 'revealing' | 'complete'
+
   // Panel visibility
   leftPanelOpen: boolean
   rightPanelOpen: boolean
@@ -62,6 +65,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   setBaseZoomDistance: (dist: number) => void
   setCameraPosition: (pos: [number, number, number] | null) => void
   setCameraTarget: (target: [number, number, number] | null) => void
+
+  // Actions: intro
+  setIntroPhase: (phase: 'splash' | 'revealing' | 'complete') => void
 
   // Actions: panels
   setLeftPanelOpen: (open: boolean) => void
@@ -109,9 +115,12 @@ export const useStore = create<PrtclState>((set) => ({
   pendingCameraPosition: null,
   pendingCameraTarget: null,
 
+  // Intro orchestration
+  introPhase: 'splash',
+
   // Panel visibility
-  leftPanelOpen: true,
-  rightPanelOpen: true,
+  leftPanelOpen: false,
+  rightPanelOpen: false,
   isFullscreen: false,
 
   // Export
@@ -152,6 +161,9 @@ export const useStore = create<PrtclState>((set) => ({
   setBaseZoomDistance: (dist) => set({ baseZoomDistance: dist }),
   setCameraPosition: (pos) => set({ pendingCameraPosition: pos }),
   setCameraTarget: (target) => set({ pendingCameraTarget: target }),
+
+  // Actions: intro
+  setIntroPhase: (phase) => set({ introPhase: phase }),
 
   // Actions: panels
   setLeftPanelOpen: (open) => set({ leftPanelOpen: open }),

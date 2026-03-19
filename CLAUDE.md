@@ -63,9 +63,13 @@ Self-contained Canvas 2D particle intro (`src/components/SplashScreen.tsx`). Pla
 1. **Converge** (1000ms) — scattered particles form "PRTCL"
 2. **Morph 1** (600ms) — ".ES" slides in → "PRTCL.ES"
 3. **Morph 2** (800ms) — letters spread → "PARTICLES"
-4. **Explode** (1400ms) — particles fly off-screen edges at high velocity (no alpha fade), overlay crossfades via `easeInOutCubic` starting at 35% so PRTCL emerges underneath
+4. **Explode** (1400ms) — particles fly off-screen edges at high velocity (no alpha fade), overlay crossfades via `easeInOutCubic` starting at 35%
 
-Total duration ~5.15s. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
+**Orchestrated intro transition**: The R3F scene loads Fractal Frequency immediately but with camera far away (`[0, 0, 14]`). When the explosion phase starts, `onExplodeStart` fires → sets `pendingCameraPosition` to the FF preset position. CameraSync morphs the camera from far → close over 2 seconds, synchronized with the crossfade. Result: text explodes outward, FF zooms in from the center. After splash completes, UI panels slide in as staggered overlays (TopBar → sidebars → StatusBar → toggles).
+
+**Initial effect loading**: `handleSelectEffect` accepts `{ skipCamera: true }` — used on first mount so the camera stays far until the explosion callback triggers the zoom.
+
+Total duration ~5.15s + 2s camera morph. Text sampling uses offscreen canvas → `getImageData()` → X-sorted spatial coherence so particles on "P" in PRTCL naturally map to "P" in PARTICLES. Netmilk logo (160px, top center) and copyright (bottom center) overlay the canvas. DPI-aware rendering with `devicePixelRatio` scaling.
 
 ### Hand Tracking
 
@@ -163,10 +167,10 @@ public/.htaccess         — Apache SPA routing fallback for SiteGround deployme
 ### UI Layout
 
 **Desktop** (≥768px): Three-panel layout (280px | flex | 320px) with collapsible sidebars:
-- **Left**: Effect browser — categorized presets in rounded cards (organic, math, text, abstract), search. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
+- **Left**: Effect browser — categorized presets in rounded cards (math, organic, creature, text, abstract), search. Math first so Fractal Frequency is the top effect. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
 - **Center**: R3F canvas with orbit controls
 - **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), TEXT (text input, font dropdown, weight — only for text effects), Effect (dynamic controls from `addControl()`, with DROPDOWN_CONTROLS map for named presets like style/colorMode/palette), Tools (Copy Params)
-- **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. In normal mode, canvas resizes (flex reflow). In fullscreen, panels overlay as drawers (position absolute).
+- **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. After intro, sidebars start as overlays (no canvas reflow) and switch to flex/margin mode only after the user first toggles a panel. In fullscreen, panels always overlay as drawers (position absolute).
 - **Fullscreen = immersive mode**: Both panels auto-collapse on enter, auto-restore on exit (including ESC key). Panels can be temporarily re-opened as overlays.
 
 **Mobile** (<768px): Showcase/entertainment mode — fullscreen particles with minimal chrome:

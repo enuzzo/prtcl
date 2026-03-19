@@ -171,11 +171,11 @@ button, [role="button"], .tp-fldv_b, .tp-btnv_b {
   animation: slideDown 0.2s ease-out;
 }
 
-/* Sidebar collapse/expand transitions */
+/* Sidebar collapse/expand transitions — smooth breath easing */
 .sidebar-transition {
-  transition: margin 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              left 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              right 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: margin 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              left 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              right 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Prevent tap highlight on mobile (feels more app-like) */
@@ -183,6 +183,28 @@ button, [role="button"], .tp-fldv_b, .tp-btnv_b {
   button, a {
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* ── Custom scrollbar (acid-pop) ──────────────────────── */
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 43, 214, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 43, 214, 0.45);
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 43, 214, 0.25) transparent;
 }
 
 /* Export modal entrance animation */

@@ -152,7 +152,7 @@ export function Viewport() {
   return (
     <div className="flex-1 min-w-0 relative">
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 60 }}
+        camera={{ position: [0, 0, 14], fov: 60 }}
         gl={{ antialias: false, alpha: false }}
         style={{ background: backgroundColor }}
       >
