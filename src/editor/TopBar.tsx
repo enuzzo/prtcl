@@ -4,6 +4,9 @@ import { useStore } from '../store'
 import { VERSION, CODENAME } from '../version'
 import { MobileEffectDropdown } from './MobileEffectDropdown'
 import { ALL_PRESETS } from '../effects/presets'
+import { encodeShareState } from '../share'
+import { getCameraSnapshot } from '../engine/camera-bridge'
+import { getBackgroundPreset } from './background-presets'
 import type { Effect } from '../engine/types'
 
 interface TopBarProps {
@@ -62,6 +65,53 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
     },
     [onSelectEffect],
   )
+
+  // Share: serialize full editor state → URL hash → clipboard
+  const handleShare = useCallback(async () => {
+    const store = useStore.getState()
+    const effect = store.selectedEffect
+    if (!effect) return
+
+    const camSnap = getCameraSnapshot()
+    const isTextEffect = effect.category === 'text'
+
+    // Build control values map
+    const controlValues: Record<string, number> = {}
+    for (const ctrl of store.controls) {
+      controlValues[ctrl.id] = ctrl.value
+    }
+
+    // Determine background: preset ID if known, otherwise custom hex
+    const bgPreset = getBackgroundPreset(store.backgroundPreset) ? store.backgroundPreset : undefined
+    const bgCustom = !bgPreset ? store.backgroundColor.replace(/^#/, '') : undefined
+
+    const hash = encodeShareState({
+      effect: effect.id,
+      p: store.particleCount,
+      ps: store.pointSize,
+      ar: store.autoRotateSpeed,
+      z: store.cameraZoom,
+      cam: camSnap?.position,
+      tgt: camSnap?.target,
+      bg: bgPreset,
+      bgc: bgCustom,
+      c: controlValues,
+      txt: isTextEffect ? store.textInput : undefined,
+      font: isTextEffect ? store.textFont : undefined,
+      w: isTextEffect ? store.textWeight : undefined,
+      ls: isTextEffect ? store.textLineSpacing : undefined,
+    })
+
+    const url = `${window.location.origin}/create#${hash}`
+
+    try {
+      await navigator.clipboard.writeText(url)
+      store.showToast('Link copied. Deploy at will.')
+    } catch {
+      // Fallback for older browsers / iframe restrictions
+      store.showToast('Could not copy — check browser permissions.')
+    }
+  }, [])
 
   return (
     <>
@@ -183,6 +233,15 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? '⛶' : '⛶'}
+          </button>
+
+          {/* Share */}
+          <button
+            onClick={handleShare}
+            className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors"
+            title="Copy share link"
+          >
+            Share
           </button>
 
           {/* Export — desktop only */}
