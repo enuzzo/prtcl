@@ -178,11 +178,32 @@ User types text → debounce 300ms → offscreen canvas renders text → getImag
 
 **Export**: `textPoints` baked as inline `Float32Array` in HTML/React generators (rounded to 3 decimals). Iframe embed passes `text`/`font`/`weight` URL params, embed route samples at load time.
 
+### Landing Page
+
+Static marketing page at `/` with Netmilk brand voice copy. Editor lives at `/create` with splash animation.
+
+**Architecture**: Pure React components, zero Zustand dependency. Three.js background is lazy-loaded AFTER initial paint via `requestIdleCallback` → `React.lazy()` → separate chunk. This keeps the landing bundle at ~19KB gzip while the 3D effect loads asynchronously. Lighthouse sees the fast static page.
+
+**Background effect**: `BackgroundEffect.tsx` wraps `BackgroundCanvas.tsx` (lazy). Renders Fractal Frequency at 6k particles, camera close (z=1.2), 60% opacity, auto-rotate 0.8. Canvas is `position: fixed, z-0` behind all content. Sections use semi-transparent backgrounds (`bg-bg/90`, `bg-bg/85`, etc.) with `backdrop-blur-sm` so the effect shows through.
+
+**Sections**:
+- `LandingNav` — sticky nav, transparent→solid on scroll (64px threshold), PRTCL logo with `.ES` hover reveal, lime "Create" CTA
+- `LandingHero` — full viewport, radial vignette overlay, headline + sub + platform badge strip (Elementor/Webflow/Wix/WordPress/React/HTML as white pills with icons) + dual CTA
+- `FeatureBento` — 3×2 flat grid, compact glassmorphism cards with `border-2`, icon+title inline, sarcastic copy
+- `EffectShowcase` — 4 live effect iframes (`/embed` route, `loading="lazy"`), 2×2 desktop / horizontal scroll mobile
+- `FinalCTA` — gradient background with floating CSS dots, closing CTA
+- `LandingFooter` — compact footer with brand + links + tagline
+
+**SEO**: Complete `<head>` with OG/Twitter meta, structured data (`WebApplication` + `Organization` + `WebSite` schema.org graph), `robots.txt`, `sitemap.xml`, font preload, preconnect. `.htaccess` with gzip compression, immutable asset caching, security headers.
+
+**Key files**: `src/landing/LandingPage.tsx` (root), `BackgroundEffect.tsx` (lazy loader), `BackgroundCanvas.tsx` (R3F), `LandingHero.tsx`, `FeatureBento.tsx`, `EffectShowcase.tsx`, `FinalCTA.tsx`, `LandingFooter.tsx`, `LandingNav.tsx`, `icons.tsx`.
+
 ### Key File Locations
 
 ```
 src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown, BackgroundPicker, SceneBackground, background-presets
+src/landing/             — Landing page: LandingPage, LandingNav, LandingHero, BackgroundEffect/Canvas, FeatureBento, EffectShowcase, FinalCTA, LandingFooter, icons
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
 src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, perlin-noise, fibonacci-crystal, paper-fleet, medusa, kraken, anemone, text-wave, text-scatter, text-dissolve, text-terrain)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
@@ -192,8 +213,10 @@ src/export/              — Export system: modal, generators (HTML/React/iframe
 src/embed/               — Embed route: EmbedView (stripped canvas for iframe embeds)
 src/hooks/               — Shared React hooks (useIsMobile)
 src/store.ts             — Zustand store (effect state, settings, camera, panels, tracking, export modal, throttled perf metrics)
-src/App.tsx              — Router: /create → Editor, /embed → EmbedView, /gallery → placeholder; splash overlay
-public/.htaccess         — Apache SPA routing fallback for SiteGround deployment
+src/App.tsx              — Router: / → LandingPage, /create → Editor, /embed → EmbedView; splash overlay on /create only
+public/.htaccess         — Apache SPA routing + gzip compression + asset caching + security headers
+public/robots.txt        — Search engine directives (disallow /embed)
+public/sitemap.xml       — Sitemap for prtcl.es
 ```
 
 ### UI Layout
@@ -259,8 +282,8 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.7**: Perlin Noise effect (3D Perlin noise flow field with turbulence controls), multiline text support (Line 1/Line 2 fields + Line Spacing control), font curation for visual distinctiveness (added Monoton, Rubik Glitch, Orbitron, Press Start 2P, Silkscreen, Sacramento, Abril Fatface; removed generic sans-serif fonts), weight selector hidden for single-weight fonts, removed Text Varsity
 - [x] **Phase 3.8**: Background picker — 22 presets (6 solids, 11 gradients, 5 patterns), SceneBackground R3F component with CanvasTexture rendering, BackgroundPicker swatch UI, custom color picker, export compatibility (CSS backgrounds for HTML, hex fallback for iframe). Hand tracking fix: rewrote mediapipe-loader with generation-counter pattern for React StrictMode safety.
 - [x] **Phase 3.85**: Hand tracking v2 — two modes (Control + Disturb), palm-anchor-relative tracking (re-anchors on each hand reappearance), inverted horizontal axis for natural feel, per-effect disturbance with 5 force types (repel/attract/swirl/scatter/vortex), smooth fade-in/out on hand enter/exit, camera reset on effect switch, auto-rotate killed during tracking, TrackingSidebar mode toggle UI, overflow-hidden fix for Mac scrollbar during intro animation.
-- [ ] **Phase 3.9**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state.
-- [ ] **Phase 4**: Landing page at `/` (static HTML, SEO, bento cards, PRTCL text morph loop in hero, live particle background). Editor stays at `/create` with splash animation. Brand voice from `incoming/netmilk-brand-voice/` adapted to English.
+- [x] **Phase 4**: Landing page at `/` — SEO-optimized, Lighthouse-ready. Lazy-loaded Fractal Frequency R3F background (Three.js deferred via requestIdleCallback). Hero with platform badge strip (Elementor/Webflow/Wix/WordPress/React/HTML). Glassmorphism bento feature grid (3×2). Effect showcase with live iframe embeds. Netmilk brand voice copy. Full structured data (schema.org WebApplication). Code splitting: landing bundle 19KB gzip, Three.js loads async. robots.txt + sitemap.xml. .htaccess with compression + caching headers.
+- [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
 - [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
 
 ## Future Ideas

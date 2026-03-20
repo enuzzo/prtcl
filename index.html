@@ -2,9 +2,107 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PRTCL — Particle Effects Editor</title>
+
+    <!-- Primary Meta -->
+    <title>PRTCL — Free GPU Particle Effects for Any Website</title>
+    <meta name="description" content="Free, open-source particle engine. 20k particles at 60fps. Export to Elementor, Webflow, React, or HTML. Hand tracking, audio reactive, text effects." />
+    <meta name="keywords" content="particle effects, WebGL, Three.js, particle editor, web effects, GPU particles, open source, Elementor, Webflow, React" />
+    <meta name="author" content="Netmilk Studio" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://prtcl.es/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://prtcl.es/" />
+    <meta property="og:title" content="PRTCL — GPU Particle Effects Editor" />
+    <meta property="og:description" content="20,000 particles at 60fps. Export anywhere. Free and open source." />
+    <meta property="og:image" content="https://prtcl.es/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="PRTCL particle effects editor showing colorful GPU-accelerated particles" />
+    <meta property="og:site_name" content="PRTCL" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PRTCL — GPU Particle Effects Editor" />
+    <meta name="twitter:description" content="20,000 particles at 60fps. Export anywhere. Free and open source." />
+    <meta name="twitter:image" content="https://prtcl.es/og-image.png" />
+    <meta name="twitter:image:alt" content="PRTCL particle effects editor showing colorful GPU-accelerated particles" />
+
+    <!-- Theme / Mobile -->
+    <meta name="theme-color" content="#08040E" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PRTCL" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload critical font -->
+    <link rel="preload" href="/fonts/InconsolataNerdFontMono-Regular.ttf" as="font" type="font/truetype" crossorigin />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://prtcl.es/#app",
+          "name": "PRTCL",
+          "alternateName": "Particles",
+          "url": "https://prtcl.es/create",
+          "description": "Free, open-source web tool for creating, customizing, and exporting GPU-accelerated particle effects.",
+          "applicationCategory": "DesignApplication",
+          "operatingSystem": "Web Browser",
+          "browserRequirements": "Requires WebGL 2.0",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "featureList": [
+            "GPU-accelerated particle rendering at 60fps",
+            "Real-time parameter tweaking",
+            "Export to HTML, React, or iframe",
+            "Hand tracking gesture control",
+            "Audio-reactive particles",
+            "Text-to-particle effects",
+            "22 background presets"
+          ],
+          "screenshot": "https://prtcl.es/og-image.png",
+          "softwareVersion": "0.6.0",
+          "creator": { "@id": "https://prtcl.es/#org" },
+          "license": "https://opensource.org/licenses/MIT",
+          "isAccessibleForFree": true,
+          "inLanguage": "en"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://prtcl.es/#org",
+          "name": "Netmilk Studio",
+          "url": "https://prtcl.es",
+          "logo": "https://prtcl.es/img/netmilk-logo.svg",
+          "sameAs": ["https://github.com/enuzzo/prtcl"]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://prtcl.es/#website",
+          "name": "PRTCL",
+          "url": "https://prtcl.es",
+          "publisher": { "@id": "https://prtcl.es/#org" },
+          "inLanguage": "en"
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
