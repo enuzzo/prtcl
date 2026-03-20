@@ -37,6 +37,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   // Export
   exportModalOpen: boolean
 
+  // Toast
+  toastMessage: string | null
+
   // Text-to-particles
   textInput: string
   textFont: string
@@ -80,6 +83,8 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   toggleRightPanel: () => void
   setIsFullscreen: (fs: boolean) => void
   setExportModalOpen: (open: boolean) => void
+  showToast: (message: string) => void
+  clearToast: () => void
 
   // Actions: text
   setTextInput: (text: string) => void
@@ -99,6 +104,9 @@ let _lastPerfUpdate = 0
 
 /** Pending particle count to flush alongside the next fps update */
 let _pendingParticleCount: number | null = null
+
+/** Timer ID for auto-dismissing toast */
+let _toastTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useStore = create<PrtclState>((set) => ({
   // Effect state
@@ -131,6 +139,9 @@ export const useStore = create<PrtclState>((set) => ({
 
   // Export
   exportModalOpen: false,
+
+  // Toast
+  toastMessage: null,
 
   // Text-to-particles
   textInput: 'Netmilk',
@@ -183,6 +194,19 @@ export const useStore = create<PrtclState>((set) => ({
   toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
   setIsFullscreen: (fs) => set({ isFullscreen: fs }),
   setExportModalOpen: (open) => set({ exportModalOpen: open }),
+  showToast: (message) => {
+    if (_toastTimer) clearTimeout(_toastTimer)
+    set({ toastMessage: message })
+    _toastTimer = setTimeout(() => {
+      set({ toastMessage: null })
+      _toastTimer = null
+    }, 2500)
+  },
+  clearToast: () => {
+    if (_toastTimer) clearTimeout(_toastTimer)
+    _toastTimer = null
+    set({ toastMessage: null })
+  },
 
   // Actions: text
   setTextInput: (text) => set({ textInput: text }),
