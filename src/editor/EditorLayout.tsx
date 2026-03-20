@@ -6,6 +6,7 @@ import { Viewport } from './Viewport'
 import { EffectBrowser } from './EffectBrowser'
 import { ControlPanel } from './ControlPanel'
 import { ExportModal } from '../export/ExportModal'
+import { Toast } from '../components/Toast'
 import { useStore } from '../store'
 import { compileEffect } from '../engine/compiler'
 import { ALL_PRESETS } from '../effects/presets'
@@ -213,6 +214,7 @@ export function EditorLayout() {
         <StatusBar isMobile={isMobile} />
       </div>
       <ExportModal />
+      <Toast />
     </div>
   )
 }
