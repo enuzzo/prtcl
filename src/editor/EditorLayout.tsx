@@ -7,6 +7,8 @@ import { EffectBrowser } from './EffectBrowser'
 import { ControlPanel } from './ControlPanel'
 import { ExportModal } from '../export/ExportModal'
 import { Toast } from '../components/Toast'
+import { parseShareHash } from '../share'
+import { getBackgroundPreset } from './background-presets'
 import { useStore } from '../store'
 import { compileEffect } from '../engine/compiler'
 import { ALL_PRESETS } from '../effects/presets'
@@ -99,9 +101,61 @@ export function EditorLayout() {
   }, [])
 
   useEffect(() => {
-    if (!selectedEffect && ALL_PRESETS.length > 0) {
-      // Skip camera on initial load — explosion callback will trigger the zoom-in
-      handleSelectEffect(ALL_PRESETS[0]!, { skipCamera: true })
+    if (selectedEffect || !ALL_PRESETS.length) return
+
+    // Parse hash for share state
+    const shareState = parseShareHash(window.location.hash)
+
+    // Find the effect to load
+    let effectToLoad = ALL_PRESETS[0]!
+    if (shareState) {
+      const found = ALL_PRESETS.find((e) => e.id === shareState.effect)
+      if (found) {
+        // Create modified copy with shared camera/settings so the explosion
+        // callback in App.tsx reads the shared camera position from selectedEffect
+        effectToLoad = {
+          ...found,
+          particleCount: shareState.p ?? found.particleCount,
+          pointSize: shareState.ps ?? found.pointSize,
+          autoRotateSpeed: shareState.ar ?? found.autoRotateSpeed,
+          cameraPosition: shareState.cam ?? found.cameraPosition,
+          cameraTarget: shareState.tgt ?? found.cameraTarget,
+        }
+      }
+    }
+
+    // Skip camera on initial load — explosion callback will trigger the zoom-in
+    handleSelectEffect(effectToLoad, { skipCamera: true })
+
+    // Apply remaining share overrides (controls, background, text, zoom)
+    if (shareState) {
+      const store = useStore.getState()
+
+      // Override control values
+      if (shareState.c) {
+        for (const [id, value] of Object.entries(shareState.c)) {
+          store.updateControlValue(id, value)
+        }
+      }
+
+      // Camera zoom — must come AFTER handleSelectEffect which resets zoom to 1
+      if (shareState.z != null) store.setCameraZoom(shareState.z)
+
+      // Background
+      if (shareState.bg && getBackgroundPreset(shareState.bg)) {
+        store.setBackgroundPreset(shareState.bg)
+      } else if (shareState.bgc) {
+        store.setBackgroundColor(`#${shareState.bgc}`)
+      }
+
+      // Text params (for text effects)
+      if (shareState.txt) store.setTextInput(shareState.txt)
+      if (shareState.font) store.setTextFont(shareState.font)
+      if (shareState.w) store.setTextWeight(shareState.w)
+      if (shareState.ls != null) store.setTextLineSpacing(shareState.ls)
+
+      // Clean up hash from URL bar (state is restored, hash is now stale)
+      window.history.replaceState(null, '', window.location.pathname)
     }
   }, [selectedEffect, handleSelectEffect])
 
