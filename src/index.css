@@ -2,10 +2,10 @@
 
 @font-face {
   font-family: "Inconsolata";
-  src: url("/fonts/InconsolataNerdFontMono-Regular.ttf") format("truetype");
-  font-weight: 400;
+  src: url("/fonts/Inconsolata-Regular.woff2") format("woff2");
+  font-weight: 400 700;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 /* Acid-pop palette — extracted from vibemilk acid-pop theme (2026-03-17)

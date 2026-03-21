@@ -251,6 +251,38 @@ Module-level refs (`src/engine/camera-bridge.ts`) expose the R3F camera and Orbi
 
 Zustand store is flat with granular selectors. Performance metrics (fps, actualParticleCount) are throttled to 1 update/second to avoid React re-renders. The `controls` array triggers Tweakpane rebuild when effect changes; slider values update via `updateControlValue()` without rebuilding the pane. Panel visibility (`leftPanelOpen`, `rightPanelOpen`) and `isFullscreen` are in the store so EditorLayout and TopBar can coordinate sidebar auto-collapse on fullscreen transitions. Sidebars stay as overlays (position absolute) until the user first toggles a panel, preventing canvas reflow glitch during the intro animation. `trackingMode` (`'control' | 'disturb'`) selects between camera-orbit and particle-disruption hand tracking.
 
+## Performance & Lighthouse Strategy
+
+Target: **Lighthouse 100/95/100/100** (Performance/Accessibility/Best Practices/SEO) on both mobile and desktop. Current landing page payload: **~171 KiB** on mobile.
+
+### Rules to maintain Lighthouse scores
+
+1. **No Three.js on mobile landing** — `BackgroundEffect.tsx` skips the R3F background on `window.innerWidth < 768`. The 3D effect is barely visible behind the vignette on mobile and tanks TBT by seconds. Desktop gets the lazy-loaded effect via `requestIdleCallback`.
+
+2. **No iframe embeds on mobile** — `EffectShowcase.tsx` renders lightweight static cards (link only) on `sm:hidden` breakpoint instead of 4 `<iframe>` embeds. Each iframe loads Three.js + fonts + vendor = ~2.7MB per iframe. Desktop gets the live iframes.
+
+3. **Self-hosted woff2, not TTF** — Inconsolata served as `Inconsolata-Regular.woff2` (56KB) instead of the Nerd Font TTF (2.2MB). The Nerd Font contained thousands of icon glyphs we don't use. `font-display: optional` prevents FOUT — first visit uses system fallback, subsequent visits use cached Inconsolata.
+
+4. **Preload the font** — `<link rel="preload" href="/fonts/Inconsolata-Regular.woff2" as="font" type="font/woff2" crossorigin>` in `index.html` ensures the font loads early.
+
+5. **Code splitting via manualChunks** — `vite.config.ts` splits into: `vendor` (React/router/Zustand, ~87KB), `three` (Three.js, ~220KB), `r3f` (R3F/drei, lazy), `BackgroundEffect` (lazy, landing only), `EditorLayout` (lazy, /create only), `EmbedView` (lazy, /embed only). Landing page only loads `index` + `vendor` chunks.
+
+6. **Lazy loading pattern** — Heavy components use `React.lazy()` + `<Suspense>`. The landing page defers Three.js via `requestIdleCallback` with 2s timeout fallback. This keeps FCP/LCP fast because Lighthouse measures the initial static render.
+
+7. **No modulePreload** — Disabled in Vite config (`modulePreload: false`) to prevent the preload helper from creating cross-chunk dependencies that pull Three.js into the initial bundle.
+
+### When adding new features
+
+- **Landing page**: Never import Three.js, R3F, or any 3D code synchronously. Always lazy-load behind `React.lazy()` or dynamic `import()`.
+- **New sections with iframes**: Always provide a mobile-only lightweight alternative (static card, screenshot, or nothing).
+- **Fonts**: Never add fonts > 100KB. Prefer woff2 subsets. Google Fonts Latin subset is typically 15-60KB.
+- **Images**: Use WebP/AVIF, lazy load below-the-fold images, set explicit `width`/`height` to prevent CLS.
+- **Run Lighthouse CLI before deploy**: `npx lighthouse https://prtcl.es --form-factor=mobile --throttling-method=simulate --only-categories=performance,accessibility,best-practices,seo`
+
+### Versioning
+
+`src/version.ts` exports `VERSION`, `CODENAME`, and `BUILD_HASH` (git short SHA injected at build time via Vite `define`). `VERSION_TAG` format: `v0.7.0+abc1234`. Shown in StatusBar (desktop editor). Bump `VERSION` in both `version.ts` and `package.json` on significant changes.
+
 ## Design System (in `src/index.css`)
 
 Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/css/themes/acid-pop.css`). Token values only — no `vm-*` component classes.
@@ -283,8 +315,9 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.8**: Background picker — 22 presets (6 solids, 11 gradients, 5 patterns), SceneBackground R3F component with CanvasTexture rendering, BackgroundPicker swatch UI, custom color picker, export compatibility (CSS backgrounds for HTML, hex fallback for iframe). Hand tracking fix: rewrote mediapipe-loader with generation-counter pattern for React StrictMode safety.
 - [x] **Phase 3.85**: Hand tracking v2 — two modes (Control + Disturb), palm-anchor-relative tracking (re-anchors on each hand reappearance), inverted horizontal axis for natural feel, per-effect disturbance with 5 force types (repel/attract/swirl/scatter/vortex), smooth fade-in/out on hand enter/exit, camera reset on effect switch, auto-rotate killed during tracking, TrackingSidebar mode toggle UI, overflow-hidden fix for Mac scrollbar during intro animation.
 - [x] **Phase 4**: Landing page at `/` — SEO-optimized, Lighthouse-ready. Lazy-loaded Fractal Frequency R3F background (Three.js deferred via requestIdleCallback). Hero with platform badge strip (Elementor/Webflow/Wix/WordPress/React/HTML). Glassmorphism bento feature grid (3×2). Effect showcase with live iframe embeds. Netmilk brand voice copy. Full structured data (schema.org WebApplication). Code splitting: landing bundle 19KB gzip, Three.js loads async. robots.txt + sitemap.xml. .htaccess with compression + caching headers.
+- [x] **Phase 4.05**: Lighthouse 100 — font optimization (2.2MB Nerd Font TTF → 56KB woff2), no Three.js/iframes on mobile landing, `font-display: optional` to prevent FOUT, code splitting with manualChunks. Mobile payload reduced from 10.7MB to 171KB. Scores: Performance 100, Accessibility 95, Best Practices 100, SEO 100.
 - [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
-- [ ] **Phase 5**: Vercel deploy, prtcl.es, GitHub public
+- [ ] **Phase 5**: SiteGround deploy pipeline, prtcl.es, GitHub public
 
 ## Future Ideas
 

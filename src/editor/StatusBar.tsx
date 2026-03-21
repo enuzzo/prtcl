@@ -1,4 +1,5 @@
 import { useStore } from '../store'
+import { VERSION_TAG } from '../version'
 
 function GitHubIcon() {
   return (
@@ -58,6 +59,8 @@ export function StatusBar({ isMobile }: StatusBarProps) {
           <GitHubIcon />
           <span>PRTCL on GitHub</span>
         </a>
+        <span className="opacity-30">&middot;</span>
+        <span className="opacity-50">{VERSION_TAG}</span>
       </div>
       <div className="flex gap-4">
         <span>{actualParticleCount.toLocaleString()} particles</span>

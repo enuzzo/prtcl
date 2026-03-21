@@ -118,11 +118,22 @@ export function EffectShowcase() {
           with real-time controls. Pick one, make it yours, pretend you wrote the shader.
         </p>
 
-        {/* Mobile: horizontal scroll */}
+        {/* Mobile: lightweight cards (no iframes — saves ~9MB of Three.js/font downloads) */}
         <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 sm:hidden [&::-webkit-scrollbar]:hidden">
           {SHOWCASE_EFFECTS.map((effect) => (
             <div key={effect.id} className="snap-center shrink-0 w-[85vw]">
-              <ShowcaseCard {...effect} />
+              <a
+                href={`/create#effect=${effect.id}`}
+                className="block rounded-2xl overflow-hidden border border-border bg-surface/30 hover:border-accent/40 transition-all duration-300"
+              >
+                <div className="aspect-[16/10] bg-bg flex items-center justify-center">
+                  <span className="text-accent text-4xl font-bold opacity-20">&#x2728;</span>
+                </div>
+                <div className="px-5 py-3.5 flex items-center justify-between">
+                  <span className="text-sm font-bold">{effect.name}</span>
+                  <span className="text-accent2 text-xs tracking-wider">Open &rarr;</span>
+                </div>
+              </a>
             </div>
           ))}
         </div>

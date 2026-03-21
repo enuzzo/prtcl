@@ -1,12 +1,14 @@
 import { GitHubIcon } from './icons'
+import { VERSION_TAG } from '../version'
 
 export function LandingFooter() {
   return (
     <footer className="border-t border-border bg-bg/90 backdrop-blur-sm py-8 px-6 md:px-10">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Left: brand */}
+        {/* Left: brand + version */}
         <div className="flex items-center gap-3">
           <span className="text-accent font-bold text-sm tracking-[0.15em]">PRTCL</span>
+          <span className="text-text-muted/50 text-[10px] font-mono">{VERSION_TAG}</span>
           <span className="text-text-muted text-xs">
             &copy; {new Date().getFullYear()} Netmilk Studio
           </span>
