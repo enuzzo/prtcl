@@ -51,11 +51,11 @@ export function FinalCTA() {
           id="cta-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
         >
-          Your website has enough stock photos.
+          You scrolled this far.
         </h2>
-        <p className="text-text-secondary text-base md:text-lg leading-relaxed mb-10 md:mb-12">
-          Particles load faster than a hero image and look better than a gradient.
-          Two clicks from here to running code.
+        <p className="text-text-secondary text-base md:text-lg leading-normal mb-10 md:mb-12">
+          That either means you&apos;re genuinely interested,
+          or you&apos;re avoiding something important. Either way, the editor is right here. Again.
         </p>
         <a
           href="/create"
@@ -68,7 +68,7 @@ export function FinalCTA() {
             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2
           "
         >
-          Start creating
+          Open the editor
           <span aria-hidden="true">&rarr;</span>
         </a>
       </div>

@@ -11,25 +11,25 @@ const SHOWCASE_EFFECTS: ShowcaseEffect[] = [
   {
     id: 'frequency',
     name: 'Fractal Frequency',
-    description: 'Mathematical beauty in motion',
+    description: 'Parametric chaos. Looks intentional. Isn\'t.',
     embedParams: '&rotate=1&orbit=0&badge=0',
   },
   {
     id: 'nebula-organica',
     name: 'Nebula',
-    description: 'Organic cosmic dust',
+    description: 'Organic noise pretending to be the cosmos.',
     embedParams: '&rotate=0.5&orbit=0&badge=0',
   },
   {
     id: 'medusa',
     name: 'Medusa',
-    description: 'Bioluminescent jellyfish',
+    description: 'Inverse kinematics tentacles. Unsettling. Beautiful.',
     embedParams: '&rotate=1&orbit=0&badge=0',
   },
   {
     id: 'hopf-fibration',
     name: 'Hopf Fibration',
-    description: 'Topology made visible',
+    description: '4D topology projected to 3D. Don\'t ask why.',
     embedParams: '&rotate=1.5&orbit=0&badge=0',
   },
 ]
@@ -125,17 +125,18 @@ export function EffectShowcase() {
     <section className="relative py-24 md:py-32 px-6 md:px-10 bg-bg/85 backdrop-blur-sm" aria-labelledby="showcase-heading">
       <div className="max-w-6xl mx-auto">
         {/* Section header */}
-        <p className="text-accent text-xs tracking-[0.3em] uppercase mb-3">Effects</p>
+        <p className="text-accent text-xs tracking-[0.3em] uppercase mb-3">Presets</p>
         <h2
           id="showcase-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
         >
-          Seventeen effects.{' '}
-          <span className="text-text-muted">One excuse to procrastinate.</span>
+          17 effects.{' '}
+          <span className="text-text-muted">Zero practical applications.</span>
         </h2>
-        <p className="text-text-secondary text-base md:text-lg max-w-2xl mb-16 md:mb-20 leading-relaxed">
-          Math, organic, creatures, text, abstract &mdash; each one hand-tuned
-          with real-time controls. Pick one, make it yours, pretend you wrote the shader.
+        <p className="text-text-secondary text-base md:text-lg max-w-2xl mb-16 md:mb-20 leading-normal">
+          Fractals, jellyfish, noise fields, text dissolves. Every preset has
+          live sliders so you can adjust parameters you don&apos;t fully understand
+          until it looks exactly right. That&apos;s the process. That&apos;s always the process.
         </p>
 
         {/* Mobile: lightweight cards (no iframes — saves ~9MB of Three.js/font downloads) */}

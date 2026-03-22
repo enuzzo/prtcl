@@ -32,7 +32,7 @@ export function LandingFooter() {
 
         {/* Right: license + tagline */}
         <p className="text-text-muted text-xs">
-          MIT License &middot; Runs on math and stubbornness.
+          MIT License &middot; Powered by WebGL and poor life choices.
         </p>
       </div>
     </footer>

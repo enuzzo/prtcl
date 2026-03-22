@@ -31,7 +31,7 @@ function BentoCard({ icon, title, description, accentColor = '#FF2BD6' }: BentoC
       </div>
 
       {/* Description */}
-      <p className="text-text-secondary text-xs leading-relaxed">
+      <p className="text-text-secondary text-sm leading-snug">
         {description}
       </p>
     </div>
@@ -43,42 +43,42 @@ const CARDS: BentoCardProps[] = [
     icon: <SpeedIcon />,
     title: '20k @ 60fps',
     description:
-      'WebGL shader renders 20,000 particles with adaptive quality scaling. Weighs less than your cookie banner.',
+      'Custom WebGL shaders with adaptive quality. Scales itself down on weak hardware before anything melts. Twenty thousand points doing absolutely nothing useful, beautifully.',
     accentColor: '#7CFF00',
   },
   {
     icon: <CodeIcon />,
-    title: 'Export anywhere',
+    title: 'Copy. Paste. Done.',
     description:
-      'Self-contained HTML, React, or iframe. Elementor, Webflow, Wix, WordPress. Two clicks. We timed it.',
+      'Exports one self-contained snippet. HTML, React, or iframe. No npm install, no build step. It just works. We\'re as surprised as you are.',
     accentColor: '#FF2BD6',
   },
   {
     icon: <TextIcon />,
-    title: 'Text to particles',
+    title: 'Text → particles',
     description:
-      '12 Google Fonts sampled to point clouds in real-time. Your words dissolve into light. Dramatic? Absolutely.',
+      'Type a word. Pick a font. Watch 20,000 points form your letters, hold still for a moment of false hope, then dissolve into entropy. Three effects, 12 fonts.',
     accentColor: '#2CF4FF',
   },
   {
     icon: <HandIcon />,
-    title: 'Gesture control',
+    title: 'Hand tracking',
     description:
-      'MediaPipe hand tracking via webcam. Orbit camera or disrupt particles with your palm. Gloves sold separately.',
+      'Open your palm at the webcam. Orbit the scene, attract particles, scatter them. MediaPipe WASM, no plugin. You\'re waving at your screen alone. We don\'t judge.',
     accentColor: '#FF2BD6',
   },
   {
     icon: <MicIcon />,
-    title: 'Sound-driven',
+    title: 'Audio reactive',
     description:
-      'FFT analysis splits mic input into bass, mids, highs + beat detection. Your music becomes geometry. Your neighbor\'s too.',
+      'Mic input drives particles in real-time. Bass pumps size, highs scatter, beat detection fires bursts. Finally, a reason to listen to music at 2am besides existential dread.',
     accentColor: '#FF2BD6',
   },
   {
     icon: <HeartIcon />,
     title: 'Free. MIT. Forever.',
     description:
-      'No accounts. No trials. No "let\'s schedule a call." Fork it, break it, ship it. We\'ll probably still respect you.',
+      'No accounts. No watermarks. No emails. The code is on GitHub. Fork it, break it, claim you wrote it. The universe is indifferent and so are we.',
     accentColor: '#7CFF00',
   },
 ]
@@ -88,14 +88,14 @@ export function FeatureBento() {
     <section className="relative py-24 md:py-32 px-6 md:px-10 bg-bg/90 backdrop-blur-sm" aria-labelledby="features-heading">
       <div className="max-w-5xl mx-auto">
         {/* Section header */}
-        <p className="text-accent text-xs tracking-[0.3em] uppercase mb-3">Features</p>
+        <p className="text-accent text-xs tracking-[0.3em] uppercase mb-3">What it does</p>
         <h2
           id="features-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-12 md:mb-16"
         >
-          Everything you need.
+          Six features.
           <br />
-          <span className="text-text-muted">Nothing you don&apos;t.</span>
+          <span className="text-text-muted">All equally unnecessary.</span>
         </h2>
 
         {/* Flat 3x2 grid */}

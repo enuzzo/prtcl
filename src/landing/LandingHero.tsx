@@ -44,24 +44,24 @@ export function LandingHero() {
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
         {/* Overline */}
         <p className="text-text-muted text-xs tracking-[0.3em] uppercase mb-6">
-          GPU-accelerated particle effects
+          Open-source particle engine
         </p>
 
         {/* Headline */}
         <h1
           id="hero-heading"
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05]"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
         >
-          20,000 particles.
+          20k particles.
           <br />
-          <span className="text-accent block">Zero excuses.</span>
+          <span className="text-accent block">Absolutely no purpose.</span>
         </h1>
 
         {/* Subheadline */}
-        <p className="mt-6 md:mt-8 text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-          Free, open-source particle engine with hand tracking, audio reactivity, and text effects.
-          No accounts, no paywalls, no &ldquo;schedule a demo.&rdquo;
-          Just math, shaders, and zero chill.
+        <p className="mt-6 md:mt-8 text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-normal">
+          A GPU-accelerated particle engine that runs in the browser.
+          You can tweak every parameter, export the result, and put it on a website.
+          It contributes nothing to humanity. Sixty frames per second of it.
         </p>
 
         {/* Platform strip */}
