@@ -31,19 +31,6 @@ export function ControlPanel() {
     const pane = new Pane({ container: containerRef.current }) as any
     paneRef.current = pane
 
-    // ── Global controls ────────────────────────────────────
-    const { particleCount, pointSize } = useStore.getState()
-    const globals = pane.addFolder({ title: 'Global' })
-    const globalParams = { particleCount, pointSize }
-
-    globals.addBinding(globalParams, 'particleCount', {
-      min: 1000, max: 30000, step: 1000, label: 'Particles',
-    }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
-
-    globals.addBinding(globalParams, 'pointSize', {
-      min: 0.2, max: 8.0, step: 0.1, label: 'Point Size',
-    }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
-
     // ── Camera controls ────────────────────────────────────
     const { autoRotateSpeed, cameraZoom } = useStore.getState()
     const cameraFolder = pane.addFolder({ title: 'Camera' })
@@ -107,7 +94,7 @@ export function ControlPanel() {
     const DROPDOWN_CONTROLS: Record<string, Record<string, number>> = {
       colorMode: { 'PRTCL': 0, 'Spectrum': 1, 'Noir': 2 },
       style: { 'PRTCL': 0, 'Classic': 1, 'Gold': 2, 'Ice': 3 },
-      palette: { 'Aurora': 0, 'PRTCL': 1, 'Fire': 2, 'Ocean': 3 },
+      palette: { 'Deep Ocean': 0, 'Magma': 1, 'Rainbow': 2, 'Noir': 3, 'PRTCL': 4 },
       krakenColor: { 'Lava': 0, 'Venom': 1, 'Abyss': 2 },
       anemonePalette: { 'Reef': 0, 'Neon': 1, 'Deep Sea': 2, 'Blossom': 3 },
       terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
@@ -122,8 +109,19 @@ export function ControlPanel() {
       3: 'The happiness of your life depends upon the quality of your thoughts. Waste no more time arguing about what a good man should be. Be one. The best revenge is to be unlike him who performed the injury. Very little is needed to make a happy life. It is all within yourself in your way of thinking.',
     }
 
-    if (currentControls.length > 0) {
+    {
       const effectFolder = pane.addFolder({ title: 'Effect' })
+
+      // ── Per-effect Particles & Point Size ──────────────
+      const { particleCount, pointSize } = useStore.getState()
+      const effectGlobals = { particleCount, pointSize }
+      effectFolder.addBinding(effectGlobals, 'particleCount', {
+        min: 1000, max: 30000, step: 1000, label: 'Particles',
+      }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
+      effectFolder.addBinding(effectGlobals, 'pointSize', {
+        min: 0.1, max: 12, step: 0.01, label: 'Point Size',
+      }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
+
       const params: Record<string, number> = {}
       for (const c of currentControls) {
         params[c.id] = c.value
@@ -154,11 +152,9 @@ export function ControlPanel() {
       const cam = getCameraSnapshot()
       const snapshot = {
         effect: s.selectedEffect?.id ?? 'unknown',
-        global: {
-          particleCount: s.particleCount,
-          pointSize: s.pointSize,
-          backgroundPreset: s.backgroundPreset,
-        },
+        particleCount: s.particleCount,
+        pointSize: Math.round(s.pointSize * 1000) / 1000,
+        backgroundPreset: s.backgroundPreset,
         camera: {
           autoRotateSpeed: s.autoRotateSpeed,
           zoom: s.cameraZoom,

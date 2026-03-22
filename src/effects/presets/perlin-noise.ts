@@ -15,7 +15,7 @@ export const perlinNoise: Effect = {
   category: 'math',
   tags: ['perlin', 'noise', 'shader', 'icosahedron', 'displacement', 'turbulence'],
   particleCount: 12000,
-  pointSize: 0.6,
+  pointSize: 0.15,
   cameraDistance: 8,
   cameraPosition: [-5.501, 6.601, -2.277],
   cameraTarget: [0, 0, 0],

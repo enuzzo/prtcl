@@ -82,9 +82,10 @@ export function EditorLayout() {
       store.setParticleCount(effect.particleCount)
       if (effect.defaultText) store.setTextInput(effect.defaultText)
       if (effect.defaultFont) store.setTextFont(effect.defaultFont)
-      store.setPointSize(effect.pointSize ?? 1.0)
+      store.setPointSize(effect.pointSize ?? 0.21)
       store.setAutoRotateSpeed(effect.autoRotateSpeed ?? 0)
-      store.setCameraZoom(1)
+      store.setCameraZoom(effect.cameraZoom ?? 1)
+      if (effect.backgroundPreset) store.setBackgroundPreset(effect.backgroundPreset)
       const cp = effect.cameraPosition ?? [0, 0, 5]
       const ct = effect.cameraTarget ?? [0, 0, 0]
       const dx = cp[0] - ct[0], dy = cp[1] - ct[1], dz = cp[2] - ct[2]

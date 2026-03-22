@@ -17,7 +17,7 @@ export const storm: Effect = {
   category: 'organic',
   tags: ['storm', 'ocean', 'lightning', 'rain', 'clouds', 'weather', 'nature'],
   particleCount: 16000,
-  pointSize: 1.5,
+  pointSize: 0.27,
   cameraDistance: 5,
   cameraPosition: [-3.96, 0.124, -3.05],
   cameraTarget: [0, 0, 0],

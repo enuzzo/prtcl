@@ -9,7 +9,7 @@ export const textDissolve: Effect = {
   tags: ['text', 'dissolve', 'noise', 'reform'],
   author: 'PRTCL Team',
   particleCount: 16000,
-  pointSize: 2.2,
+  pointSize: 0.37,
   autoRotateSpeed: 1,
   cameraDistance: 6,
   cameraPosition: [-3.218, 2.426, -15.501] as [number, number, number],

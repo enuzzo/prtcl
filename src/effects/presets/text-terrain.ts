@@ -9,7 +9,7 @@ export const textTerrain: Effect = {
   category: 'text',
   tags: ['text', 'terrain', 'landscape', 'letters', 'instanced', 'rain'],
   particleCount: 27000,
-  pointSize: 2.3,
+  pointSize: 0.38,
   cameraDistance: 50,
   cameraPosition: [-35.079, 13.778, 32.593],
   cameraTarget: [0, 0, 0],

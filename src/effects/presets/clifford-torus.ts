@@ -9,13 +9,13 @@ export const cliffordTorus: Effect = {
   category: 'math',
   tags: ['4d', 'clifford', 'torus', 'geometry', 'math'],
   particleCount: 23000,
-  pointSize: 8,
+  pointSize: 7.85,
   cameraDistance: 43,
-  cameraPosition: [0.586, 4.288, 35.724],
+  cameraPosition: [-31.207, 4.288, 17.398],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 0.5,
-  cameraZoom: 1.2,
-  controls: { scale: 29.516, speed: 0.519, wdist: 2.952, morph: 0.424, pulse: 2.788, brightness: 1.135, hueBase: 0.413, hueRange: 0.357 },
+  cameraZoom: 1,
+  controls: { scale: 32.384, speed: 0.401, wdist: 2.952, morph: 0.453, pulse: 2.788, brightness: 1.135, hueBase: 0.413, hueRange: 0.357 },
   createdAt: '2026-03-17',
   code: `
 var scale  = addControl("scale",  "Scale",          10, 80,  29.516);

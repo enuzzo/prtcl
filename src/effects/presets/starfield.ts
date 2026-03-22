@@ -9,7 +9,7 @@ export const starfield: Effect = {
   category: 'abstract',
   tags: ['starfield', 'warp', 'space', 'abstract'],
   particleCount: 23000,
-  pointSize: 1.6,
+  pointSize: 0.28,
   cameraDistance: 1,
   cameraPosition: [-5.292, 0.027, -8.177],
   cameraTarget: [0, 0, 0],

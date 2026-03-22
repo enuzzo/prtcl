@@ -17,15 +17,15 @@ export const frequency: Effect = {
   author: 'PRTCL Team',
   category: 'math',
   tags: ['frequency', 'fractal', 'waves', 'harmonic', 'audio', 'spiral', 'interference'],
-  particleCount: 20000,
-  pointSize: 1,
+  particleCount: 24000,
+  pointSize: 0.43,
   cameraDistance: 5,
-  cameraPosition: [1.837, 0, 3.063],
+  cameraPosition: [1.944, 0, -1.447],
   cameraTarget: [0, 0, 0],
-  autoRotateSpeed: 2.5,
-  cameraZoom: 1,
+  autoRotateSpeed: 1,
+  cameraZoom: 1.4,
   createdAt: '2026-03-17',
-  controls: { freq: 2.5, amp: 15, pulse: 0.633, fractal: 3, colorSpeed: 1 },
+  controls: { freq: 2.253, amp: 11.23, pulse: 0.455, fractal: 2.478, colorSpeed: 1 },
   code: `
 // Scale factor: original runs at coords up to ~50, camera at z=100
 // We need ±5 range, so S ≈ 0.06

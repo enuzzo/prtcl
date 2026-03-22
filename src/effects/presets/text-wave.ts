@@ -9,7 +9,7 @@ export const textWave: Effect = {
   tags: ['text', 'wave', 'sine', '3d'],
   author: 'PRTCL Team',
   particleCount: 15000,
-  pointSize: 0.6,
+  pointSize: 0.15,
   autoRotateSpeed: 0.3,
   cameraDistance: 7,
   cameraPosition: [0, 0, 7] as [number, number, number],

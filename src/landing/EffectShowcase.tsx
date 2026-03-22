@@ -130,7 +130,7 @@ export function EffectShowcase() {
           id="showcase-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
         >
-          17 effects.{' '}
+          18 effects.{' '}
           <span className="text-text-muted">Zero practical applications.</span>
         </h2>
         <p className="text-text-secondary text-base md:text-lg max-w-2xl mb-16 md:mb-20 leading-normal">

@@ -6,16 +6,18 @@ import { storm } from './storm'
 import { frequency } from './frequency'
 import { cliffordTorus } from './clifford-torus'
 
-import { fibonacciCrystal } from './fibonacci-crystal'
+import { perlinNoise } from './perlin-noise'
 import { paperFleet } from './paper-fleet'
-import { medusa } from './medusa'
-import { kraken } from './kraken'
-import { anemone } from './anemone'
+import { fireflies } from './fireflies'
+import { electromagnetic } from './electromagnetic'
+import { murmuration } from './murmuration'
+import { hyperflower } from './hyperflower'
+import { axiom } from './axiom'
+
 import { textWave } from './text-wave'
 import { textScatter } from './text-scatter'
 import { textDissolve } from './text-dissolve'
 import { textTerrain } from './text-terrain'
-import { perlinNoise } from './perlin-noise'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, fibonacciCrystal, perlinNoise, paperFleet, medusa, kraken, anemone, textWave, textScatter, textDissolve, textTerrain]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, starfield, blackhole, storm, cliffordTorus, electromagnetic, perlinNoise, hyperflower, fireflies, murmuration, axiom, paperFleet, textWave, textScatter, textDissolve, textTerrain]

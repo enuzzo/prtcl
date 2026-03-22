@@ -16,11 +16,15 @@ export const hopf: Effect = {
   author: 'PRTCL Team',
   category: 'math',
   tags: ['hopf', 'fibration', '4D', 'hypersphere', 'topology', 'math'],
-  particleCount: 20000,
-  pointSize: 2,
+  particleCount: 17000,
+  pointSize: 0.96,
   cameraDistance: 5,
-  autoRotateSpeed: 2,
+  cameraPosition: [-2.336, 0, -3.336],
+  cameraTarget: [0, 0, 0],
+  autoRotateSpeed: 1,
+  cameraZoom: 1,
   createdAt: '2026-03-16',
+  controls: { speed: 0.446, scale: 40.724, wobble: 0.4, glow: 0.9, complexity: 3.638 },
   code: `
 // Scale: original coords go up to ~80, we need ±5
 var S = 0.06;

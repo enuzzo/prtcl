@@ -9,7 +9,7 @@ export const textScatter: Effect = {
   tags: ['text', 'scatter', 'cascade', 'wled', 'aurora', 'organic'],
   author: 'PRTCL Team',
   particleCount: 14000,
-  pointSize: 1.2,
+  pointSize: 0.23,
   autoRotateSpeed: -0.3,
   cameraDistance: 6,
   cameraPosition: [4.5, -0.5, 5.0] as [number, number, number],

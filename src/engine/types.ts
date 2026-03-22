@@ -53,7 +53,7 @@ export interface Effect {
   author: string
   code: string
   tags: string[]
-  category: 'organic' | 'math' | 'creature' | 'text' | 'abstract'
+  category: 'organic' | 'math' | 'text' | 'abstract'
   particleCount: number
   pointSize?: number
   cameraDistance: number
@@ -61,6 +61,7 @@ export interface Effect {
   cameraTarget?: [number, number, number]
   autoRotateSpeed?: number
   cameraZoom?: number
+  backgroundPreset?: string
   createdAt: string
   controls?: Record<string, number>
   /** 'particles' (default) uses ParticleSystem, 'custom' uses a standalone R3F component */

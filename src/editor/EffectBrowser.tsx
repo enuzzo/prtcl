@@ -7,17 +7,16 @@ interface EffectBrowserProps {
   onSelect: (effect: Effect) => void
 }
 
-const CATEGORY_ORDER = ['math', 'organic', 'creature', 'text', 'abstract'] as const
+const CATEGORY_ORDER = ['math', 'organic', 'text', 'abstract'] as const
 const CATEGORY_LABELS: Record<string, string> = {
   organic: 'Organic',
   math: 'Math',
-  creature: 'Creature',
   text: 'Text',
   abstract: 'Abstract',
 }
 
 /** Effects that use audio params (bass/mids/highs/energy/beat) */
-const AUDIO_EFFECTS = new Set(['frequency', 'fibonacci-crystal', 'nebula-organica'])
+const AUDIO_EFFECTS = new Set(['frequency', 'nebula-organica'])
 
 export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserProps) {
   const [query, setQuery] = useState('')
