@@ -25,7 +25,7 @@ const PLATFORMS = [
 export function LandingHero() {
   return (
     <section
-      className="relative min-h-dvh flex items-center justify-center overflow-hidden border-b-[3px] border-accent2"
+      className="relative min-h-dvh flex items-center justify-center overflow-hidden border-b-[3px] border-accent2 pt-20 pb-10 sm:pt-14 sm:pb-0"
       aria-labelledby="hero-heading"
     >
       {/* Radial vignette — ensures text readability over the 3D background */}
@@ -115,7 +115,7 @@ export function LandingHero() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="mt-16 md:mt-20 animate-bounce" aria-hidden="true">
+        <div className="mt-8 md:mt-20 animate-bounce" aria-hidden="true">
           <svg className="w-5 h-5 text-text-muted mx-auto" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface ShowcaseEffect {
   id: string
@@ -34,11 +34,29 @@ const SHOWCASE_EFFECTS: ShowcaseEffect[] = [
   },
 ]
 
+/**
+ * Iframe only mounts when the card scrolls into view.
+ * This prevents 4× Three.js instances from loading on page load,
+ * which was causing 20s+ TBT in Lighthouse.
+ */
 function ShowcaseCard({ id, name, description, embedParams }: ShowcaseEffect) {
+  const [inView, setInView] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) { setInView(true); io.disconnect() } },
+      { rootMargin: '200px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   return (
-    <div className="group relative rounded-2xl overflow-hidden border border-border bg-surface/30 hover:border-accent/40 transition-all duration-300">
+    <div ref={ref} className="group relative rounded-2xl overflow-hidden border border-border bg-surface/30 hover:border-accent/40 transition-all duration-300">
       {/* Iframe container — 16:10 aspect ratio */}
       <div className="relative aspect-[16/10] bg-bg">
         {/* Loading skeleton */}
@@ -48,13 +66,15 @@ function ShowcaseCard({ id, name, description, embedParams }: ShowcaseEffect) {
           </div>
         )}
 
-        <iframe
-          src={`/embed?effect=${id}${embedParams}`}
-          title={`${name} particle effect preview`}
-          className={`w-full h-full border-0 transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-        />
+        {inView && (
+          <iframe
+            src={`/embed?effect=${id}${embedParams}`}
+            title={`${name} particle effect preview`}
+            className={`w-full h-full border-0 transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            loading="lazy"
+            onLoad={() => setLoaded(true)}
+          />
+        )}
 
         {/* Hover overlay with CTA */}
         <div

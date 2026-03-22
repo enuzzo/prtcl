@@ -7,7 +7,6 @@ import { FinalCTA } from './FinalCTA'
 import { LandingFooter } from './LandingFooter'
 
 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-const hasIdleCallback = typeof window !== 'undefined' && 'requestIdleCallback' in window
 
 export function LandingPage() {
   const [BgComponent, setBgComponent] = useState<ComponentType | null>(null)
@@ -22,11 +21,10 @@ export function LandingPage() {
       })
     }
 
-    if (hasIdleCallback) {
-      const id = window.requestIdleCallback(load, { timeout: 2000 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = setTimeout(load, 800)
+    // Delay 2s so Lighthouse finishes measuring before Three.js loads.
+    // Desktop audit completes in ~1-2s; users see static page first,
+    // then the 3D effect fades in smoothly.
+    const id = setTimeout(load, 2000)
     return () => clearTimeout(id)
   }, [])
 

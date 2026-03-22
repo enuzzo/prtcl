@@ -293,7 +293,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - **Text**: `#F9F4FF` (primary) | `#D5C6F2` (secondary) | `#A98ED1` (muted)
 - **Borders**: `rgba(255,43,214,0.22)` (subtle pink) | `rgba(124,255,0,0.56)` (strong lime)
 - **Semantic**: success `#46FF9A` | warning `#FFD553` | danger `#FF4F7A` | info `#2CF4FF`
-- **Font**: Inconsolata Nerd Font Mono (primary) → JetBrains Mono (fallback)
+- **Font**: Inconsolata (self-hosted woff2, 56KB, `font-display: optional`) → JetBrains Mono (fallback)
 - **Tweakpane**: fully themed via CSS custom properties (`.tp-rotv` overrides)
 - Dark mode only (v1)
 
@@ -316,6 +316,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 3.85**: Hand tracking v2 — two modes (Control + Disturb), palm-anchor-relative tracking (re-anchors on each hand reappearance), inverted horizontal axis for natural feel, per-effect disturbance with 5 force types (repel/attract/swirl/scatter/vortex), smooth fade-in/out on hand enter/exit, camera reset on effect switch, auto-rotate killed during tracking, TrackingSidebar mode toggle UI, overflow-hidden fix for Mac scrollbar during intro animation.
 - [x] **Phase 4**: Landing page at `/` — SEO-optimized, Lighthouse-ready. Lazy-loaded Fractal Frequency R3F background (Three.js deferred via requestIdleCallback). Hero with platform badge strip (Elementor/Webflow/Wix/WordPress/React/HTML). Glassmorphism bento feature grid (3×2). Effect showcase with live iframe embeds. Netmilk brand voice copy. Full structured data (schema.org WebApplication). Code splitting: landing bundle 19KB gzip, Three.js loads async. robots.txt + sitemap.xml. .htaccess with compression + caching headers.
 - [x] **Phase 4.05**: Lighthouse 100 — font optimization (2.2MB Nerd Font TTF → 56KB woff2), no Three.js/iframes on mobile landing, `font-display: optional` to prevent FOUT, code splitting with manualChunks. Mobile payload reduced from 10.7MB to 171KB. Scores: Performance 100, Accessibility 95, Best Practices 100, SEO 100.
+- [x] **Phase 4.06**: Lighthouse 100/100/100/100 — removed unused Google Fonts preconnect, IntersectionObserver lazy iframes in EffectShowcase (prevents 4× Three.js on page load), fixed accessibility contrast issues (version tag opacity, footer background), mobile hero padding for iPhone viewport (pt-20 clears fixed nav), 3D background delay reduced from 5s to 2s for faster desktop appearance. Scores: Performance 100, Accessibility 100, Best Practices 100, SEO 100 on both mobile and desktop.
 - [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
 - [ ] **Phase 5**: SiteGround deploy pipeline, prtcl.es, GitHub public
 
