@@ -124,8 +124,8 @@ export const useStore = create<PrtclState>((set) => ({
   // Settings
   particleCount: 15000,
   pointSize: 0.21,
-  backgroundColor: 'radial-gradient(ellipse at center, #1a0533, #08040E)',
-  backgroundPreset: 'nebula',
+  backgroundColor: 'radial-gradient(ellipse at 40% 40%, #003366, #001133 55%, #020a18)',
+  backgroundPreset: 'electric',
   bloomEnabled: false,
   bloomStrength: 0.5,
   bloomRadius: 0.4,

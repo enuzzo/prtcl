@@ -96,6 +96,7 @@ export function ControlPanel() {
       style: { 'PRTCL': 0, 'Classic': 1, 'Gold': 2, 'Ice': 3 },
       palette: { 'Deep Ocean': 0, 'Magma': 1, 'Rainbow': 2, 'Noir': 3, 'PRTCL': 4 },
       nebPalette: { 'PRTCL': 0, 'Classic': 1, 'Inferno': 2, 'Arctic': 3, 'Toxic': 4, 'Void': 5 },
+      iriPalette: { 'Holographic': 0, 'PRTCL': 1, 'Sunset': 2, 'Ocean': 3, 'Neon': 4, 'Grayscale': 5 },
       terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
       terrainPalette: { 'PRTCL': 0, 'Typewriter': 1, 'Vintage': 2, 'Matrix': 3 },
       wavePalette: { 'PRTCL': 0, 'Ocean': 1, 'Sunset': 2, 'Neon': 3, 'Spectrum': 4 },
@@ -111,15 +112,17 @@ export function ControlPanel() {
     {
       const effectFolder = pane.addFolder({ title: 'Effect' })
 
-      // ── Per-effect Particles & Point Size ──────────────
+      // ── Per-effect Particles & Point Size (hidden for fullscreen shader effects) ──
       const { particleCount, pointSize } = useStore.getState()
-      const effectGlobals = { particleCount, pointSize }
-      effectFolder.addBinding(effectGlobals, 'particleCount', {
-        min: 1000, max: 30000, step: 1000, label: 'Particles',
-      }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
-      effectFolder.addBinding(effectGlobals, 'pointSize', {
-        min: 0.1, max: 12, step: 0.01, label: 'Point Size',
-      }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
+      if (particleCount > 0) {
+        const effectGlobals = { particleCount, pointSize }
+        effectFolder.addBinding(effectGlobals, 'particleCount', {
+          min: 1000, max: 30000, step: 1000, label: 'Particles',
+        }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
+        effectFolder.addBinding(effectGlobals, 'pointSize', {
+          min: 0.1, max: 12, step: 0.01, label: 'Point Size',
+        }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
+      }
 
       const params: Record<string, number> = {}
       for (const c of currentControls) {

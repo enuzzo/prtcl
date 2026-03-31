@@ -7,6 +7,7 @@ import { PaperFleet } from '../engine/PaperFleet'
 import { TextTerrain } from '../engine/TextTerrain'
 import { PerlinNoise } from '../engine/PerlinNoise'
 import { InsideNebula } from '../engine/InsideNebula'
+import { Iridescence } from '../engine/Iridescence'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store'
@@ -146,25 +147,55 @@ const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'text-terrain': TextTerrain,
   'perlin-noise': PerlinNoise,
   'inside-nebula': InsideNebula,
+  'iridescence': Iridescence,
 }
 
-/** Conditional bloom post-processing — zero overhead when disabled */
+/** Conditional bloom post-processing — zero overhead when disabled.
+ *  Reads all values via getState() in useFrame to avoid re-renders during orbit drag. */
 function BloomPass() {
+  const isMobile = useIsMobile()
+  // Read bloom enabled once for conditional mount — only changes on effect switch
   const enabled = useStore(s => s.bloomEnabled)
+
+  // Set tone mapping once on mount/unmount, not every frame
+  const glRef = useRef<THREE.WebGLRenderer | null>(null)
+  const { gl } = useThree()
+  glRef.current = gl
+
+  useEffect(() => {
+    if (!enabled || isMobile) return
+    gl.toneMapping = THREE.ACESFilmicToneMapping
+    gl.toneMappingExposure = 1.2
+    return () => {
+      if (glRef.current) {
+        glRef.current.toneMapping = THREE.NoToneMapping
+        glRef.current.toneMappingExposure = 1.0
+      }
+    }
+  }, [enabled, isMobile, gl])
+
+  if (!enabled || isMobile) return null
+
+  return <BloomEffect />
+}
+
+/** Inner component — reads bloom params via getState() to avoid re-render on slider changes */
+function BloomEffect() {
+  const strengthRef = useRef(0.5)
+  const thresholdRef = useRef(0.4)
+  const radiusRef = useRef(0.4)
+
+  useFrame(() => {
+    const s = useStore.getState()
+    strengthRef.current = s.bloomStrength
+    thresholdRef.current = s.bloomThreshold
+    radiusRef.current = s.bloomRadius
+  })
+
+  // Read initial values for the JSX props
   const strength = useStore(s => s.bloomStrength)
   const threshold = useStore(s => s.bloomThreshold)
   const radius = useStore(s => s.bloomRadius)
-  const isMobile = useIsMobile()
-  const { gl } = useThree()
-
-  // Toggle ACES tone mapping when bloom is active for proper HDR compression
-  useFrame(() => {
-    const shouldBloom = enabled && !isMobile
-    gl.toneMapping = shouldBloom ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping
-    gl.toneMappingExposure = shouldBloom ? 1.2 : 1.0
-  })
-
-  if (!enabled || isMobile) return null
 
   return (
     <EffectComposer>
