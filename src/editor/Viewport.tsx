@@ -6,7 +6,11 @@ import { ParticleSystem } from '../engine/ParticleSystem'
 import { PaperFleet } from '../engine/PaperFleet'
 import { TextTerrain } from '../engine/TextTerrain'
 import { PerlinNoise } from '../engine/PerlinNoise'
+import { InsideNebula } from '../engine/InsideNebula'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import * as THREE from 'three'
 import { useStore } from '../store'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
@@ -141,6 +145,37 @@ const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'paper-fleet': PaperFleet,
   'text-terrain': TextTerrain,
   'perlin-noise': PerlinNoise,
+  'inside-nebula': InsideNebula,
+}
+
+/** Conditional bloom post-processing — zero overhead when disabled */
+function BloomPass() {
+  const enabled = useStore(s => s.bloomEnabled)
+  const strength = useStore(s => s.bloomStrength)
+  const threshold = useStore(s => s.bloomThreshold)
+  const radius = useStore(s => s.bloomRadius)
+  const isMobile = useIsMobile()
+  const { gl } = useThree()
+
+  // Toggle ACES tone mapping when bloom is active for proper HDR compression
+  useFrame(() => {
+    const shouldBloom = enabled && !isMobile
+    gl.toneMapping = shouldBloom ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping
+    gl.toneMappingExposure = shouldBloom ? 1.2 : 1.0
+  })
+
+  if (!enabled || isMobile) return null
+
+  return (
+    <EffectComposer>
+      <Bloom
+        intensity={strength}
+        luminanceThreshold={threshold}
+        radius={radius}
+        mipmapBlur
+      />
+    </EffectComposer>
+  )
 }
 
 export function Viewport() {
@@ -163,6 +198,7 @@ export function Viewport() {
       >
         <SceneBackground />
         {CustomRenderer ? <CustomRenderer /> : <ParticleSystem />}
+        <BloomPass />
         <CameraSync />
         <HandCameraSync />
       </Canvas>

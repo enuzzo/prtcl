@@ -78,6 +78,14 @@ export interface Effect {
   disturbRadius?: number
   /** Disturb strength override (default 1.2) */
   disturbStrength?: number
+  /** Enable bloom post-processing for this effect */
+  bloom?: boolean
+  /** Bloom glow intensity, 0–2 (default 0.5) */
+  bloomStrength?: number
+  /** Bloom blur spread, 0–1 (default 0.4) */
+  bloomRadius?: number
+  /** Bloom brightness threshold, 0–1 (default 0.4) */
+  bloomThreshold?: number
 }
 
 export type CompiledEffectFn = (

@@ -20,8 +20,6 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ isMobile }: StatusBarProps) {
-  const fps = useStore((s) => s.fps)
-  const actualParticleCount = useStore((s) => s.actualParticleCount)
   const effectName = useStore((s) => s.selectedEffect?.name ?? 'No effect')
 
   if (isMobile) {
@@ -48,24 +46,19 @@ export function StatusBar({ isMobile }: StatusBarProps) {
     <div className="flex items-center justify-between h-8 px-4 bg-surface border-t border-border text-xs font-mono text-text-muted">
       <span>{effectName}</span>
       <div className="flex items-center gap-2">
-        <span>&copy; 2026 Netmilk Studio</span>
-        <span className="opacity-30">&middot;</span>
-        <a
-          href="https://github.com/enuzzo/prtcl"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 hover:text-accent transition-colors cursor-pointer"
-        >
-          <GitHubIcon />
-          <span>PRTCL on GitHub</span>
-        </a>
-        <span className="opacity-30">&middot;</span>
         <span className="opacity-50">{VERSION_TAG}</span>
+        <span className="opacity-30">&middot;</span>
+        <span>&copy; 2026 Netmilk Studio</span>
       </div>
-      <div className="flex gap-4">
-        <span>{actualParticleCount.toLocaleString()} particles</span>
-        <span>{fps} FPS</span>
-      </div>
+      <a
+        href="https://github.com/enuzzo/prtcl"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1 hover:text-accent transition-colors cursor-pointer"
+      >
+        <GitHubIcon />
+        <span>PRTCL on GitHub</span>
+      </a>
     </div>
   )
 }

@@ -36,8 +36,14 @@ export default defineConfig({
           if (id.includes('node_modules/three/')) {
             return 'three'
           }
+          // Postprocessing — only needed when bloom is active
+          if (id.includes('node_modules/postprocessing/') ||
+              id.includes('node_modules/@react-three/postprocessing/')) {
+            return 'postprocessing'
+          }
           // R3F + drei + reconciler — only needed when 3D renders
-          if (id.includes('node_modules/@react-three/') ||
+          if (id.includes('node_modules/@react-three/fiber/') ||
+              id.includes('node_modules/@react-three/drei/') ||
               id.includes('node_modules/react-reconciler/') ||
               id.includes('node_modules/its-fine/')) {
             return 'r3f'

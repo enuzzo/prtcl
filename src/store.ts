@@ -17,6 +17,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   backgroundColor: string
   backgroundPreset: string
   bloomEnabled: boolean
+  bloomStrength: number
+  bloomRadius: number
+  bloomThreshold: number
 
   // Camera
   autoRotateSpeed: number
@@ -65,6 +68,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   setBackgroundColor: (color: string) => void
   setBackgroundPreset: (presetId: string) => void
   setBloomEnabled: (enabled: boolean) => void
+  setBloomStrength: (v: number) => void
+  setBloomRadius: (v: number) => void
+  setBloomThreshold: (v: number) => void
 
   // Actions: camera
   setAutoRotateSpeed: (speed: number) => void
@@ -121,6 +127,9 @@ export const useStore = create<PrtclState>((set) => ({
   backgroundColor: 'radial-gradient(ellipse at center, #1a0533, #08040E)',
   backgroundPreset: 'nebula',
   bloomEnabled: false,
+  bloomStrength: 0.5,
+  bloomRadius: 0.4,
+  bloomThreshold: 0.4,
 
   // Camera
   autoRotateSpeed: 0,
@@ -176,6 +185,9 @@ export const useStore = create<PrtclState>((set) => ({
     if (preset) set({ backgroundPreset: presetId, backgroundColor: preset.css })
   },
   setBloomEnabled: (enabled) => set({ bloomEnabled: enabled }),
+  setBloomStrength: (v) => set({ bloomStrength: v }),
+  setBloomRadius: (v) => set({ bloomRadius: v }),
+  setBloomThreshold: (v) => set({ bloomThreshold: v }),
 
   // Actions: camera
   setAutoRotateSpeed: (speed) => set({ autoRotateSpeed: speed }),

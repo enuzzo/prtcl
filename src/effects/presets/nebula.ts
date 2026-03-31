@@ -8,9 +8,24 @@ export const nebula: Effect = {
   author: 'PRTCL Team',
   category: 'organic',
   tags: ['nebula', 'gas', 'organic', 'volumetric'],
-  particleCount: 15000,
+  particleCount: 24000,
+  pointSize: 0.83,
   cameraDistance: 5,
+  cameraPosition: [4.698, 1.552, -0.719],
+  cameraTarget: [0, 0, 0],
+  autoRotateSpeed: -0.5,
+  cameraZoom: 1,
+  backgroundPreset: 'plasma',
   createdAt: '2026-03-01',
+  controls: {
+    speed: 0.941,
+    scale: 2.256,
+    turbulence: 0.892,
+  },
+  bloom: true,
+  bloomStrength: 0.3,
+  bloomRadius: 0.3,
+  bloomThreshold: 0.5,
   code: `
 var speed = addControl('speed', 'Speed', 0.1, 3, 0.8);
 var scale = addControl('scale', 'Scale', 0.5, 5, 2.5);
