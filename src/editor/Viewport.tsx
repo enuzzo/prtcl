@@ -8,7 +8,6 @@ import { TextTerrain } from '../engine/TextTerrain'
 import { PerlinNoise } from '../engine/PerlinNoise'
 import { InsideNebula } from '../engine/InsideNebula'
 import { Iridescence } from '../engine/Iridescence'
-import { Spirit } from '../engine/Spirit'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store'
@@ -149,7 +148,6 @@ const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'perlin-noise': PerlinNoise,
   'inside-nebula': InsideNebula,
   'iridescence': Iridescence,
-  'spirit': Spirit,
 }
 
 /** Conditional bloom post-processing — zero overhead when disabled.
@@ -223,15 +221,13 @@ export function Viewport() {
     ? CUSTOM_RENDERERS[selectedEffect.customRenderer] ?? null
     : null
 
-  const backgroundOverride = useStore(s => s.backgroundOverride)
-
   return (
     <div className="flex-1 min-w-0 relative">
       <Canvas
         camera={{ position: [0, 0, 14], fov: 60 }}
         gl={{ antialias: false, alpha: false }}
       >
-        {!backgroundOverride && <SceneBackground />}
+        <SceneBackground />
         {CustomRenderer ? <CustomRenderer /> : <ParticleSystem />}
         <BloomPass />
         <CameraSync />

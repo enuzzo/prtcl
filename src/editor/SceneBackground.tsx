@@ -54,13 +54,9 @@ export function SceneBackground() {
   const { scene } = useThree()
   const backgroundPreset = useStore((s) => s.backgroundPreset)
   const backgroundColor = useStore((s) => s.backgroundColor)
-  const backgroundOverride = useStore((s) => s.backgroundOverride)
   const texRef = useRef<THREE.CanvasTexture | null>(null)
 
   useEffect(() => {
-    // Custom renderer manages scene.background — don't interfere
-    if (backgroundOverride) return
-
     if (texRef.current) {
       texRef.current.dispose()
       texRef.current = null
@@ -83,7 +79,7 @@ export function SceneBackground() {
         texRef.current = null
       }
     }
-  }, [backgroundPreset, backgroundColor, backgroundOverride, scene])
+  }, [backgroundPreset, backgroundColor, scene])
 
   return null
 }

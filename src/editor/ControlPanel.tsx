@@ -100,8 +100,6 @@ export function ControlPanel() {
       terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
       terrainPalette: { 'PRTCL': 0, 'Typewriter': 1, 'Vintage': 2, 'Matrix': 3 },
       wavePalette: { 'PRTCL': 0, 'Ocean': 1, 'Sunset': 2, 'Neon': 3, 'Spectrum': 4 },
-      useTriangles: { 'Triangles': 1, 'Points': 0 },
-      followMouse: { 'Auto Orbit': 0, 'Follow Mouse': 1 },
     }
 
     // Text presets: when a terrainText dropdown changes, also update the text input
