@@ -14,6 +14,14 @@ import type { SpiritSettings } from './config'
 import { DEFAULT_SPIRIT_SETTINGS, SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET } from './config'
 import type { LegacyThree } from './loadLegacyThree'
 import type { CameraSnapshot } from '../camera-bridge'
+import { useStore } from '../../store'
+
+const SPIRIT_HAND_INPUT_ALPHA = 0.12
+const SPIRIT_HAND_RETURN_ALPHA = 0.08
+const SPIRIT_HAND_DEAD_ZONE = 0.06
+const SPIRIT_HAND_X_RANGE = 220
+const SPIRIT_HAND_Y_RANGE = 160
+const SPIRIT_HAND_Z_RANGE = 280
 
 export interface SpiritApp {
   setSettings: (next: Partial<SpiritSettings>) => void
@@ -294,7 +302,7 @@ function createSimulator(
     get positionRenderTarget() {
       return positionRenderTarget
     },
-    update(dt: number, mouse3d: LegacyThree, initAnimation: number) {
+    update(dt: number, mouse3d: LegacyThree, initAnimation: number, forceFollowMouse = false) {
       const autoClearColor = renderer.autoClearColor
       const clearColor = renderer.getClearColor().getHex()
       const clearAlpha = renderer.getClearAlpha()
@@ -307,7 +315,7 @@ function createSimulator(
       positionShader.uniforms.motionSpeed.value = settings.motionSpeed
       positionShader.uniforms.initAnimation.value = initAnimation
 
-      if (settings.followMouse) {
+      if (settings.followMouse || forceFollowMouse) {
         positionShader.uniforms.mouse3d.value.copy(mouse3d)
       } else {
         followPointTime += dt * 0.001 * settings.motionSpeed
@@ -638,6 +646,12 @@ export function createSpiritApp(
   const bgColor = new THREE.Color(settings.bgColor)
   const mouse = new THREE.Vector2(0, 0)
   const mouse3d = new THREE.Vector3()
+  const neutralMouse3d = new THREE.Vector3()
+  const handOffset = new THREE.Vector3()
+  const desiredHandOffset = new THREE.Vector3()
+  const viewForward = new THREE.Vector3()
+  const viewRight = new THREE.Vector3()
+  const viewUp = new THREE.Vector3()
   const ray = new THREE.Ray()
   const rayOffset = new THREE.Vector3()
   const lightWorldPosition = new THREE.Vector3()
@@ -647,6 +661,14 @@ export function createSpiritApp(
   let initAnimation = 0
   let disposed = false
   let didLogFogGuard = false
+  let handEngaged = false
+  let wasOpenPalm = false
+  let baselineHandSize = 0
+  let smoothPalmX = 0.5
+  let smoothPalmY = 0.5
+  let smoothHandSize = 0
+  let anchorX = 0.5
+  let anchorY = 0.5
 
   function sanitizeFogMaterial(material: LegacyThree) {
     if (!material) return
@@ -701,7 +723,91 @@ export function createSpiritApp(
     renderer.setSize(width, height)
   }
 
+  function updateHandSpiritTarget(tracking: ReturnType<typeof useStore.getState>) {
+    const handVisible =
+      tracking.trackingEnabled &&
+      tracking.trackingMode === 'control' &&
+      tracking.gesture === 'open_palm' &&
+      tracking.palmPosition != null
+
+    if (handVisible) {
+      if (!handEngaged) {
+        handEngaged = true
+        baselineHandSize = tracking.handSize
+        smoothPalmX = tracking.palmPosition!.x
+        smoothPalmY = tracking.palmPosition!.y
+        smoothHandSize = tracking.handSize
+      }
+
+      if (!wasOpenPalm) {
+        anchorX = smoothPalmX
+        anchorY = smoothPalmY
+      }
+      wasOpenPalm = true
+
+      smoothPalmX += (tracking.palmPosition!.x - smoothPalmX) * SPIRIT_HAND_INPUT_ALPHA
+      smoothPalmY += (tracking.palmPosition!.y - smoothPalmY) * SPIRIT_HAND_INPUT_ALPHA
+      smoothHandSize += (tracking.handSize - smoothHandSize) * SPIRIT_HAND_INPUT_ALPHA
+
+      const dx = anchorX - smoothPalmX
+      const dy = anchorY - smoothPalmY
+      const mag = Math.sqrt(dx * dx + dy * dy)
+
+      let normDx = 0
+      let normDy = 0
+
+      if (mag > SPIRIT_HAND_DEAD_ZONE) {
+        const scale = Math.min((mag - SPIRIT_HAND_DEAD_ZONE) / (0.5 - SPIRIT_HAND_DEAD_ZONE), 1)
+        normDx = (dx / mag) * scale
+        normDy = (dy / mag) * scale
+      }
+
+      const sizeRatio = baselineHandSize > 0.01 ? smoothHandSize / baselineHandSize : 1
+      const zoomOffset = Math.max(-1, Math.min(1, sizeRatio - 1))
+
+      viewForward.copy(controls.target).sub(camera.position).normalize()
+      viewRight.crossVectors(viewForward, camera.up).normalize()
+      viewUp.crossVectors(viewRight, viewForward).normalize()
+
+      desiredHandOffset.copy(viewRight).multiplyScalar(normDx * SPIRIT_HAND_X_RANGE)
+      desiredHandOffset.add(viewUp.copy(viewUp).multiplyScalar(normDy * SPIRIT_HAND_Y_RANGE))
+      desiredHandOffset.add(viewForward.copy(viewForward).multiplyScalar(zoomOffset * SPIRIT_HAND_Z_RANGE))
+      handOffset.lerp(desiredHandOffset, 0.14)
+    } else {
+      wasOpenPalm = false
+      desiredHandOffset.set(0, 0, 0)
+      handOffset.lerp(desiredHandOffset, SPIRIT_HAND_RETURN_ALPHA)
+      if (handOffset.lengthSq() < 1) {
+        handOffset.set(0, 0, 0)
+        handEngaged = false
+        baselineHandSize = 0
+      }
+    }
+
+    mouse3d.copy(neutralMouse3d).add(handOffset)
+    return true
+  }
+
   function render(dt: number) {
+    const tracking = useStore.getState()
+    const spiritHandControl = tracking.trackingEnabled && tracking.trackingMode === 'control'
+    const handVisible =
+      tracking.trackingEnabled &&
+      tracking.trackingMode === 'disturb' &&
+      tracking.gesture === 'open_palm' &&
+      tracking.palmPosition != null
+
+    let pointerX = mouse.x
+    let pointerY = mouse.y
+
+    if (handVisible) {
+      pointerX = (1 - tracking.palmPosition!.x) * 2 - 1
+      pointerY = -(tracking.palmPosition!.y * 2 - 1)
+    } else if (spiritHandControl) {
+      pointerX = 0
+      pointerY = 0
+    }
+
     sanitizeFogMaterials()
 
     bgColor.setStyle(settings.bgColor)
@@ -713,16 +819,20 @@ export function createSpiritApp(
     initAnimation = Math.min(initAnimation + dt * 0.00025, 1)
     controls.maxDistance = initAnimation === 1 ? 1000 : lerp(1000, 450, easeOutCubic(initAnimation))
     controls.update()
+
     lights.update()
 
     camera.updateMatrixWorld()
     ray.origin.setFromMatrixPosition(camera.matrixWorld)
-    ray.direction.set(mouse.x, mouse.y, 0.5).unproject(camera).sub(ray.origin).normalize()
+    ray.direction.set(pointerX, pointerY, 0.5).unproject(camera).sub(ray.origin).normalize()
     const distance = ray.origin.length() / Math.cos(Math.PI - ray.direction.angleTo(ray.origin))
     rayOffset.copy(ray.direction).multiplyScalar(distance)
-    mouse3d.copy(ray.origin).add(rayOffset)
+    neutralMouse3d.copy(ray.origin).add(rayOffset)
+    mouse3d.copy(neutralMouse3d)
 
-    simulator.update(dt, mouse3d, initAnimation)
+    const handControlOverride = spiritHandControl && updateHandSpiritTarget(tracking)
+
+    simulator.update(dt, mouse3d, initAnimation, handControlOverride || handVisible)
     lightWorldPosition.setFromMatrixPosition(lights.pointLight.matrixWorld)
     particles.update(lightWorldPosition)
     renderer.render(scene, camera)

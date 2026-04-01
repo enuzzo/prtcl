@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { createSpiritApp, type SpiritApp } from './spirit/createSpiritApp'
 import { loadLegacyThree } from './spirit/loadLegacyThree'
 import { setCameraSnapshotProvider } from './camera-bridge'
+import { resetHandCamera } from '../tracking/hand-camera'
 
 export function Spirit() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -14,6 +15,8 @@ export function Spirit() {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+
+    resetHandCamera()
 
     let disposed = false
     let resizeObserver: ResizeObserver | null = null
@@ -50,6 +53,7 @@ export function Spirit() {
       disposed = true
       resizeObserver?.disconnect()
       setCameraSnapshotProvider(null)
+      resetHandCamera()
       appRef.current?.dispose()
       appRef.current = null
     }

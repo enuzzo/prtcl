@@ -47,9 +47,9 @@ The render loop pre-allocates everything and reads state via Zustand's `getState
 
 **Bloom** is engine-level via `@react-three/postprocessing` — effects opt in with `bloom: true`. ACES tone mapping when active. Disabled on mobile. Zero overhead when off.
 
-**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. The Spirit is preserved as an isolated legacy Three.js renderer so Edan Kwan's original MIT-licensed piece keeps its temperament intact. All three run outside the standard particle path.
+**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. The Spirit preserves Edan Kwan's original MIT-licensed piece through an isolated legacy Three.js renderer, because some apparitions should not be domesticated. All three run outside the standard particle path.
 
-Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls camera orbit and zoom. Disturb mode lets your hand pass through the particle cloud. All inputs smoothed. It works better than it has any right to.
+Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls camera orbit and zoom. Disturb mode lets your hand pass through the particle cloud. The Spirit is the exception: in `Control` mode the camera stays put and your palm puppeteers the apparition itself, which politely returns to center when tracking drops. All inputs are smoothed. It works better than it has any right to.
 
 ---
 
@@ -74,7 +74,7 @@ Inspired by [particles.casberry.in](https://particles.casberry.in/) by [Casberry
 | Fractal Frequency | Gabi | MIT |
 | Inside Nebula | [Sabo Sugi](https://codepen.io/sabosugi/pen/ZYprEOw) — volumetric raymarching nebula | MIT |
 | Iridescence | [Sabo Sugi](https://codepen.io/sabosugi/pen/zxKELBB) — fluid holographic shader | MIT |
-| The Spirit | Edan Kwan — original MIT-licensed effect, adapted here through an isolated legacy renderer with author credit retained | MIT |
+| The Spirit | Edan Kwan — original MIT-licensed effect, preserved here through an isolated legacy renderer with explicit author credit retained in the repo | MIT |
 | Perlin Noise | [Victor Vergara](https://codepen.io/vcomics/pen/djqNrm) — GLSL Perlin displacement, Perlin noise by [Stefan Gustavson](https://github.com/ashima/webgl-noise) | MIT |
 | All other effects | PRTCL Team | MIT |
 

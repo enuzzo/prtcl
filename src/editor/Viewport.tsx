@@ -14,7 +14,7 @@ import * as THREE from 'three'
 import { useStore } from '../store'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
-import { updateHandCamera } from '../tracking/hand-camera'
+import { resetHandCamera, updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
 import { useAudioReactivity } from '../audio/useAudioReactivity'
 import { TrackingThumbnail } from './TrackingThumbnail'
@@ -124,10 +124,15 @@ function CameraSync() {
  * Runs AFTER OrbitControls' update() by being a sibling component
  * rendered after CameraSync. This ensures our camera changes stick.
  */
-function HandCameraSync() {
+function HandCameraSync({ disabled = false }: { disabled?: boolean }) {
   const { camera } = useThree()
 
+  useEffect(() => {
+    if (disabled) resetHandCamera()
+  }, [disabled])
+
   useFrame(() => {
+    if (disabled) return
     const state = useStore.getState()
     if (!state.trackingEnabled || state.trackingMode !== 'control') return
     const ctrl = getControlsRef()
@@ -243,7 +248,7 @@ export function Viewport() {
         {sceneContent}
         {!hideCanvas && <BloomPass />}
         <CameraSync />
-        <HandCameraSync />
+        <HandCameraSync disabled={Boolean(OverlayRenderer)} />
       </Canvas>
       {OverlayRenderer ? <OverlayRenderer /> : null}
       {trackingEnabled && (

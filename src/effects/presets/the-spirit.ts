@@ -5,7 +5,7 @@ export const theSpirit: Effect = {
   id: 'the-spirit',
   slug: 'the-spirit',
   name: 'The Spirit',
-  description: 'Edan Kwan\'s original 65k smoky apparition, MIT licensed and deliberately isolated from the rest of the engine.',
+  description: 'Edan Kwan\'s smoky apparition, dragged out of legacy Three.js and still dramatically haunting the place. It refuses to calm down. Naturally.',
   author: 'Edan Kwan',
   category: 'abstract',
   tags: ['gpgpu', 'smoke', 'curl-noise', 'legacy-three', 'shadow', 'mit'],
