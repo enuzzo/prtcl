@@ -1,0 +1,1 @@
+Il codice sorgente originale di The Spirit è stato incollato dall'utente nella conversazione. La prossima sessione dovrà scaricarlo dal CodePen o dal GitHub repo: https://github.com/edankwan/The-Spirit
