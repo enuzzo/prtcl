@@ -296,6 +296,59 @@ void main() {
 }
 `
 
+// ─── GLSL: Custom distance material for shadow map (points) ────────
+// Original: mesh.customDistanceMaterial — tells the shadow camera where particles are
+const distancePointVertexShader = /* glsl */ `
+uniform sampler2D texturePosition;
+varying vec4 vWorldPosition;
+
+void main() {
+    vec4 positionInfo = texture2D( texturePosition, position.xy );
+    vec4 worldPosition = modelMatrix * vec4( positionInfo.xyz, 1.0 );
+    vec4 mvPosition = viewMatrix * worldPosition;
+    gl_PointSize = 50.0 / length( mvPosition.xyz );
+    vWorldPosition = worldPosition;
+    gl_Position = projectionMatrix * mvPosition;
+}
+`
+
+// ─── GLSL: Custom distance material for shadow map (triangles) ─────
+const distanceTriVertexShader = /* glsl */ `
+uniform sampler2D texturePosition;
+varying vec4 vWorldPosition;
+attribute vec3 positionFlip;
+attribute vec2 fboUV;
+uniform float flipRatio;
+
+void main() {
+    vec4 positionInfo = texture2D( texturePosition, fboUV );
+    vec3 pos = positionInfo.xyz;
+    vec4 worldPosition = modelMatrix * vec4( pos, 1.0 );
+    vec4 mvPosition = viewMatrix * worldPosition;
+    vWorldPosition = worldPosition;
+    gl_Position = projectionMatrix * (mvPosition + vec4((position + (positionFlip - position) * flipRatio), 0.0));
+}
+`
+
+// ─── GLSL: Custom distance fragment (encodes distance for shadow map) ──
+const distanceFragmentShader = /* glsl */ `
+uniform vec3 lightPos;
+varying vec4 vWorldPosition;
+
+vec4 pack1K ( float depth ) {
+    depth /= 1000.0;
+    const vec4 bitSh = vec4( 256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0 );
+    const vec4 bitMsk = vec4( 0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0 );
+    vec4 res = fract( depth * bitSh );
+    res -= res.xxyz * bitMsk;
+    return res;
+}
+
+void main () {
+    gl_FragColor = pack1K( length( vWorldPosition.xyz - lightPos.xyz ) );
+}
+`
+
 // ─── Helper: Create default position texture ───────────────────────
 function createDefaultPositionTexture(): THREE.DataTexture {
   const positions = new Float32Array(AMOUNT * 4)
@@ -504,6 +557,20 @@ export function Spirit() {
       blending: THREE.NoBlending,
     })
 
+    // --- Point customDistanceMaterial for shadow map ---
+    const pointDistMat = new THREE.ShaderMaterial({
+      uniforms: {
+        lightPos: { value: new THREE.Vector3(0, 0, 0) },
+        texturePosition: { value: null },
+      },
+      vertexShader: distancePointVertexShader,
+      fragmentShader: distanceFragmentShader,
+      depthTest: true,
+      depthWrite: true,
+      side: THREE.BackSide,
+      blending: THREE.NoBlending,
+    })
+
     // --- Triangle particle material ---
     const triMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -514,6 +581,21 @@ export function Spirit() {
       },
       vertexShader: trianglesVertexShader,
       fragmentShader: particlesFragmentShader,
+      blending: THREE.NoBlending,
+    })
+
+    // --- Triangle customDistanceMaterial for shadow map ---
+    const triDistMat = new THREE.ShaderMaterial({
+      uniforms: {
+        lightPos: { value: new THREE.Vector3(0, 0, 0) },
+        texturePosition: { value: null },
+        flipRatio: { value: 0 },
+      },
+      vertexShader: distanceTriVertexShader,
+      fragmentShader: distanceFragmentShader,
+      depthTest: true,
+      depthWrite: true,
+      side: THREE.BackSide,
       blending: THREE.NoBlending,
     })
 
@@ -533,7 +615,7 @@ export function Spirit() {
     return {
       fboScene, fboCamera, copyMat, positionMat, fboMesh,
       rt1, rt2, defaultPosTex,
-      pointMat, triMat, pointGeo, triGeo,
+      pointMat, pointDistMat, triMat, triDistMat, pointGeo, triGeo,
       floorGeo, floorMat,
     }
   }, [gl, rawPrefix])
@@ -563,46 +645,61 @@ export function Spirit() {
       resources.copyMat.dispose()
       resources.positionMat.dispose()
       resources.pointMat.dispose()
+      resources.pointDistMat.dispose()
       resources.triMat.dispose()
+      resources.triDistMat.dispose()
       resources.floorGeo.dispose()
       resources.floorMat.dispose()
     }
   }, [resources])
 
-  // Override scene.background with #dfdfdf on mount, restore on unmount
-  // Uses backgroundOverride flag to prevent SceneBackground from fighting us
+  // Override scene with #dfdfdf background + fog on mount, restore on unmount
   const { scene } = useThree()
   const prevBackground = useRef<THREE.Color | THREE.Texture | null>(null)
   const prevFog = useRef<THREE.Fog | THREE.FogExp2 | null>(null)
+  const spiritBgColor = useRef(new THREE.Color(BG_COLOR))
+  const spiritFog = useRef(new THREE.FogExp2(BG_COLOR, 0.001))
   useEffect(() => {
-    // Tell SceneBackground to yield control
     useStore.getState().setBackgroundOverride(true)
 
-    // Save current scene state
     prevBackground.current = scene.background as THREE.Color | THREE.Texture | null
     prevFog.current = scene.fog
 
-    // Original: setClearColor(bgColor), scene background = bgColor, fog = bgColor
-    scene.background = new THREE.Color(BG_COLOR)
-    scene.fog = new THREE.FogExp2(BG_COLOR, 0.001)
+    // Set persistent objects — these are MUTATED in useFrame, never replaced
+    scene.background = spiritBgColor.current
+    scene.fog = spiritFog.current
+    gl.setClearColor(BG_COLOR, 1)
 
     return () => {
       scene.fog = prevFog.current
       scene.background = prevBackground.current
+      gl.setClearColor(0x000000, 1)
       useStore.getState().setBackgroundOverride(false)
     }
-  }, [scene])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Enable shadows + set clear color (original: PCFSoftShadowMap, setClearColor(bgColor))
+  // Enable shadows + extend camera far plane (original: PerspectiveCamera(45, ar, 10, 3000))
+  const { camera } = useThree()
   useEffect(() => {
     gl.shadowMap.enabled = true
     gl.shadowMap.type = THREE.PCFSoftShadowMap
     gl.setClearColor(BG_COLOR, 1)
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.far = 3000
+      camera.near = 1
+      camera.updateProjectionMatrix()
+    }
     return () => {
       gl.shadowMap.enabled = false
       gl.setClearColor(0x000000, 0)
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.far = 1000
+        camera.near = 0.1
+        camera.updateProjectionMatrix()
+      }
     }
-  }, [gl])
+  }, [gl, camera])
 
   // ─── Per-frame simulation + rendering ──────────────────────────
   useFrame((_, delta) => {
@@ -667,6 +764,12 @@ export function Spirit() {
 
     if (pointMeshRef.current && pointMatRef.current) {
       pointMatRef.current.uniforms.texturePosition!.value = posTexture
+      // Update customDistanceMaterial for shadow casting
+      const pdm = pointMeshRef.current.customDistanceMaterial as THREE.ShaderMaterial
+      if (pdm) {
+        pdm.uniforms.texturePosition!.value = posTexture
+        pdm.uniforms.lightPos!.value.set(0, 500, 0)
+      }
       pointMeshRef.current.visible = !useTriangles
     }
 
@@ -674,12 +777,17 @@ export function Spirit() {
       triMatRef.current.uniforms.texturePosition!.value = posTexture
       flipRatioRef.current = flipRatioRef.current === 0 ? 1 : 0
       triMatRef.current.uniforms.flipRatio!.value = flipRatioRef.current
+      // Update customDistanceMaterial for shadow casting
+      const tdm = triMeshRef.current.customDistanceMaterial as THREE.ShaderMaterial
+      if (tdm) {
+        tdm.uniforms.texturePosition!.value = posTexture
+        tdm.uniforms.flipRatio!.value = flipRatioRef.current
+        tdm.uniforms.lightPos!.value.set(0, 500, 0)
+      }
       triMeshRef.current.visible = useTriangles
     }
 
-    // ─── Background: #dfdfdf everywhere, every frame, no exceptions ───
-    // Original: renderer.setClearColor(tmpColor), scene.fog.color = tmpColor
-    // tmpColor starts at bgColor (#dfdfdf) and lerps toward it (converges to #dfdfdf)
+    // ─── Background: original lerps tmpColor toward bgColor ───
     const floorMesh = scene.getObjectByName('spirit-floor') as THREE.Mesh | undefined
     if (floorMesh) {
       const mat = floorMesh.material as THREE.MeshStandardMaterial
@@ -687,32 +795,53 @@ export function Spirit() {
       mat.color.copy(floorColorRef.current)
     }
 
-    // Force ALL background sources to our color
-    scene.background = new THREE.Color(floorColorRef.current)
-    scene.fog = new THREE.FogExp2(floorColorRef.current.getHex(), 0.001)
-    gl.setClearColor(floorColorRef.current, 1)
+    // Mutate the persistent bg/fog objects
+    spiritBgColor.current.copy(floorColorRef.current)
+    spiritFog.current.color.copy(floorColorRef.current)
+
+    // FORCE clear color on the raw WebGL context — bypass R3F entirely
+    const glCtx = gl.getContext()
+    const c = floorColorRef.current
+    glCtx.clearColor(c.r, c.g, c.b, 1.0)
   })
 
   return (
     <group>
       {/* Point particles */}
       <points
-        ref={pointMeshRef as React.Ref<THREE.Points>}
+        ref={(node: THREE.Points | null) => {
+          if (node) {
+            (pointMeshRef as React.MutableRefObject<THREE.Points | null>).current = node
+            node.customDistanceMaterial = resources.pointDistMat
+          }
+        }}
         geometry={resources.pointGeo}
         material={resources.pointMat}
         frustumCulled={false}
         visible={false}
+        castShadow
       />
 
       {/* Triangle particles */}
       <mesh
-        ref={triMeshRef as React.Ref<THREE.Mesh>}
+        ref={(node: THREE.Mesh | null) => {
+          if (node) {
+            (triMeshRef as React.MutableRefObject<THREE.Mesh | null>).current = node
+            node.customDistanceMaterial = resources.triDistMat
+          }
+        }}
         geometry={resources.triGeo}
         material={resources.triMat}
         frustumCulled={false}
         castShadow
-        receiveShadow
       />
+
+      {/* Sky dome — #dfdfdf background. Must be INSIDE camera far plane (1000).
+          frustumCulled=false + BackSide ensures it renders from inside. */}
+      <mesh frustumCulled={false} renderOrder={-9999}>
+        <sphereGeometry args={[2500, 16, 16]} />
+        <meshBasicMaterial color={BG_COLOR} side={THREE.BackSide} fog={false} depthWrite={false} depthTest={false} transparent />
+      </mesh>
 
       {/* Floor (from floor.js module 14):
           PlaneBufferGeometry(4500, 4500, 10, 10)
