@@ -16,6 +16,9 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   pointSize: number
   backgroundColor: string
   backgroundPreset: string
+  /** When true, SceneBackground yields control — custom renderers manage scene.background */
+  backgroundOverride: boolean
+  setBackgroundOverride: (v: boolean) => void
   bloomEnabled: boolean
   bloomStrength: number
   bloomRadius: number
@@ -126,6 +129,8 @@ export const useStore = create<PrtclState>((set) => ({
   pointSize: 0.21,
   backgroundColor: 'radial-gradient(ellipse at 40% 40%, #003366, #001133 55%, #020a18)',
   backgroundPreset: 'electric',
+  backgroundOverride: false,
+  setBackgroundOverride: (v) => set({ backgroundOverride: v }),
   bloomEnabled: false,
   bloomStrength: 0.5,
   bloomRadius: 0.4,
