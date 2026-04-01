@@ -12,6 +12,7 @@ export const SPIRIT_COLORWAYS: SpiritColorway[] = [
   { id: 'spring-blossom', name: 'Spring Blossom', color1: '#ffd166', color2: '#ff6fb5', bgColor: '#5c1d4f' },
   { id: 'acid-pop', name: 'Acid Pop', color1: '#c8ff00', color2: '#37ff8b', bgColor: '#17082a' },
   { id: 'techno-lime', name: 'Techno Lime', color1: '#4ee404', color2: '#0e922c', bgColor: '#c31594' },
+  { id: 'melito', name: 'Melito', color1: '#0a65b8', color2: '#10bc54', bgColor: '#ff12f1' },
   { id: 'deep-ocean', name: 'Deep Ocean', color1: '#6cf7ff', color2: '#1479ff', bgColor: '#061d3a' },
   { id: 'nature-pulse', name: 'Nature Pulse', color1: '#c2ff6d', color2: '#2d9b4d', bgColor: '#13261a' },
   { id: 'cyberpunk', name: 'Cyberpunk', color1: '#00f6ff', color2: '#ff3dbb', bgColor: '#190028' },

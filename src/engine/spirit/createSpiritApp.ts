@@ -3,7 +3,6 @@ import shaderParseSource from '../../../incoming/effects/The-Spirit-master/The-S
 import quadVertRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/quad.vert?raw'
 import throughFragRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/through.frag?raw'
 import particlesVertRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/particles.vert?raw'
-import particlesFragRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/particles.frag?raw'
 import particlesDistanceVertRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/particlesDistance.vert?raw'
 import particlesDistanceFragRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/particlesDistance.frag?raw'
 import trianglesVertRaw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/triangles.vert?raw'
@@ -11,7 +10,7 @@ import trianglesDistanceVertRaw from '../../../incoming/effects/The-Spirit-maste
 import simplexNoiseDerivatives4Raw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/helpers/simplexNoiseDerivatives4.glsl?raw'
 import curl4Raw from '../../../incoming/effects/The-Spirit-master/The-Spirit-master/src/glsl/helpers/curl4.glsl?raw'
 import type { SpiritSettings } from './config'
-import { DEFAULT_SPIRIT_SETTINGS, SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET } from './config'
+import { DEFAULT_SPIRIT_SETTINGS, SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET, normalizeSpiritSettings } from './config'
 import type { LegacyThree } from './loadLegacyThree'
 import type { CameraSnapshot } from '../camera-bridge'
 import { useStore } from '../../store'
@@ -53,7 +52,6 @@ const CURL_4 = stripGlslifyPragmas(curl4Raw).replaceAll('snoise4', 'simplexNoise
 const QUAD_VERT = withGlslifyDefine(quadVertRaw)
 const THROUGH_FRAG = withGlslifyDefine(throughFragRaw)
 const PARTICLES_VERT = withGlslifyDefine(particlesVertRaw)
-const PARTICLES_FRAG = withGlslifyDefine(particlesFragRaw)
 const PARTICLES_DISTANCE_VERT = withGlslifyDefine(particlesDistanceVertRaw)
 const PARTICLES_DISTANCE_FRAG = withGlslifyDefine(particlesDistanceFragRaw)
 const TRIANGLES_VERT = withGlslifyDefine(trianglesVertRaw)
@@ -100,6 +98,32 @@ void main() {
 }
 `)
 
+const SPIRIT_SURFACE_FRAG = withGlslifyDefine(`
+// chunk(common);
+// chunk(shadowmap_pars_fragment);
+
+varying float vLife;
+uniform vec3 color1;
+uniform vec3 color2;
+uniform float objectShadowStrength;
+
+void main() {
+
+    vec3 outgoingLight = mix(color2, color1, smoothstep(0.0, 0.7, vLife));
+
+    // chunk(shadowmap_fragment);
+
+    float sceneShadowStrength = max(abs(shadowDarkness[0]), 0.0001);
+    vec3 shadowOcclusion = clamp((vec3(1.0) - shadowMask) / sceneShadowStrength, 0.0, 1.0);
+    vec3 objectShadowMask = clamp(vec3(1.0) - shadowOcclusion * objectShadowStrength, 0.0, 1.0);
+
+    outgoingLight *= objectShadowMask;
+
+    gl_FragColor = vec4( outgoingLight, 1.0 );
+
+}
+`)
+
 function installOrbitControls(THREE: LegacyThree) {
   if (THREE.OrbitControls) return
   const module = { exports: undefined as unknown }
@@ -137,16 +161,33 @@ function createFloor(THREE: LegacyThree, settings: SpiritSettings) {
   const geometry = new THREE.PlaneBufferGeometry(4500, 4500, 10, 10)
   const material = new THREE.MeshStandardMaterial({
     color: settings.bgColor,
+    emissive: settings.bgColor,
+    emissiveIntensity: 0.08,
     roughness: 0.4,
     metalness: 0.4,
+    transparent: true,
+    opacity: 0.78,
   })
   const mesh = new THREE.Mesh(geometry, material)
   mesh.rotation.x = -1.57
   mesh.castShadow = false
   mesh.receiveShadow = true
 
+  const floorTargetColor = new THREE.Color(settings.bgColor)
+  const whiteColor = new THREE.Color(0xffffff)
+
   return {
     mesh,
+    update() {
+      floorTargetColor.setStyle(settings.bgColor)
+      if (settings.bottomLift > 0) {
+        floorTargetColor.lerp(whiteColor, settings.bottomLift * 0.28)
+      }
+      material.color.lerp(floorTargetColor, 0.05)
+      material.emissive.lerp(floorTargetColor, 0.08)
+      material.emissiveIntensity += (0.08 + settings.bottomLift * 0.38 - material.emissiveIntensity) * 0.08
+      material.opacity += (0.78 - settings.bottomLift * 0.58 - material.opacity) * 0.08
+    },
     dispose() {
       geometry.dispose()
       material.dispose()
@@ -155,7 +196,7 @@ function createFloor(THREE: LegacyThree, settings: SpiritSettings) {
 }
 
 function createLights(THREE: LegacyThree, settings: SpiritSettings) {
-  let shadowDarkness = 0.45
+  let shadowDarkness = settings.shadowDarkness
   const mesh = new THREE.Object3D()
   mesh.position.set(0, 500, 0)
 
@@ -164,6 +205,7 @@ function createLights(THREE: LegacyThree, settings: SpiritSettings) {
 
   const pointLight = new THREE.PointLight(0xffffff, 1, 700)
   pointLight.castShadow = true
+  pointLight.shadowDarkness = shadowDarkness
   pointLight.shadowCameraNear = 10
   pointLight.shadowCameraFar = 700
   pointLight.shadowBias = 0.1
@@ -359,6 +401,7 @@ function createParticles(
   const color1 = new THREE.Color(settings.color1)
   const color2 = new THREE.Color(settings.color2)
   const meshes: LegacyThree[] = []
+  let objectShadowStrength = settings.objectShadow
 
   const particleMesh = createParticleMesh()
   const triangleMesh = createTriangleMesh()
@@ -384,10 +427,11 @@ function createParticles(
           texturePosition: { type: 't', value: undefined },
           color1: { type: 'c', value: undefined },
           color2: { type: 'c', value: undefined },
+          objectShadowStrength: { type: 'f', value: settings.objectShadow },
         },
       ]),
       vertexShader: shaderParse(PARTICLES_VERT),
-      fragmentShader: shaderParse(PARTICLES_FRAG),
+      fragmentShader: shaderParse(SPIRIT_SURFACE_FRAG),
       blending: THREE.NoBlending,
       fog: false,
     })
@@ -504,10 +548,11 @@ function createParticles(
           color1: { type: 'c', value: undefined },
           color2: { type: 'c', value: undefined },
           cameraMatrix: { type: 'm4', value: undefined },
+          objectShadowStrength: { type: 'f', value: settings.objectShadow },
         },
       ]),
       vertexShader: shaderParse(TRIANGLES_VERT),
-      fragmentShader: shaderParse(PARTICLES_FRAG),
+      fragmentShader: shaderParse(SPIRIT_SURFACE_FRAG),
       blending: THREE.NoBlending,
       fog: false,
     })
@@ -551,6 +596,7 @@ function createParticles(
 
       tmpColor.setStyle(settings.color2)
       color2.lerp(tmpColor, 0.05)
+      objectShadowStrength += (settings.objectShadow - objectShadowStrength) * 0.1
 
       for (const mesh of meshes) {
         const distanceUniforms = mesh.customDistanceMaterial.uniforms
@@ -562,6 +608,7 @@ function createParticles(
         }
 
         mesh.material.uniforms.texturePosition.value = simulator.positionRenderTarget
+        mesh.material.uniforms.objectShadowStrength.value = objectShadowStrength
         distanceUniforms.texturePosition.value = simulator.positionRenderTarget
 
         if (mesh.material.uniforms.flipRatio) {
@@ -588,7 +635,7 @@ export function createSpiritApp(
 ): SpiritApp {
   installOrbitControls(THREE)
   const shaderParse = createShaderParse(THREE)
-  const settings: SpiritSettings = { ...DEFAULT_SPIRIT_SETTINGS, ...initialSettings }
+  const settings: SpiritSettings = normalizeSpiritSettings({ ...DEFAULT_SPIRIT_SETTINGS, ...initialSettings })
   const initialTarget = initialViewport?.cameraTarget ?? SPIRIT_CAMERA_TARGET
   const initialPosition = initialViewport?.cameraPosition ?? SPIRIT_CAMERA_POSITION
   const initialZoom = initialViewport?.zoom ?? initialViewport?.cameraZoom ?? 1
@@ -811,10 +858,9 @@ export function createSpiritApp(
     sanitizeFogMaterials()
 
     bgColor.setStyle(settings.bgColor)
-    const floorColor = floor.mesh.material.color
-    floorColor.lerp(bgColor, 0.05)
-    scene.fog.color.copy(floorColor)
-    renderer.setClearColor(floorColor.getHex())
+    floor.update()
+    scene.fog.color.copy(bgColor)
+    renderer.setClearColor(bgColor.getHex())
 
     initAnimation = Math.min(initAnimation + dt * 0.00025, 1)
     controls.maxDistance = initAnimation === 1 ? 1000 : lerp(1000, 450, easeOutCubic(initAnimation))

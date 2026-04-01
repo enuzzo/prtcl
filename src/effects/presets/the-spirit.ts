@@ -11,7 +11,7 @@ export const theSpirit: Effect = {
   tags: ['gpgpu', 'smoke', 'curl-noise', 'legacy-three', 'shadow', 'mit'],
   particleCount: 0,
   pointSize: 0,
-  cameraDistance: 1004.171,
+  cameraDistance: 450,
   cameraPosition: SPIRIT_CAMERA_POSITION,
   cameraTarget: SPIRIT_CAMERA_TARGET,
   autoRotateSpeed: 0,

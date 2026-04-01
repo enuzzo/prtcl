@@ -61,7 +61,7 @@
   --tp-base-font-family: "Inconsolata", "JetBrains Mono", monospace;
   --tp-blade-border-radius: 4px;
   --tp-blade-horizontal-padding: 4px;
-  --tp-blade-value-width: 160px;
+  --tp-blade-value-width: clamp(45px, 7ch, 72px);
 
   /* Containers (folders, rows) */
   --tp-container-background-color: #150A26;
@@ -133,6 +133,32 @@
   background-color: #23103D;
   color: #F9F4FF;
   box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.4);
+}
+
+.tp-rotv .tp-sldtxtv_s {
+  flex: 1 1 auto !important;
+  min-width: 0;
+}
+
+.tp-rotv .tp-sldtxtv_t {
+  flex: 0 0 auto !important;
+  width: clamp(45px, 7ch, 72px) !important;
+  min-width: 45px !important;
+  max-width: 72px !important;
+}
+
+.tp-rotv .tp-txtv.tp-txtv-num,
+.tp-rotv .tp-sldtxtv_t .tp-txtv {
+  width: clamp(45px, 7ch, 72px) !important;
+  min-width: 45px !important;
+  max-width: 72px !important;
+}
+
+.tp-rotv .tp-txtv.tp-txtv-num .tp-txtv_i,
+.tp-rotv .tp-sldtxtv_t .tp-txtv_i {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
 }
 
 /* Stacked layout: label above slider (prevents label truncation in narrow panel) */

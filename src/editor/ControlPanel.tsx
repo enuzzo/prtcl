@@ -6,6 +6,9 @@ import { TrackingSidebar } from './TrackingSidebar'
 import { BackgroundPicker } from './BackgroundPicker'
 import { CURATED_FONTS } from '../text/fonts'
 import { SPIRIT_COLORWAYS, getSpiritColorway, matchSpiritColorway } from '../engine/spirit/colorways'
+import { SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET } from '../engine/spirit/config'
+import { SPIRIT_PRESETS, getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
+import { AXIOM_PRESETS, getAxiomPreset, matchAxiomPreset } from '../effects/presets/axiom-presets'
 
 export function ControlPanel() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -42,7 +45,9 @@ export function ControlPanel() {
     if (!isSpirit) {
       cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
         min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
-      }).on('change', (ev: { value: number }) => useStore.getState().setAutoRotateSpeed(ev.value))
+      }).on('change', (ev: { value: number }) => {
+        useStore.getState().setAutoRotateSpeed(ev.value)
+      })
     }
 
     cameraFolder.addBinding(cameraParams, 'cameraZoom', {
@@ -115,45 +120,171 @@ export function ControlPanel() {
 
     {
       const effectFolder = pane.addFolder({ title: 'Effect' })
+      let markCurrentEffectPresetCustom: (() => void) | null = null
+      let effectGlobals: { particleCount: number; pointSize: number } | null = null
+      const params: Record<string, number> = {}
+      for (const c of currentControls) params[c.id] = c.value
 
       // ── Per-effect Particles & Point Size (hidden for fullscreen shader effects) ──
       const { particleCount, pointSize } = useStore.getState()
       if (particleCount > 0) {
-        const effectGlobals = { particleCount, pointSize }
+        effectGlobals = { particleCount, pointSize }
         effectFolder.addBinding(effectGlobals, 'particleCount', {
           min: 1000, max: 30000, step: 1000, label: 'Particles',
-        }).on('change', (ev: { value: number }) => useStore.getState().setParticleCount(ev.value))
+        }).on('change', (ev: { value: number }) => {
+          markCurrentEffectPresetCustom?.()
+          useStore.getState().setParticleCount(ev.value)
+        })
         effectFolder.addBinding(effectGlobals, 'pointSize', {
           min: 0.1, max: 12, step: 0.01, label: 'Point Size',
-        }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
+        }).on('change', (ev: { value: number }) => {
+          markCurrentEffectPresetCustom?.()
+          useStore.getState().setPointSize(ev.value)
+        })
+      }
+
+      if (selectedEffect?.id === 'axiom') {
+        const axiomPresetOptions: Record<string, string> = { Custom: 'custom' }
+        for (const preset of AXIOM_PRESETS) {
+          axiomPresetOptions[preset.name] = preset.id
+        }
+        const currentAxiomCamera = getCameraSnapshot()
+        const axiomParams = {
+          preset: matchAxiomPreset({
+            particleCount,
+            pointSize,
+            backgroundPreset: useStore.getState().backgroundPreset,
+            camera: {
+              autoRotateSpeed,
+              zoom: cameraZoom,
+              position: currentAxiomCamera?.position ?? selectedEffect.cameraPosition ?? [0, 0, 5],
+              target: currentAxiomCamera?.target ?? selectedEffect.cameraTarget ?? [0, 0, 0],
+            },
+            controls: {
+              spread: params.spread ?? selectedEffect.controls?.spread ?? 3,
+              waveHeight: params.waveHeight ?? selectedEffect.controls?.waveHeight ?? 1,
+              waves: params.waves ?? selectedEffect.controls?.waves ?? 3,
+              waveSpeed: params.waveSpeed ?? selectedEffect.controls?.waveSpeed ?? 0.8,
+              agents: params.agents ?? selectedEffect.controls?.agents ?? 8,
+              agentSpeed: params.agentSpeed ?? selectedEffect.controls?.agentSpeed ?? 1.2,
+              palette: params.palette ?? selectedEffect.controls?.palette ?? 3,
+            },
+          }),
+        }
+        markCurrentEffectPresetCustom = () => {
+          axiomParams.preset = 'custom'
+        }
+
+        effectFolder.addBinding(axiomParams, 'preset', {
+          label: 'Preset',
+          options: axiomPresetOptions,
+        }).on('change', (ev: { value: string }) => {
+          const preset = getAxiomPreset(ev.value)
+          if (!preset) return
+
+          const store = useStore.getState()
+          axiomParams.preset = preset.id
+          if (effectGlobals) {
+            effectGlobals.particleCount = preset.particleCount
+            effectGlobals.pointSize = preset.pointSize
+          }
+          cameraParams.autoRotateSpeed = preset.camera.autoRotateSpeed
+          cameraParams.cameraZoom = preset.camera.zoom
+          for (const [id, value] of Object.entries(preset.controls)) {
+            params[id] = value
+            store.updateControlValue(id, value)
+          }
+          store.setParticleCount(preset.particleCount)
+          store.setPointSize(preset.pointSize)
+          store.setBackgroundPreset(preset.backgroundPreset)
+          store.setAutoRotateSpeed(preset.camera.autoRotateSpeed)
+          store.setCameraZoom(preset.camera.zoom)
+          store.setCameraPosition([...preset.camera.position])
+          store.setCameraTarget([...preset.camera.target])
+          const dx = preset.camera.position[0] - preset.camera.target[0]
+          const dy = preset.camera.position[1] - preset.camera.target[1]
+          const dz = preset.camera.position[2] - preset.camera.target[2]
+          store.setBaseZoomDistance(Math.sqrt(dx * dx + dy * dy + dz * dz))
+          pane.refresh()
+        })
       }
 
       if (selectedEffect?.id === 'the-spirit') {
         const { spiritSettings } = useStore.getState()
+        const spiritPresetOptions: Record<string, string> = { Custom: 'custom' }
+        for (const preset of SPIRIT_PRESETS) {
+          spiritPresetOptions[preset.name] = preset.id
+        }
         const spiritColorwayOptions: Record<string, string> = { Custom: 'custom' }
         for (const colorway of SPIRIT_COLORWAYS) {
           spiritColorwayOptions[colorway.name] = colorway.id
         }
+        const currentSpiritCamera = getCameraSnapshot()
         const spiritParams = {
+          preset: matchSpiritPreset({
+            camera: {
+              autoRotateSpeed,
+              zoom: cameraZoom,
+              position: currentSpiritCamera?.position ?? selectedEffect.cameraPosition ?? SPIRIT_CAMERA_POSITION,
+              target: currentSpiritCamera?.target ?? selectedEffect.cameraTarget ?? SPIRIT_CAMERA_TARGET,
+            },
+            spirit: spiritSettings,
+          }),
           ...spiritSettings,
           colorway: matchSpiritColorway(spiritSettings),
         }
+        const markSpiritPresetCustom = () => {
+          spiritParams.preset = 'custom'
+        }
+        markCurrentEffectPresetCustom = markSpiritPresetCustom
+
+        effectFolder.addBinding(spiritParams, 'preset', {
+          label: 'Preset',
+          options: spiritPresetOptions,
+        }).on('change', (ev: { value: string }) => {
+          const preset = getSpiritPreset(ev.value)
+          if (!preset) return
+
+          Object.assign(spiritParams, preset.spirit)
+          spiritParams.preset = preset.id
+          spiritParams.colorway = matchSpiritColorway(preset.spirit)
+
+          const store = useStore.getState()
+          store.patchSpiritSettings(preset.spirit)
+          store.setAutoRotateSpeed(preset.camera.autoRotateSpeed)
+          store.setCameraZoom(preset.camera.zoom)
+          store.setCameraPosition([...preset.camera.position])
+          store.setCameraTarget([...preset.camera.target])
+          pane.refresh()
+        })
 
         effectFolder.addBinding(spiritParams, 'dieSpeed', {
           min: 0.0005, max: 0.05, step: 0.0005, label: 'Die Speed',
-        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ dieSpeed: ev.value }))
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ dieSpeed: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'radius', {
           min: 0.2, max: 3.0, step: 0.01, label: 'Radius',
-        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ radius: ev.value }))
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ radius: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'attraction', {
           min: -2.0, max: 2.0, step: 0.01, label: 'Attraction',
-        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ attraction: ev.value }))
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ attraction: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'motionSpeed', {
           min: 0, max: 3.0, step: 0.05, label: 'Motion Speed',
-        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ motionSpeed: ev.value }))
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ motionSpeed: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'colorway', {
           label: 'Palette',
@@ -161,6 +292,7 @@ export function ControlPanel() {
         }).on('change', (ev: { value: string }) => {
           const colorway = getSpiritColorway(ev.value)
           if (!colorway) return
+          spiritParams.preset = 'custom'
           spiritParams.color1 = colorway.color1
           spiritParams.color2 = colorway.color2
           spiritParams.bgColor = colorway.bgColor
@@ -174,19 +306,43 @@ export function ControlPanel() {
 
         effectFolder.addBinding(spiritParams, 'followMouse', {
           label: 'Follow Mouse',
-        }).on('change', (ev: { value: boolean }) => useStore.getState().patchSpiritSettings({ followMouse: ev.value }))
+        }).on('change', (ev: { value: boolean }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ followMouse: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'shadowDarkness', {
-          min: 0, max: 1, step: 0.01, label: 'Shadow',
-        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ shadowDarkness: ev.value }))
+          min: 0, max: 5, step: 0.01, label: 'Floor Shadow',
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ shadowDarkness: ev.value })
+        })
+
+        effectFolder.addBinding(spiritParams, 'objectShadow', {
+          min: 0, max: 1, step: 0.01, label: 'Inner Shadow',
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ objectShadow: ev.value })
+        })
+
+        effectFolder.addBinding(spiritParams, 'bottomLift', {
+          min: 0, max: 1, step: 0.01, label: 'Bottom Gradient',
+        }).on('change', (ev: { value: number }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ bottomLift: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'useTriangleParticles', {
           label: 'Triangles',
-        }).on('change', (ev: { value: boolean }) => useStore.getState().patchSpiritSettings({ useTriangleParticles: ev.value }))
+        }).on('change', (ev: { value: boolean }) => {
+          markSpiritPresetCustom()
+          useStore.getState().patchSpiritSettings({ useTriangleParticles: ev.value })
+        })
 
         effectFolder.addBinding(spiritParams, 'color1', {
           label: 'Base Color', view: 'color',
         }).on('change', (ev: { value: string }) => {
+          markSpiritPresetCustom()
           spiritParams.colorway = matchSpiritColorway({
             color1: ev.value,
             color2: spiritParams.color2,
@@ -199,6 +355,7 @@ export function ControlPanel() {
         effectFolder.addBinding(spiritParams, 'color2', {
           label: 'Fade Color', view: 'color',
         }).on('change', (ev: { value: string }) => {
+          markSpiritPresetCustom()
           spiritParams.colorway = matchSpiritColorway({
             color1: spiritParams.color1,
             color2: ev.value,
@@ -211,6 +368,7 @@ export function ControlPanel() {
         effectFolder.addBinding(spiritParams, 'bgColor', {
           label: 'Background', view: 'color',
         }).on('change', (ev: { value: string }) => {
+          markSpiritPresetCustom()
           spiritParams.colorway = matchSpiritColorway({
             color1: spiritParams.color1,
             color2: spiritParams.color2,
@@ -220,16 +378,15 @@ export function ControlPanel() {
           pane.refresh()
         })
       }
-
-      const params: Record<string, number> = {}
+ 
       for (const c of currentControls) {
-        params[c.id] = c.value
         const dropdownOpts = DROPDOWN_CONTROLS[c.id]
         if (dropdownOpts) {
           // Render as dropdown with named options
           effectFolder.addBinding(params, c.id, {
             label: c.label, options: dropdownOpts,
           }).on('change', (ev: { value: number }) => {
+            markCurrentEffectPresetCustom?.()
             useStore.getState().updateControlValue(c.id, ev.value)
             // Text preset switching: update text input when terrainText dropdown changes
             if (c.id === 'terrainText' && TEXT_PRESETS[ev.value] != null) {
@@ -239,7 +396,10 @@ export function ControlPanel() {
         } else {
           effectFolder.addBinding(params, c.id, {
             min: c.min, max: c.max, label: c.label,
-          }).on('change', (ev: { value: number }) => useStore.getState().updateControlValue(c.id, ev.value))
+          }).on('change', (ev: { value: number }) => {
+            markCurrentEffectPresetCustom?.()
+            useStore.getState().updateControlValue(c.id, ev.value)
+          })
         }
       }
     }

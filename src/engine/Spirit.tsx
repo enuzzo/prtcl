@@ -11,6 +11,8 @@ export function Spirit() {
   const spiritSettings = useStore((s) => s.spiritSettings)
   const selectedEffect = useStore((s) => s.selectedEffect)
   const cameraZoom = useStore((s) => s.cameraZoom)
+  const pendingCameraPosition = useStore((s) => s.pendingCameraPosition)
+  const pendingCameraTarget = useStore((s) => s.pendingCameraTarget)
 
   useEffect(() => {
     const container = containerRef.current
@@ -36,10 +38,12 @@ export function Spirit() {
         appRef.current = app
         const state = useStore.getState()
         app.setViewport({
-          cameraPosition: state.selectedEffect?.cameraPosition,
-          cameraTarget: state.selectedEffect?.cameraTarget,
+          cameraPosition: state.pendingCameraPosition ?? state.selectedEffect?.cameraPosition,
+          cameraTarget: state.pendingCameraTarget ?? state.selectedEffect?.cameraTarget,
           zoom: state.cameraZoom,
         })
+        if (state.pendingCameraPosition) state.setCameraPosition(null)
+        if (state.pendingCameraTarget) state.setCameraTarget(null)
         setCameraSnapshotProvider(() => app.getSnapshot())
         resizeObserver = new ResizeObserver(() => app.resize())
         resizeObserver.observe(containerRef.current)
@@ -70,6 +74,19 @@ export function Spirit() {
       zoom: cameraZoom,
     })
   }, [selectedEffect, cameraZoom])
+
+  useEffect(() => {
+    if (!pendingCameraPosition && !pendingCameraTarget) return
+
+    appRef.current?.setViewport({
+      cameraPosition: pendingCameraPosition ?? undefined,
+      cameraTarget: pendingCameraTarget ?? undefined,
+    })
+
+    const state = useStore.getState()
+    if (pendingCameraPosition) state.setCameraPosition(null)
+    if (pendingCameraTarget) state.setCameraTarget(null)
+  }, [pendingCameraPosition, pendingCameraTarget])
 
   return <div ref={containerRef} className="absolute inset-0 z-20" />
 }

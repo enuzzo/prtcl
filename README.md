@@ -51,6 +51,10 @@ The render loop pre-allocates everything and reads state via Zustand's `getState
 
 Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls camera orbit and zoom. Disturb mode lets your hand pass through the particle cloud. The Spirit is the exception: in `Control` mode the camera stays put and your palm puppeteers the apparition itself, which politely returns to center when tracking drops. All inputs are smoothed. It works better than it has any right to.
 
+Some effects now ship with **curated presets inside the control panel**, not just baked defaults in code. The Spirit and Axiom currently expose `Default` and `Melito`, each applying a full bundle of camera, zoom, background, particle settings, and effect controls in one click. The moment you start tweaking, the preset quietly becomes `Custom`, because lying to artists would be rude.
+
+The Spirit also behaves like its own little haunted subsystem: it uses an internal background color instead of the global scene backgrounds, exposes a separate palette dropdown, and splits `Floor Shadow` from `Inner Shadow` so the shadow on the ground can be art-directed independently from the self-shadowing inside the cloud.
+
 ---
 
 ## Effects
