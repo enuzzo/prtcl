@@ -593,11 +593,15 @@ export function Spirit() {
     }
   }, [scene])
 
-  // Enable shadows (original: PCFSoftShadowMap)
+  // Enable shadows + set clear color (original: PCFSoftShadowMap, setClearColor(bgColor))
   useEffect(() => {
     gl.shadowMap.enabled = true
     gl.shadowMap.type = THREE.PCFSoftShadowMap
-    return () => { gl.shadowMap.enabled = false }
+    gl.setClearColor(BG_COLOR, 1)
+    return () => {
+      gl.shadowMap.enabled = false
+      gl.setClearColor(0x000000, 0)
+    }
   }, [gl])
 
   // ─── Per-frame simulation + rendering ──────────────────────────
