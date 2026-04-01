@@ -8,6 +8,7 @@ import { TextTerrain } from '../engine/TextTerrain'
 import { PerlinNoise } from '../engine/PerlinNoise'
 import { InsideNebula } from '../engine/InsideNebula'
 import { Iridescence } from '../engine/Iridescence'
+import { Spirit } from '../engine/Spirit'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store'
@@ -142,12 +143,16 @@ function HandCameraSync() {
 }
 
 /** Registry of custom renderers — maps customRenderer id to R3F component */
-const CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
+const CANVAS_CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'paper-fleet': PaperFleet,
   'text-terrain': TextTerrain,
   'perlin-noise': PerlinNoise,
   'inside-nebula': InsideNebula,
   'iridescence': Iridescence,
+}
+
+const OVERLAY_RENDERERS: Record<string, React.ComponentType> = {
+  'the-spirit': Spirit,
 }
 
 /** Conditional bloom post-processing — zero overhead when disabled.
@@ -215,24 +220,32 @@ export function Viewport() {
   const { videoEl } = useHandTracking()
   useAudioReactivity()
 
-  // Determine which renderer to use
-  const isCustom = selectedEffect?.renderer === 'custom'
-  const CustomRenderer = isCustom && selectedEffect?.customRenderer
-    ? CUSTOM_RENDERERS[selectedEffect.customRenderer] ?? null
-    : null
+  const overlayRendererId = selectedEffect?.customRenderer
+  const OverlayRenderer = overlayRendererId ? OVERLAY_RENDERERS[overlayRendererId] ?? null : null
+  const CanvasCustomRenderer = overlayRendererId ? CANVAS_CUSTOM_RENDERERS[overlayRendererId] ?? null : null
+  const hideCanvas = Boolean(OverlayRenderer)
+
+  let sceneContent: React.ReactNode = null
+  if (CanvasCustomRenderer) {
+    sceneContent = <CanvasCustomRenderer />
+  } else if (selectedEffect?.renderer !== 'custom') {
+    sceneContent = <ParticleSystem />
+  }
 
   return (
     <div className="flex-1 min-w-0 relative">
       <Canvas
+        className={hideCanvas ? 'opacity-0 pointer-events-none' : undefined}
         camera={{ position: [0, 0, 14], fov: 60 }}
         gl={{ antialias: false, alpha: false }}
       >
-        <SceneBackground />
-        {CustomRenderer ? <CustomRenderer /> : <ParticleSystem />}
-        <BloomPass />
+        {!hideCanvas && <SceneBackground />}
+        {sceneContent}
+        {!hideCanvas && <BloomPass />}
         <CameraSync />
         <HandCameraSync />
       </Canvas>
+      {OverlayRenderer ? <OverlayRenderer /> : null}
       {trackingEnabled && (
         <TrackingThumbnail videoEl={videoEl} />
       )}

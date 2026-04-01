@@ -90,6 +90,9 @@ export function EditorLayout() {
       store.setBloomStrength(effect.bloomStrength ?? 0.5)
       store.setBloomRadius(effect.bloomRadius ?? 0.4)
       store.setBloomThreshold(effect.bloomThreshold ?? 0.4)
+      if (effect.id === 'the-spirit') {
+        store.resetSpiritSettings()
+      }
       const cp = effect.cameraPosition ?? [0, 0, 5]
       const ct = effect.cameraTarget ?? [0, 0, 0]
       const dx = cp[0] - ct[0], dy = cp[1] - ct[1], dz = cp[2] - ct[2]

@@ -5,6 +5,7 @@ import { getCameraSnapshot } from '../engine/camera-bridge'
 import { TrackingSidebar } from './TrackingSidebar'
 import { BackgroundPicker } from './BackgroundPicker'
 import { CURATED_FONTS } from '../text/fonts'
+import { SPIRIT_COLORWAYS, getSpiritColorway, matchSpiritColorway } from '../engine/spirit/colorways'
 
 export function ControlPanel() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -32,20 +33,23 @@ export function ControlPanel() {
     paneRef.current = pane
 
     // ── Camera controls ────────────────────────────────────
+    const selectedEffect = useStore.getState().selectedEffect
+    const isSpirit = selectedEffect?.id === 'the-spirit'
     const { autoRotateSpeed, cameraZoom } = useStore.getState()
     const cameraFolder = pane.addFolder({ title: 'Camera' })
     const cameraParams = { autoRotateSpeed, cameraZoom }
 
-    cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
-      min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
-    }).on('change', (ev: { value: number }) => useStore.getState().setAutoRotateSpeed(ev.value))
+    if (!isSpirit) {
+      cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
+        min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
+      }).on('change', (ev: { value: number }) => useStore.getState().setAutoRotateSpeed(ev.value))
+    }
 
     cameraFolder.addBinding(cameraParams, 'cameraZoom', {
-      min: 0.2, max: 10, step: 0.1, label: 'Zoom',
+      min: 0.2, max: isSpirit ? 3 : 10, step: 0.1, label: 'Zoom',
     }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
 
     // ── Text controls (only for text effects) ────────────
-    const selectedEffect = useStore.getState().selectedEffect
     if (selectedEffect?.category === 'text') {
       const textFolder = pane.addFolder({ title: 'Text' })
       const { textInput, textFont, textWeight } = useStore.getState()
@@ -124,6 +128,99 @@ export function ControlPanel() {
         }).on('change', (ev: { value: number }) => useStore.getState().setPointSize(ev.value))
       }
 
+      if (selectedEffect?.id === 'the-spirit') {
+        const { spiritSettings } = useStore.getState()
+        const spiritColorwayOptions: Record<string, string> = { Custom: 'custom' }
+        for (const colorway of SPIRIT_COLORWAYS) {
+          spiritColorwayOptions[colorway.name] = colorway.id
+        }
+        const spiritParams = {
+          ...spiritSettings,
+          colorway: matchSpiritColorway(spiritSettings),
+        }
+
+        effectFolder.addBinding(spiritParams, 'dieSpeed', {
+          min: 0.0005, max: 0.05, step: 0.0005, label: 'Die Speed',
+        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ dieSpeed: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'radius', {
+          min: 0.2, max: 3.0, step: 0.01, label: 'Radius',
+        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ radius: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'attraction', {
+          min: -2.0, max: 2.0, step: 0.01, label: 'Attraction',
+        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ attraction: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'motionSpeed', {
+          min: 0, max: 3.0, step: 0.05, label: 'Motion Speed',
+        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ motionSpeed: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'colorway', {
+          label: 'Palette',
+          options: spiritColorwayOptions,
+        }).on('change', (ev: { value: string }) => {
+          const colorway = getSpiritColorway(ev.value)
+          if (!colorway) return
+          spiritParams.color1 = colorway.color1
+          spiritParams.color2 = colorway.color2
+          spiritParams.bgColor = colorway.bgColor
+          useStore.getState().patchSpiritSettings({
+            color1: colorway.color1,
+            color2: colorway.color2,
+            bgColor: colorway.bgColor,
+          })
+          pane.refresh()
+        })
+
+        effectFolder.addBinding(spiritParams, 'followMouse', {
+          label: 'Follow Mouse',
+        }).on('change', (ev: { value: boolean }) => useStore.getState().patchSpiritSettings({ followMouse: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'shadowDarkness', {
+          min: 0, max: 1, step: 0.01, label: 'Shadow',
+        }).on('change', (ev: { value: number }) => useStore.getState().patchSpiritSettings({ shadowDarkness: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'useTriangleParticles', {
+          label: 'Triangles',
+        }).on('change', (ev: { value: boolean }) => useStore.getState().patchSpiritSettings({ useTriangleParticles: ev.value }))
+
+        effectFolder.addBinding(spiritParams, 'color1', {
+          label: 'Base Color', view: 'color',
+        }).on('change', (ev: { value: string }) => {
+          spiritParams.colorway = matchSpiritColorway({
+            color1: ev.value,
+            color2: spiritParams.color2,
+            bgColor: spiritParams.bgColor,
+          })
+          useStore.getState().patchSpiritSettings({ color1: ev.value })
+          pane.refresh()
+        })
+
+        effectFolder.addBinding(spiritParams, 'color2', {
+          label: 'Fade Color', view: 'color',
+        }).on('change', (ev: { value: string }) => {
+          spiritParams.colorway = matchSpiritColorway({
+            color1: spiritParams.color1,
+            color2: ev.value,
+            bgColor: spiritParams.bgColor,
+          })
+          useStore.getState().patchSpiritSettings({ color2: ev.value })
+          pane.refresh()
+        })
+
+        effectFolder.addBinding(spiritParams, 'bgColor', {
+          label: 'Background', view: 'color',
+        }).on('change', (ev: { value: string }) => {
+          spiritParams.colorway = matchSpiritColorway({
+            color1: spiritParams.color1,
+            color2: spiritParams.color2,
+            bgColor: ev.value,
+          })
+          useStore.getState().patchSpiritSettings({ bgColor: ev.value })
+          pane.refresh()
+        })
+      }
+
       const params: Record<string, number> = {}
       for (const c of currentControls) {
         params[c.id] = c.value
@@ -156,13 +253,16 @@ export function ControlPanel() {
         effect: s.selectedEffect?.id ?? 'unknown',
         particleCount: s.particleCount,
         pointSize: Math.round(s.pointSize * 1000) / 1000,
-        backgroundPreset: s.backgroundPreset,
+        backgroundPreset: s.selectedEffect?.id === 'the-spirit' ? undefined : s.backgroundPreset,
         camera: {
           autoRotateSpeed: s.autoRotateSpeed,
           zoom: s.cameraZoom,
           position: cam?.position ?? [0, 0, 5],
           target: cam?.target ?? [0, 0, 0],
         },
+        spirit: s.selectedEffect?.id === 'the-spirit'
+          ? { ...s.spiritSettings }
+          : undefined,
         controls: Object.fromEntries(
           s.controls.map((c) => [c.id, Math.round(c.value * 1000) / 1000]),
         ),
@@ -198,7 +298,16 @@ export function ControlPanel() {
     <div className="w-[320px] h-full bg-surface border-l border-border overflow-y-auto">
       <TrackingSidebar />
       <div ref={containerRef} className="p-2" />
-      <BackgroundPicker />
+      {selectedEffectId === 'the-spirit' ? (
+        <div className="mx-2 mt-2 mb-0.5 rounded-lg border border-border bg-elevated/70 px-3 py-2">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-text-secondary">Background</p>
+          <p className="mt-1 text-[11px] leading-tight text-text-muted">
+            The Spirit uses its own internal background color. Use the Spirit palette or the `Background` color above.
+          </p>
+        </div>
+      ) : (
+        <BackgroundPicker />
+      )}
     </div>
   )
 }

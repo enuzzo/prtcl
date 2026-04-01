@@ -14,7 +14,7 @@ GPU-accelerated particle effects you can drop into any website. Pick a preset, t
 
 </div>
 
-20 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Audio reactivity. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
+21 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Audio reactivity. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
 
 **[prtcl.es](https://prtcl.es)**
 
@@ -47,7 +47,7 @@ The render loop pre-allocates everything and reads state via Zustand's `getState
 
 **Bloom** is engine-level via `@react-three/postprocessing` — effects opt in with `bloom: true`. ACES tone mapping when active. Disabled on mobile. Zero overhead when off.
 
-**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. Both run as standalone R3F components.
+**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. The Spirit is preserved as an isolated legacy Three.js renderer so Edan Kwan's original MIT-licensed piece keeps its temperament intact. All three run outside the standard particle path.
 
 Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls camera orbit and zoom. Disturb mode lets your hand pass through the particle cloud. All inputs smoothed. It works better than it has any right to.
 
@@ -60,7 +60,7 @@ Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls 
 | **Math** | Fractal Frequency, Hopf Fibration, 4D Clifford Torus, Electromagnetic Field, Perlin Noise, Hyperflower |
 | **Organic** | Nebula Organica, Inside Nebula, Cumulonimbus Storm, Fireflies, Murmuration |
 | **Text** | Text Wave, Text Scatter, Text Dissolve, Text Terrain |
-| **Abstract** | Starfield, Black Hole, Axiom, Paper Fleet, Iridescence |
+| **Abstract** | Starfield, Black Hole, Axiom, Paper Fleet, Iridescence, The Spirit |
 
 ---
 
@@ -74,6 +74,7 @@ Inspired by [particles.casberry.in](https://particles.casberry.in/) by [Casberry
 | Fractal Frequency | Gabi | MIT |
 | Inside Nebula | [Sabo Sugi](https://codepen.io/sabosugi/pen/ZYprEOw) — volumetric raymarching nebula | MIT |
 | Iridescence | [Sabo Sugi](https://codepen.io/sabosugi/pen/zxKELBB) — fluid holographic shader | MIT |
+| The Spirit | Edan Kwan — original MIT-licensed effect, adapted here through an isolated legacy renderer with author credit retained | MIT |
 | Perlin Noise | [Victor Vergara](https://codepen.io/vcomics/pen/djqNrm) — GLSL Perlin displacement, Perlin noise by [Stefan Gustavson](https://github.com/ashima/webgl-noise) | MIT |
 | All other effects | PRTCL Team | MIT |
 

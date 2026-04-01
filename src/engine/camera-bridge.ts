@@ -1,6 +1,11 @@
 import type { Camera } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
+export interface CameraSnapshot {
+  position: [number, number, number]
+  target: [number, number, number]
+}
+
 /**
  * Module-level refs to the R3F camera and orbit controls.
  * Set by Viewport's CameraSync, read by ControlPanel's Copy Params.
@@ -8,12 +13,18 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
  */
 let _camera: Camera | null = null
 let _controls: OrbitControlsImpl | null = null
+let _snapshotProvider: (() => CameraSnapshot | null) | null = null
 
 export function setCameraRef(camera: Camera) { _camera = camera }
 export function setControlsRef(controls: OrbitControlsImpl) { _controls = controls }
 export function getControlsRef() { return _controls }
+export function setCameraSnapshotProvider(provider: (() => CameraSnapshot | null) | null) {
+  _snapshotProvider = provider
+}
 
 export function getCameraSnapshot() {
+  const provided = _snapshotProvider?.()
+  if (provided) return provided
   if (!_camera) return null
   const pos = _camera.position
   const target = _controls?.target

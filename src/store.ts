@@ -3,6 +3,7 @@ import type { Effect, CompiledEffectFn, Control } from './engine/types'
 import type { TrackingSlice } from './tracking/types'
 import type { AudioSlice } from './audio/types'
 import { getBackgroundPreset } from './editor/background-presets'
+import { DEFAULT_SPIRIT_SETTINGS, type SpiritSettings } from './engine/spirit/config'
 
 export interface PrtclState extends TrackingSlice, AudioSlice {
   // Effect state
@@ -50,6 +51,7 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   textLineSpacing: number
   textPoints: Float32Array | null
   textFontsLoaded: boolean
+  spiritSettings: SpiritSettings
 
   // Performance (throttled — updated at most once per second)
   fps: number
@@ -99,6 +101,8 @@ export interface PrtclState extends TrackingSlice, AudioSlice {
   setTextLineSpacing: (spacing: number) => void
   setTextPoints: (points: Float32Array | null) => void
   setTextFontsLoaded: (loaded: boolean) => void
+  patchSpiritSettings: (patch: Partial<SpiritSettings>) => void
+  resetSpiritSettings: () => void
 
   // Actions: performance (throttled internally)
   setFps: (fps: number) => void
@@ -159,6 +163,7 @@ export const useStore = create<PrtclState>((set) => ({
   textLineSpacing: 1.0,
   textPoints: null,
   textFontsLoaded: false,
+  spiritSettings: { ...DEFAULT_SPIRIT_SETTINGS },
 
   // Performance
   fps: 0,
@@ -227,6 +232,10 @@ export const useStore = create<PrtclState>((set) => ({
   setTextLineSpacing: (spacing) => set({ textLineSpacing: spacing }),
   setTextPoints: (points) => set({ textPoints: points }),
   setTextFontsLoaded: (loaded) => set({ textFontsLoaded: loaded }),
+  patchSpiritSettings: (patch) => set((state) => ({
+    spiritSettings: { ...state.spiritSettings, ...patch },
+  })),
+  resetSpiritSettings: () => set({ spiritSettings: { ...DEFAULT_SPIRIT_SETTINGS } }),
 
   // ── Tracking ──────────────────────────────────────────
   trackingEnabled: false,

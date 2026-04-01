@@ -13,6 +13,7 @@ import { electromagnetic } from './electromagnetic'
 import { murmuration } from './murmuration'
 import { hyperflower } from './hyperflower'
 import { axiom } from './axiom'
+import { theSpirit } from './the-spirit'
 
 import { insideNebula } from './inside-nebula'
 import { iridescence } from './iridescence'
@@ -23,4 +24,4 @@ import { textDissolve } from './text-dissolve'
 import { textTerrain } from './text-terrain'
 import type { Effect } from '../../engine/types'
 
-export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, insideNebula, starfield, blackhole, storm, cliffordTorus, electromagnetic, perlinNoise, hyperflower, fireflies, murmuration, axiom, paperFleet, iridescence, textWave, textScatter, textDissolve, textTerrain]
+export const ALL_PRESETS: Effect[] = [frequency, hopf, nebula, insideNebula, starfield, blackhole, storm, cliffordTorus, electromagnetic, perlinNoise, hyperflower, fireflies, murmuration, axiom, paperFleet, iridescence, theSpirit, textWave, textScatter, textDissolve, textTerrain]
