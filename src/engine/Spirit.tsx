@@ -677,28 +677,20 @@ export function Spirit() {
       triMeshRef.current.visible = useTriangles
     }
 
-    // Force scene.background + fog every frame (SceneBackground can race us)
-    if (!(scene.background instanceof THREE.Color) || scene.background.getHexString() !== 'dfdfdf') {
-      scene.background = new THREE.Color(BG_COLOR)
-    }
-    if (!scene.fog) {
-      scene.fog = new THREE.FogExp2(BG_COLOR, 0.001)
-    }
-
-    // Floor color lerp (original: tmpColor.lerp(bgColor, 0.05), fog.color = tmpColor)
+    // ─── Background: #dfdfdf everywhere, every frame, no exceptions ───
+    // Original: renderer.setClearColor(tmpColor), scene.fog.color = tmpColor
+    // tmpColor starts at bgColor (#dfdfdf) and lerps toward it (converges to #dfdfdf)
     const floorMesh = scene.getObjectByName('spirit-floor') as THREE.Mesh | undefined
     if (floorMesh) {
       const mat = floorMesh.material as THREE.MeshStandardMaterial
       floorColorRef.current.lerp(bgColorObj, 0.05)
       mat.color.copy(floorColorRef.current)
-      if (scene.fog instanceof THREE.FogExp2) {
-        scene.fog.color.copy(floorColorRef.current)
-      }
-      ;(scene.background as THREE.Color).copy(floorColorRef.current)
     }
 
-    // Also force renderer clear color to match (original: renderer.setClearColor(tmpColor))
-    gl.setClearColor(floorColorRef.current)
+    // Force ALL background sources to our color
+    scene.background = new THREE.Color(floorColorRef.current)
+    scene.fog = new THREE.FogExp2(floorColorRef.current.getHex(), 0.001)
+    gl.setClearColor(floorColorRef.current, 1)
   })
 
   return (
