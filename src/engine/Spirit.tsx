@@ -607,8 +607,7 @@ export function Spirit() {
     const cm: Record<string, number> = {}
     for (const c of controls) cm[c.id] = c.value
 
-    // Read controls — original defaults from settings.js
-    const speed = cm.speed ?? 1
+    // Read controls — matching original dat.GUI exactly
     const dieSpeed = cm.dieSpeed ?? 0.015
     const radius = cm.radius ?? 0.6
     const attraction = cm.attraction ?? 1
@@ -616,17 +615,15 @@ export function Spirit() {
 
     const bgColorObj = new THREE.Color(BG_COLOR)
 
-    // Clamp delta to avoid huge jumps
+    // Clamp delta to avoid huge jumps (original: no clamp, but we need it for R3F)
     const dt = Math.min(delta * 1000, 50)
-    const deltaRatio = dt / 16.6667
 
     // Init animation: original _initAnimation += dt * 0.00025, max 1.0
     initAnimRef.current = Math.min(initAnimRef.current + dt * 0.00025, 1)
 
-    // Follow point orbit (from simulator.js module 17):
-    // _followPointTime += dt * 0.001
-    // Math.cos(t) * 160.0 (x), Math.cos(t * 4.0) * 40.0 (y), Math.sin(t * 2.0) * 160.0 (z)
-    followPointTimeRef.current += dt * 0.001 * speed
+    // Follow point orbit — exact original values from simulator.js:
+    // _followPointTime += dt * 0.001 (NO speed multiplier)
+    followPointTimeRef.current += dt * 0.001
     followPointRef.current.set(
       Math.cos(followPointTimeRef.current) * 160.0,
       Math.cos(followPointTimeRef.current * 4.0) * 40.0,
@@ -644,10 +641,10 @@ export function Spirit() {
     const u = positionMatRef.current.uniforms
     u.textureDefaultPosition!.value = defaultPosTexRef.current
     u.texturePosition!.value = rt2Ref.current.texture
-    // Time accumulation: speed multiplier only applies to dt for time
-    u.time!.value += dt * 0.001 * speed
-    // dieSpeed scaled by deltaRatio for frame-rate independence
-    u.dieSpeed!.value = dieSpeed * deltaRatio
+    // Original: time += dt * 0.001 (no speed multiplier)
+    u.time!.value += dt * 0.001
+    // Original: dieSpeed is set directly from settings (no deltaRatio scaling)
+    u.dieSpeed!.value = dieSpeed
     u.radius!.value = radius
     u.attraction!.value = attraction
     u.initAnimation!.value = initAnimRef.current
@@ -676,6 +673,14 @@ export function Spirit() {
       triMeshRef.current.visible = useTriangles
     }
 
+    // Force scene.background + fog every frame (SceneBackground can race us)
+    if (!(scene.background instanceof THREE.Color) || scene.background.getHexString() !== 'dfdfdf') {
+      scene.background = new THREE.Color(BG_COLOR)
+    }
+    if (!scene.fog) {
+      scene.fog = new THREE.FogExp2(BG_COLOR, 0.001)
+    }
+
     // Floor color lerp (original: tmpColor.lerp(bgColor, 0.05), fog.color = tmpColor)
     const floorMesh = scene.getObjectByName('spirit-floor') as THREE.Mesh | undefined
     if (floorMesh) {
@@ -685,11 +690,11 @@ export function Spirit() {
       if (scene.fog instanceof THREE.FogExp2) {
         scene.fog.color.copy(floorColorRef.current)
       }
-      // Original also does renderer.setClearColor(tmpColor) — we set scene.background instead
-      if (scene.background instanceof THREE.Color) {
-        scene.background.copy(floorColorRef.current)
-      }
+      ;(scene.background as THREE.Color).copy(floorColorRef.current)
     }
+
+    // Also force renderer clear color to match (original: renderer.setClearColor(tmpColor))
+    gl.setClearColor(floorColorRef.current)
   })
 
   return (
