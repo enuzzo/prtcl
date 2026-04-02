@@ -16,6 +16,7 @@ const DISTURB_STRENGTH = 1.2  // max displacement per frame at center
 const DISTURB_POS_LERP = 0.08 // how fast the 3D hand position tracks the real palm
 const DISTURB_FADE_IN = 0.06  // how fast the force ramps up when hand appears
 const DISTURB_FADE_OUT = 0.02 // how slowly the force fades when hand disappears
+const AUDIO_ZERO = 0
 
 // ── Hand disturb smoothed state (module-level, zero GC) ──
 let _disturbX = 0, _disturbY = 0, _disturbZ = 0
@@ -62,7 +63,7 @@ export function ParticleSystem() {
 
   useFrame((_state, delta) => {
     const store = useStore.getState()
-    const { compiledFn, controls, pointSize, bassBand, midsBand, highsBand, energy, beat } = store
+    const { compiledFn, controls, pointSize } = store
     const textPoints = store.textPoints
     const textPts = store.selectedEffect?.category === 'text' ? (textPoints ?? undefined) : undefined
 
@@ -163,7 +164,7 @@ export function ParticleSystem() {
       if (i < count) {
         // Particle within new effect range — compute destination
         try {
-          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, textPts, camX, camY, camZ, pointerX, pointerY, pointerZ, bassBand, midsBand, highsBand, energy, beat)
+          compiledFn(i, count, target, color, time, THREE, getControl, setInfo, textPts, camX, camY, camZ, pointerX, pointerY, pointerZ, AUDIO_ZERO, AUDIO_ZERO, AUDIO_ZERO, AUDIO_ZERO, AUDIO_ZERO)
         } catch {
           // Effect error on this particle — leave at origin
         }

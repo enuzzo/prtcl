@@ -15,9 +15,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   abstract: 'Abstract',
 }
 
-/** Effects that use audio params (bass/mids/highs/energy/beat) */
-const AUDIO_EFFECTS = new Set(['frequency', 'nebula-organica'])
-
 export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserProps) {
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -125,12 +122,7 @@ export function EffectBrowser({ effects, selectedId, onSelect }: EffectBrowserPr
                             : 'text-text hover:bg-border/40 border border-transparent'
                         }`}
                       >
-                        <div className="font-medium flex items-center justify-between gap-1">
-                          <span>{effect.name}</span>
-                          {AUDIO_EFFECTS.has(effect.id) && (
-                            <span className="text-[10px] opacity-50 shrink-0" title="Audio reactive">🎙️</span>
-                          )}
-                        </div>
+                        <div className="font-medium">{effect.name}</div>
                         {isSelected && (
                           <div className="text-xs text-text-muted mt-0.5">
                             {effect.description}

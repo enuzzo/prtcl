@@ -24,20 +24,17 @@ export function StatusBar({ isMobile }: StatusBarProps) {
 
   if (isMobile) {
     return (
-      <div className="flex items-center justify-center h-7 px-4 bg-surface/80 backdrop-blur-sm border-t border-border text-[10px] font-mono text-text-muted">
-        <div className="flex items-center gap-2">
-          <span>&copy; 2026 Netmilk Studio</span>
-          <span className="opacity-30">&middot;</span>
-          <a
-            href="https://github.com/enuzzo/prtcl"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 hover:text-accent transition-colors"
-          >
-            <GitHubIcon />
-            <span>PRTCL on GitHub</span>
-          </a>
-        </div>
+      <div className="flex items-center justify-between h-7 px-3 bg-surface/80 backdrop-blur-sm border-t border-border text-[10px] font-mono text-text-muted gap-3">
+        <span className="truncate">&copy; 2026 Netmilk</span>
+        <a
+          href="https://github.com/enuzzo/prtcl"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 hover:text-accent transition-colors shrink-0"
+        >
+          <GitHubIcon />
+          <span>GitHub</span>
+        </a>
       </div>
     )
   }

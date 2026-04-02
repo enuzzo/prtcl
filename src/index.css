@@ -197,6 +197,20 @@ button, [role="button"], .tp-fldv_b, .tp-btnv_b {
   animation: slideDown 0.2s ease-out;
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slideUp {
+  animation: slideUp 0.2s ease-out;
+}
+
 /* Toast notification slide-in */
 @keyframes toastSlideDown {
   from {

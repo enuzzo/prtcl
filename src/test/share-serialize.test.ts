@@ -23,12 +23,14 @@ describe('encodeShareState', () => {
       font: 'Orbitron',
       w: '700',
       ls: 1.5,
+      sc: 'melito',
     }
     const hash = encodeShareState(state)
     expect(hash).toContain('effect=perlin-noise')
     expect(hash).toContain('p=20000')
     expect(hash).toContain('ps=2.5')
     expect(hash).toContain('bg=plasma')
+    expect(hash).toContain('sc=melito')
   })
 
   it('rounds floats to 3 decimals', () => {
@@ -64,7 +66,7 @@ describe('parseShareHash', () => {
   })
 
   it('parses all fields', () => {
-    const hash = '#effect=nebula&p=15000&ps=1.5&ar=2&z=1.2&cam=1,2,3&tgt=0,0.5,0&bg=aurora&c=%7B%22speed%22%3A0.5%7D&txt=Test&font=Pacifico&w=400&ls=1.2'
+    const hash = '#effect=nebula&p=15000&ps=1.5&ar=2&z=1.2&cam=1,2,3&tgt=0,0.5,0&bg=aurora&c=%7B%22speed%22%3A0.5%7D&txt=Test&font=Pacifico&w=400&ls=1.2&spr=melito'
     const result = parseShareHash(hash)
     expect(result).toEqual({
       effect: 'nebula',
@@ -80,6 +82,7 @@ describe('parseShareHash', () => {
       font: 'Pacifico',
       w: '400',
       ls: 1.2,
+      spr: 'melito',
     })
   })
 
@@ -97,6 +100,18 @@ describe('parseShareHash', () => {
   it('ignores malformed controls JSON', () => {
     const result = parseShareHash('#effect=test&c=not-json')
     expect(result?.c).toBeUndefined()
+  })
+
+  it('parses spirit settings payload', () => {
+    const result = parseShareHash('#effect=the-spirit&sc=melito&sp=%7B%22d%22%3A0.024%2C%22tp%22%3A0%7D')
+    expect(result).toEqual({
+      effect: 'the-spirit',
+      sc: 'melito',
+      sp: {
+        dieSpeed: 0.024,
+        useTriangleParticles: false,
+      },
+    })
   })
 
   it('ignores negative particleCount', () => {
@@ -121,6 +136,7 @@ describe('round-trip', () => {
       font: 'Orbitron',
       w: '700',
       ls: 1.0,
+      sp: { radius: 0.75, followMouse: false, color1: '#ffffff' },
     }
     const hash = encodeShareState(original)
     const decoded = parseShareHash('#' + hash)

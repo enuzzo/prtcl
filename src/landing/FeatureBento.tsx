@@ -1,4 +1,4 @@
-import { SpeedIcon, CodeIcon, TextIcon, HandIcon, MicIcon, HeartIcon } from './icons'
+import { SpeedIcon, CodeIcon, TextIcon, HandIcon, HeartIcon } from './icons'
 
 interface BentoCardProps {
   icon: React.ReactNode
@@ -68,13 +68,6 @@ const CARDS: BentoCardProps[] = [
     accentColor: '#FF2BD6',
   },
   {
-    icon: <MicIcon />,
-    title: 'Audio reactive',
-    description:
-      'Mic input drives particles in real-time. Bass pumps size, highs scatter, beat detection fires bursts. Finally, a reason to listen to music at 2am besides existential dread.',
-    accentColor: '#FF2BD6',
-  },
-  {
     icon: <HeartIcon />,
     title: 'Free. MIT. Forever.',
     description:
@@ -93,7 +86,7 @@ export function FeatureBento() {
           id="features-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-12 md:mb-16"
         >
-          Six features.
+          Five features.
           <br />
           <span className="text-text-muted">All equally unnecessary.</span>
         </h2>

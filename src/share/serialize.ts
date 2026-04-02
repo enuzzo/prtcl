@@ -1,6 +1,38 @@
 import type { ShareState } from './types'
+import type { SpiritSettings } from '../engine/spirit/config'
 
 const R = (n: number) => Math.round(n * 1000) / 1000
+
+type ShareableSpiritKey =
+  | 'dieSpeed'
+  | 'radius'
+  | 'attraction'
+  | 'motionSpeed'
+  | 'followMouse'
+  | 'shadowDarkness'
+  | 'objectShadow'
+  | 'bottomLift'
+  | 'useTriangleParticles'
+  | 'color1'
+  | 'color2'
+  | 'bgColor'
+
+const SPIRIT_KEY_MAP: Record<ShareableSpiritKey, string> = {
+  dieSpeed: 'd',
+  radius: 'r',
+  attraction: 'a',
+  motionSpeed: 'm',
+  followMouse: 'f',
+  shadowDarkness: 'sd',
+  objectShadow: 'os',
+  bottomLift: 'bl',
+  useTriangleParticles: 'tp',
+  color1: 'c1',
+  color2: 'c2',
+  bgColor: 'bg',
+}
+
+const SPIRIT_KEY_ENTRIES = Object.entries(SPIRIT_KEY_MAP) as Array<[ShareableSpiritKey, string]>
 
 function encodeVec3(v: [number, number, number]): string {
   return `${R(v[0])},${R(v[1])},${R(v[2])}`
@@ -10,6 +42,59 @@ function decodeVec3(s: string): [number, number, number] | undefined {
   const parts = s.split(',').map(Number)
   if (parts.length !== 3 || parts.some(isNaN)) return undefined
   return parts as [number, number, number]
+}
+
+function encodeSpiritSettings(settings: Partial<SpiritSettings>): string {
+  const compact: Record<string, number | string> = {}
+
+  for (const [key, shortKey] of SPIRIT_KEY_ENTRIES) {
+    const value = settings[key]
+    if (value == null) continue
+
+    if (typeof value === 'number') {
+      compact[shortKey] = R(value)
+    } else if (typeof value === 'boolean') {
+      compact[shortKey] = value ? 1 : 0
+    } else {
+      compact[shortKey] = value
+    }
+  }
+
+  return JSON.stringify(compact)
+}
+
+function decodeSpiritSettings(raw: string): Partial<SpiritSettings> | undefined {
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const settings: Partial<SpiritSettings> = {}
+
+    for (const [key, shortKey] of SPIRIT_KEY_ENTRIES) {
+      const value = parsed[shortKey]
+      if (value == null) continue
+
+      if (key === 'followMouse' || key === 'useTriangleParticles') {
+        if (value === 1 || value === 0 || typeof value === 'boolean') {
+          settings[key] = Boolean(value) as never
+        }
+        continue
+      }
+
+      if (key === 'color1' || key === 'color2' || key === 'bgColor') {
+        if (typeof value === 'string') {
+          settings[key] = value as never
+        }
+        continue
+      }
+
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        settings[key] = value as never
+      }
+    }
+
+    return Object.keys(settings).length > 0 ? settings : undefined
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -37,6 +122,11 @@ export function encodeShareState(state: ShareState): string {
   if (state.font) params.set('font', state.font)
   if (state.w) params.set('w', state.w)
   if (state.ls != null) params.set('ls', String(R(state.ls)))
+  if (state.spr) params.set('spr', state.spr)
+  if (state.sc) params.set('sc', state.sc)
+  if (state.sp && Object.keys(state.sp).length > 0) {
+    params.set('sp', encodeSpiritSettings(state.sp))
+  }
 
   return params.toString()
 }
@@ -106,6 +196,18 @@ export function parseShareHash(hash: string): ShareState | null {
 
   const ls = parseFloat(params.get('ls') ?? '')
   if (!isNaN(ls)) state.ls = ls
+
+  const spr = params.get('spr')
+  if (spr) state.spr = spr
+
+  const sc = params.get('sc')
+  if (sc) state.sc = sc
+
+  const sp = params.get('sp')
+  if (sp) {
+    const decoded = decodeSpiritSettings(sp)
+    if (decoded) state.sp = decoded
+  }
 
   return state
 }

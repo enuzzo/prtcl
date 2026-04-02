@@ -14,6 +14,8 @@ import { compileEffect } from '../engine/compiler'
 import { ALL_PRESETS } from '../effects/presets'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { resetHandCamera } from '../tracking/hand-camera'
+import { getSpiritColorway } from '../engine/spirit/colorways'
+import { getSpiritPreset } from '../engine/spirit/presets'
 import type { Effect } from '../engine/types'
 
 const LEFT_W = 280
@@ -119,15 +121,20 @@ export function EditorLayout() {
     if (shareState) {
       const found = ALL_PRESETS.find((e) => e.id === shareState.effect)
       if (found) {
+        const spiritPreset = found.id === 'the-spirit' && shareState.spr
+          ? getSpiritPreset(shareState.spr)
+          : undefined
+
         // Create modified copy with shared camera/settings so the explosion
         // callback in App.tsx reads the shared camera position from selectedEffect
         effectToLoad = {
           ...found,
           particleCount: shareState.p ?? found.particleCount,
           pointSize: shareState.ps ?? found.pointSize,
-          autoRotateSpeed: shareState.ar ?? found.autoRotateSpeed,
-          cameraPosition: shareState.cam ?? found.cameraPosition,
-          cameraTarget: shareState.tgt ?? found.cameraTarget,
+          autoRotateSpeed: shareState.ar ?? spiritPreset?.camera.autoRotateSpeed ?? found.autoRotateSpeed,
+          cameraPosition: shareState.cam ?? spiritPreset?.camera.position ?? found.cameraPosition,
+          cameraTarget: shareState.tgt ?? spiritPreset?.camera.target ?? found.cameraTarget,
+          cameraZoom: shareState.z ?? spiritPreset?.camera.zoom ?? found.cameraZoom,
         }
       }
     }
@@ -144,6 +151,28 @@ export function EditorLayout() {
         for (const [id, value] of Object.entries(shareState.c)) {
           store.updateControlValue(id, value)
         }
+      }
+
+      if (shareState.spr) {
+        const preset = getSpiritPreset(shareState.spr)
+        if (preset) {
+          store.patchSpiritSettings(preset.spirit)
+        }
+      }
+
+      if (shareState.sc) {
+        const colorway = getSpiritColorway(shareState.sc)
+        if (colorway) {
+          store.patchSpiritSettings({
+            color1: colorway.color1,
+            color2: colorway.color2,
+            bgColor: colorway.bgColor,
+          })
+        }
+      }
+
+      if (shareState.sp) {
+        store.patchSpiritSettings(shareState.sp)
       }
 
       // Camera zoom — must come AFTER handleSelectEffect which resets zoom to 1

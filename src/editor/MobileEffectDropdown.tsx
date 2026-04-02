@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import type { Effect } from '../engine/types'
 
 const CATEGORY_ORDER = ['organic', 'math', 'creature', 'text', 'abstract'] as const
@@ -25,17 +25,10 @@ export function MobileEffectDropdown({
 }: MobileEffectDropdownProps) {
   const [query, setQuery] = useState('')
   const backdropRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  // Auto-focus search on open
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 100)
-    return () => clearTimeout(t)
-  }, [])
 
   // Tap outside the dropdown panel to close
   const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.target === backdropRef.current) onClose()
     },
     [onClose],
@@ -73,15 +66,30 @@ export function MobileEffectDropdown({
   return (
     <div
       ref={backdropRef}
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+      onPointerDown={handleBackdropClick}
+      className="fixed inset-0 top-12 z-[70] bg-black/40 backdrop-blur-sm"
       style={{ top: '48px' }}
     >
-      <div className="bg-surface border-b border-border max-h-[50vh] overflow-hidden flex flex-col animate-slideDown">
+      <div
+        onPointerDown={(e) => e.stopPropagation()}
+        className="bg-surface border-b border-border max-h-[72vh] overflow-hidden flex flex-col animate-slideDown shadow-[0_14px_36px_rgba(0,0,0,0.35)]"
+      >
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-text-muted">Effects</p>
+            <p className="text-sm font-mono text-text">Choose the next mess</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded border border-border bg-elevated text-text-secondary text-xs font-mono"
+          >
+            Close
+          </button>
+        </div>
+
         {/* Search */}
         <div className="p-3 border-b border-border">
           <input
-            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

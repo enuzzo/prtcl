@@ -3,10 +3,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { VERSION, CODENAME } from '../version'
 import { MobileEffectDropdown } from './MobileEffectDropdown'
+import { MobileControlsSheet } from './MobileControlsSheet'
 import { ALL_PRESETS } from '../effects/presets'
 import { encodeShareState } from '../share'
 import { getCameraSnapshot } from '../engine/camera-bridge'
 import { getBackgroundPreset } from './background-presets'
+import { DEFAULT_SPIRIT_SETTINGS, type SpiritSettings } from '../engine/spirit/config'
+import { matchSpiritColorway } from '../engine/spirit/colorways'
+import { getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
 import type { Effect } from '../engine/types'
 
 interface TopBarProps {
@@ -14,8 +18,71 @@ interface TopBarProps {
   onSelectEffect: (effect: Effect) => void
 }
 
+const EPSILON = 0.0005
+
+function round3(value: number): number {
+  return Math.round(value * 1000) / 1000
+}
+
+function near(a: number | undefined, b: number | undefined, epsilon = EPSILON): boolean {
+  if (a == null || b == null) return a == null && b == null
+  return Math.abs(a - b) <= epsilon
+}
+
+function nearVec3(a: [number, number, number] | undefined, b: [number, number, number] | undefined): boolean {
+  if (!a || !b) return a == null && b == null
+  return near(a[0], b[0]) && near(a[1], b[1]) && near(a[2], b[2])
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    try {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.cssText = 'position:fixed;left:-9999px'
+      document.body.appendChild(ta)
+      ta.select()
+      const copied = document.execCommand('copy')
+      document.body.removeChild(ta)
+      return copied
+    } catch {
+      return false
+    }
+  }
+}
+
+function getSpiritShareDiff(
+  settings: SpiritSettings,
+  colorwayId: string | undefined,
+): Partial<SpiritSettings> | undefined {
+  const diff: Partial<SpiritSettings> = {}
+
+  for (const key of Object.keys(DEFAULT_SPIRIT_SETTINGS) as Array<keyof SpiritSettings>) {
+    if (colorwayId && (key === 'color1' || key === 'color2' || key === 'bgColor')) {
+      continue
+    }
+
+    const current = settings[key]
+    const baseline = DEFAULT_SPIRIT_SETTINGS[key]
+
+    if (typeof current === 'number' && typeof baseline === 'number') {
+      if (!near(current, baseline)) diff[key] = round3(current) as never
+      continue
+    }
+
+    if (current !== baseline) {
+      diff[key] = current as never
+    }
+  }
+
+  return Object.keys(diff).length > 0 ? diff : undefined
+}
+
 export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [activeMobileSheet, setActiveMobileSheet] = useState<'effects' | 'controls' | null>(null)
   const isFullscreen = useStore((s) => s.isFullscreen)
 
   // Sync browser fullscreen state with store (handles ESC key, etc.)
@@ -28,20 +95,7 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const trackingReady = useStore((s) => s.trackingReady)
   const trackingError = useStore((s) => s.trackingError)
-  const audioEnabled = useStore((s) => s.audioEnabled)
-  const audioReady = useStore((s) => s.audioReady)
-  const audioError = useStore((s) => s.audioError)
-  const bassBand = useStore((s) => s.bassBand)
-  const midsBand = useStore((s) => s.midsBand)
-  const highsBand = useStore((s) => s.highsBand)
   const selectedEffect = useStore((s) => s.selectedEffect)
-
-  const toggleAudio = useCallback(() => {
-    if (audioError) {
-      useStore.getState().setAudioError(null)
-    }
-    useStore.getState().setAudioEnabled(!audioEnabled)
-  }, [audioEnabled, audioError])
 
   const toggleTracking = useCallback(() => {
     if (trackingError) {
@@ -61,12 +115,12 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const handleMobileSelect = useCallback(
     (effect: Effect) => {
       onSelectEffect(effect)
-      setDropdownOpen(false)
+      setActiveMobileSheet(null)
     },
     [onSelectEffect],
   )
 
-  // Share: serialize full editor state → URL hash → clipboard
+  // Share: serialize the current editor deltas into a compact URL.
   const handleShare = useCallback(async () => {
     const store = useStore.getState()
     const effect = store.selectedEffect
@@ -75,43 +129,98 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
     const camSnap = getCameraSnapshot()
     const isTextEffect = effect.category === 'text'
 
-    // Build control values map
-    const controlValues: Record<string, number> = {}
-    for (const ctrl of store.controls) {
-      controlValues[ctrl.id] = ctrl.value
+    let spiritPresetId: string | undefined
+    let spiritColorwayId: string | undefined
+    let spiritDiff: Partial<SpiritSettings> | undefined
+
+    if (effect.id === 'the-spirit') {
+      const currentCamera = {
+        autoRotateSpeed: store.autoRotateSpeed,
+        zoom: store.cameraZoom,
+        position: camSnap?.position ?? effect.cameraPosition ?? [0, 0, 5],
+        target: camSnap?.target ?? effect.cameraTarget ?? [0, 0, 0],
+      }
+
+      const matchedPresetId = matchSpiritPreset({
+        camera: currentCamera,
+        spirit: store.spiritSettings,
+      })
+
+      if (matchedPresetId !== 'custom') {
+        spiritPresetId = matchedPresetId
+      } else {
+        const matchedColorwayId = matchSpiritColorway(store.spiritSettings)
+        if (matchedColorwayId !== 'custom') {
+          spiritColorwayId = matchedColorwayId
+        }
+        spiritDiff = getSpiritShareDiff(store.spiritSettings, spiritColorwayId)
+      }
     }
 
-    // Determine background: preset ID if known, otherwise custom hex
-    const bgPreset = getBackgroundPreset(store.backgroundPreset) ? store.backgroundPreset : undefined
-    const bgCustom = !bgPreset ? store.backgroundColor.replace(/^#/, '') : undefined
+    const spiritPreset = spiritPresetId ? getSpiritPreset(spiritPresetId) : undefined
+
+    const controlValues: Record<string, number> = {}
+    for (const ctrl of store.controls) {
+      if (!near(ctrl.value, ctrl.initial)) {
+        controlValues[ctrl.id] = round3(ctrl.value)
+      }
+    }
+
+    const currentBackgroundPreset = getBackgroundPreset(store.backgroundPreset)
+    const usingBackgroundPreset = currentBackgroundPreset?.css === store.backgroundColor
+    const bgPreset = effect.id === 'the-spirit'
+      ? undefined
+      : usingBackgroundPreset && currentBackgroundPreset && store.backgroundPreset !== effect.backgroundPreset
+        ? store.backgroundPreset
+        : undefined
+    const bgCustom = effect.id !== 'the-spirit' && !usingBackgroundPreset && /^#/i.test(store.backgroundColor)
+      ? store.backgroundColor.replace(/^#/, '')
+      : undefined
 
     const hash = encodeShareState({
       effect: effect.id,
-      p: store.particleCount,
-      ps: store.pointSize,
-      ar: store.autoRotateSpeed,
-      z: store.cameraZoom,
-      cam: camSnap?.position,
-      tgt: camSnap?.target,
+      p: store.particleCount !== effect.particleCount ? store.particleCount : undefined,
+      ps: !near(store.pointSize, effect.pointSize ?? 0.21) ? round3(store.pointSize) : undefined,
+      ar: !near(store.autoRotateSpeed, spiritPreset?.camera.autoRotateSpeed ?? effect.autoRotateSpeed ?? 0)
+        ? round3(store.autoRotateSpeed)
+        : undefined,
+      z: !near(store.cameraZoom, spiritPreset?.camera.zoom ?? effect.cameraZoom ?? 1)
+        ? round3(store.cameraZoom)
+        : undefined,
+      cam: camSnap?.position && !nearVec3(camSnap.position, spiritPreset?.camera.position ?? effect.cameraPosition)
+        ? camSnap.position
+        : undefined,
+      tgt: camSnap?.target && !nearVec3(camSnap.target, spiritPreset?.camera.target ?? effect.cameraTarget)
+        ? camSnap.target
+        : undefined,
       bg: bgPreset,
       bgc: bgCustom,
-      c: controlValues,
+      c: Object.keys(controlValues).length > 0 ? controlValues : undefined,
       txt: isTextEffect ? store.textInput : undefined,
       font: isTextEffect ? store.textFont : undefined,
       w: isTextEffect ? store.textWeight : undefined,
       ls: isTextEffect ? store.textLineSpacing : undefined,
+      spr: spiritPresetId,
+      sc: spiritColorwayId,
+      sp: spiritDiff,
     })
 
     const url = `${window.location.origin}/create#${hash}`
 
     try {
-      await navigator.clipboard.writeText(url)
-      store.showToast('Link copied. Deploy at will.')
-    } catch {
-      // Fallback for older browsers / iframe restrictions
-      store.showToast('Could not copy — check browser permissions.')
+      if (isMobile && typeof navigator.share === 'function') {
+        await navigator.share({ title: `${effect.name} · PRTCL`, url })
+        return
+      }
+
+      const copied = await copyText(url)
+      store.showToast(copied ? 'Link copied. Deploy at will.' : 'Could not copy — check browser permissions.')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      const copied = await copyText(url)
+      store.showToast(copied ? 'Link copied. Deploy at will.' : 'Could not share this link right now.')
     }
-  }, [])
+  }, [isMobile])
 
   return (
     <>
@@ -137,75 +246,33 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
         {/* Center: Effect name dropdown trigger (mobile only) */}
         {isMobile && (
           <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-mono text-text hover:bg-elevated transition-colors max-w-[45vw] truncate"
+            onClick={() => setActiveMobileSheet((sheet) => (sheet === 'effects' ? null : 'effects'))}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded border border-border/70 text-sm font-mono text-text hover:bg-elevated transition-colors max-w-[30vw] truncate"
           >
             <span className="truncate">{selectedEffect?.name ?? 'Select'}</span>
-            <span className={`text-[10px] text-text-muted transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>
+            <span className={`text-[10px] text-text-muted transition-transform ${activeMobileSheet === 'effects' ? 'rotate-180' : ''}`}>
               ▾
             </span>
           </button>
         )}
 
         {/* Right: actions */}
-        <div className="flex items-center gap-2">
-          {/* Audio mic toggle + expanding bars */}
-          <div className="flex items-center">
-            {/* Expanding frequency bars — grow left from mic button */}
-            <div
-              className="flex items-end gap-[2px] overflow-hidden transition-all duration-300 ease-in-out"
-              style={{
-                width: audioEnabled && audioReady && !isMobile ? '40px' : '0px',
-                marginRight: audioEnabled && audioReady && !isMobile ? '6px' : '0px',
-                opacity: audioEnabled && audioReady ? 1 : 0,
-              }}
-            >
-              {[
-                bassBand,
-                (bassBand + midsBand) / 2,
-                midsBand,
-                (midsBand + highsBand) / 2,
-                highsBand,
-              ].map((v, idx) => (
-                <div
-                  key={idx}
-                  className="w-[4px] rounded-sm"
-                  style={{
-                    height: `${Math.max(2, v * 16)}px`,
-                    backgroundColor: `rgba(255, 43, 214, ${0.4 + v * 0.6})`,
-                    transition: 'height 50ms ease-out',
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Mic button */}
+        <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+          {isMobile && (
             <button
-              onClick={toggleAudio}
-              className={`px-3 py-1.5 rounded text-sm font-mono transition-colors ${
-                audioError
-                  ? 'bg-danger/10 text-danger border border-danger/30'
-                  : audioEnabled
-                    ? 'bg-accent2/15 text-accent2 border border-accent2/40'
-                    : 'bg-elevated text-text-muted border border-transparent hover:bg-border/50'
-              } ${audioEnabled && !audioReady ? 'animate-pulse' : ''}`}
-              title={
-                audioError
-                  ?? (audioEnabled && !audioReady
-                    ? 'Requesting mic...'
-                    : audioEnabled
-                      ? 'Mic ON — click to mute'
-                      : 'React to sound')
-              }
+              onClick={() => setActiveMobileSheet((sheet) => (sheet === 'controls' ? null : 'controls'))}
+              className="px-2 py-1.5 rounded text-sm font-mono bg-elevated text-text-muted border border-transparent hover:bg-border/50 transition-colors"
+              title="Effect controls"
+              aria-label="Open effect controls"
             >
-              🎙️
+              ⚙
             </button>
-          </div>
+          )}
 
           {/* Hand Tracking toggle */}
           <button
             onClick={toggleTracking}
-            className={`px-3 py-1.5 rounded text-sm font-mono transition-colors ${
+            className={`${isMobile ? 'px-2.5' : 'px-3'} py-1.5 rounded text-sm font-mono transition-colors ${
               isMobile ? '' : 'hidden md:block'
             } ${
               trackingError
@@ -222,6 +289,7 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
                     ? 'Hand tracking ON'
                     : 'Control with hands')
             }
+            aria-label="Toggle hand tracking"
           >
             {'\u270B'}
           </button>
@@ -229,19 +297,21 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
           {/* Fullscreen */}
           <button
             onClick={toggleFullscreen}
-            className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors"
+            className={`${isMobile ? 'px-2.5' : 'px-3'} py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors`}
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
-            {isFullscreen ? '⛶' : '⛶'}
+            ⛶
           </button>
 
           {/* Share */}
           <button
             onClick={handleShare}
-            className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors"
-            title="Copy share link"
+            className={`${isMobile ? 'px-2.5' : 'px-3'} py-1.5 bg-accent/10 text-accent border border-accent/30 rounded text-sm font-mono hover:bg-accent/20 transition-colors`}
+            title={isMobile ? 'Share this effect' : 'Copy share link'}
+            aria-label="Share this effect"
           >
-            Share
+            {isMobile ? '↗' : 'Share'}
           </button>
 
           {/* Export — desktop only */}
@@ -266,13 +336,16 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
       </div>
 
       {/* Mobile dropdown overlay */}
-      {isMobile && dropdownOpen && (
+      {isMobile && activeMobileSheet === 'effects' && (
         <MobileEffectDropdown
           effects={ALL_PRESETS}
           selectedId={selectedEffect?.id ?? null}
           onSelect={handleMobileSelect}
-          onClose={() => setDropdownOpen(false)}
+          onClose={() => setActiveMobileSheet(null)}
         />
+      )}
+      {isMobile && activeMobileSheet === 'controls' && (
+        <MobileControlsSheet onClose={() => setActiveMobileSheet(null)} />
       )}
     </>
   )

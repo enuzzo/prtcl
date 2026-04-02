@@ -1,11 +1,10 @@
 import { create } from 'zustand'
 import type { Effect, CompiledEffectFn, Control } from './engine/types'
 import type { TrackingSlice } from './tracking/types'
-import type { AudioSlice } from './audio/types'
 import { getBackgroundPreset } from './editor/background-presets'
 import { DEFAULT_SPIRIT_SETTINGS, type SpiritSettings } from './engine/spirit/config'
 
-export interface PrtclState extends TrackingSlice, AudioSlice {
+export interface PrtclState extends TrackingSlice {
   // Effect state
   selectedEffect: Effect | null
   compiledFn: CompiledEffectFn | null
@@ -253,21 +252,6 @@ export const useStore = create<PrtclState>((set) => ({
   setTrackingError: (error) => set({ trackingError: error }),
   setTrackingMode: (mode) => set({ trackingMode: mode }),
   updateHandState: (state) => set(state),
-
-  // ── Audio ───────────────────────────────────────────────
-  audioEnabled: false,
-  audioReady: false,
-  audioError: null,
-  bassBand: 0,
-  midsBand: 0,
-  highsBand: 0,
-  energy: 0,
-  beat: 0,
-
-  setAudioEnabled: (on) => set({ audioEnabled: on }),
-  setAudioReady: (ready) => set({ audioReady: ready }),
-  setAudioError: (error) => set({ audioError: error }),
-  updateAudioData: (data) => set(data),
 
   // Actions: performance (throttled to once per second, batched together)
   setFps: (fps) => {

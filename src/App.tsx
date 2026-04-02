@@ -1,8 +1,9 @@
-import { lazy, Suspense, useState, useCallback } from 'react'
+import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { LandingPage } from './landing/LandingPage'
 import { SplashScreen } from './components/SplashScreen'
 import { useStore } from './store'
+import { useIsMobile } from './hooks/useIsMobile'
 
 // Lazy-load heavy routes so Three.js/R3F never loads on the landing page
 const EditorLayout = lazy(() =>
@@ -13,9 +14,19 @@ const EmbedView = lazy(() =>
 )
 
 function AppRoutes() {
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(
+    () => typeof window === 'undefined' || window.innerWidth >= 768,
+  )
   const location = useLocation()
+  const isMobile = useIsMobile()
   const isCreate = location.pathname === '/create'
+
+  useEffect(() => {
+    if (isCreate && isMobile) {
+      setShowSplash(false)
+      useStore.getState().setIntroPhase('complete')
+    }
+  }, [isCreate, isMobile])
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)

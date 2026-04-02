@@ -10,7 +10,11 @@ import { SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET } from '../engine/spirit/c
 import { SPIRIT_PRESETS, getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
 import { AXIOM_PRESETS, getAxiomPreset, matchAxiomPreset } from '../effects/presets/axiom-presets'
 
-export function ControlPanel() {
+interface ControlPanelProps {
+  mobile?: boolean
+}
+
+export function ControlPanel({ mobile = false }: ControlPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const paneRef = useRef<Pane | null>(null)
   const controls = useStore((s) => s.controls)
@@ -455,7 +459,7 @@ export function ControlPanel() {
   }, [controlSchema]) // Depend on schema (ids+ranges), NOT on array reference
 
   return (
-    <div className="w-[320px] h-full bg-surface border-l border-border overflow-y-auto">
+    <div className={mobile ? 'w-full bg-surface' : 'w-[320px] h-full bg-surface border-l border-border overflow-y-auto'}>
       <TrackingSidebar />
       <div ref={containerRef} className="p-2" />
       {selectedEffectId === 'the-spirit' ? (

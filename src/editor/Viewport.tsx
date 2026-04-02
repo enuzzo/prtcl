@@ -16,7 +16,6 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { resetHandCamera, updateHandCamera } from '../tracking/hand-camera'
 import { useHandTracking } from '../tracking/useHandTracking'
-import { useAudioReactivity } from '../audio/useAudioReactivity'
 import { TrackingThumbnail } from './TrackingThumbnail'
 import { SceneBackground } from './SceneBackground'
 
@@ -223,7 +222,6 @@ export function Viewport() {
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const selectedEffect = useStore((s) => s.selectedEffect)
   const { videoEl } = useHandTracking()
-  useAudioReactivity()
 
   const overlayRendererId = selectedEffect?.customRenderer
   const OverlayRenderer = overlayRendererId ? OVERLAY_RENDERERS[overlayRendererId] ?? null : null

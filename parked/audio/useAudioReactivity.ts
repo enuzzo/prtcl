@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useStore } from '../store'
+import { useStore } from '../../src/store'
 import { computeBands, BeatDetector } from './analyser'
 
 /**
