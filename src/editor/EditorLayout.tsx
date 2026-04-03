@@ -16,6 +16,8 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { resetHandCamera } from '../tracking/hand-camera'
 import { getSpiritColorway } from '../engine/spirit/colorways'
 import { getSpiritPreset } from '../engine/spirit/presets'
+import { getFlowColorway } from '../engine/flow/colorways'
+import { getFlowPreset } from '../engine/flow/presets'
 import type { Effect } from '../engine/types'
 
 const LEFT_W = 280
@@ -95,6 +97,9 @@ export function EditorLayout() {
       if (effect.id === 'the-spirit') {
         store.resetSpiritSettings()
       }
+      if (effect.id === 'volumetric-flow') {
+        store.resetFlowSettings()
+      }
       const cp = effect.cameraPosition ?? [0, 0, 5]
       const ct = effect.cameraTarget ?? [0, 0, 0]
       const dx = cp[0] - ct[0], dy = cp[1] - ct[1], dz = cp[2] - ct[2]
@@ -173,6 +178,28 @@ export function EditorLayout() {
 
       if (shareState.sp) {
         store.patchSpiritSettings(shareState.sp)
+      }
+
+      if (shareState.fp) {
+        const preset = getFlowPreset(shareState.fp)
+        if (preset) {
+          store.patchFlowSettings(preset.flow)
+        }
+      }
+
+      if (shareState.fc) {
+        const colorway = getFlowColorway(shareState.fc)
+        if (colorway) {
+          store.patchFlowSettings({
+            color1: colorway.color1,
+            color2: colorway.color2,
+            bgColor: colorway.bgColor,
+          })
+        }
+      }
+
+      if (shareState.fl) {
+        store.patchFlowSettings(shareState.fl)
       }
 
       // Camera zoom — must come AFTER handleSelectEffect which resets zoom to 1

@@ -23,6 +23,7 @@ describe('encodeShareState', () => {
       font: 'Orbitron',
       w: '700',
       ls: 1.5,
+      fp: 'bloom',
       sc: 'melito',
     }
     const hash = encodeShareState(state)
@@ -30,6 +31,7 @@ describe('encodeShareState', () => {
     expect(hash).toContain('p=20000')
     expect(hash).toContain('ps=2.5')
     expect(hash).toContain('bg=plasma')
+    expect(hash).toContain('fp=bloom')
     expect(hash).toContain('sc=melito')
   })
 
@@ -114,6 +116,20 @@ describe('parseShareHash', () => {
     })
   })
 
+  it('parses flow settings payload', () => {
+    const result = parseShareHash('#effect=volumetric-flow&fp=bloom&fc=original&fl=%7B%22p%22%3A20000%2C%22sz%22%3A1.4%2C%22w%22%3A1.8%7D')
+    expect(result).toEqual({
+      effect: 'volumetric-flow',
+      fp: 'bloom',
+      fc: 'original',
+      fl: {
+        particleCount: 20000,
+        particleSize: 1.4,
+        spread: 1.8,
+      },
+    })
+  })
+
   it('ignores negative particleCount', () => {
     const result = parseShareHash('#effect=test&p=-100')
     expect(result?.p).toBeUndefined()
@@ -137,6 +153,8 @@ describe('round-trip', () => {
       w: '700',
       ls: 1.0,
       sp: { radius: 0.75, followMouse: false, color1: '#ffffff' },
+      fp: 'bloom',
+      fl: { particleCount: 24000, particleSize: 1.6, spread: 1.9, color1: '#ff4040' },
     }
     const hash = encodeShareState(original)
     const decoded = parseShareHash('#' + hash)

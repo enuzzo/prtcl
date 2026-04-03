@@ -161,6 +161,58 @@
   max-width: none !important;
 }
 
+/* Color input: give the picker the same roomy feel across effects */
+.tp-rotv .tp-colv {
+  width: 100%;
+}
+
+.tp-rotv .tp-colv_h {
+  width: 100%;
+}
+
+.tp-rotv .tp-colv_t {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tp-rotv .tp-colv .tp-popv {
+  left: auto !important;
+  right: 0 !important;
+  width: 260px !important;
+  min-width: 260px;
+  max-width: min(260px, calc(100vw - 24px));
+  z-index: 90;
+}
+
+.tp-rotv .tp-colv .tp-colpv {
+  min-width: 240px;
+}
+
+.tp-rotv .tp-colv .tp-svpv_c {
+  height: calc(var(--tp-container-unit-size, 20px) * 8);
+}
+
+.tp-rotv .tp-colv .tp-colpv_h,
+.tp-rotv .tp-colv .tp-colpv_ap {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.tp-rotv .tp-colv .tp-hplv {
+  height: calc(var(--tp-container-unit-size, 20px) * 1.2);
+}
+
+.tp-rotv .tp-colv .tp-svpv_m,
+.tp-rotv .tp-colv .tp-hplv_m {
+  height: 14px;
+  width: 14px;
+}
+
+.tp-rotv .tp-colv .tp-svpv_m {
+  margin-left: -7px;
+  margin-top: -7px;
+}
+
 /* Stacked layout: label above slider (prevents label truncation in narrow panel) */
 .tp-rotv .tp-lblv {
   flex-direction: column;

@@ -11,6 +11,9 @@ import { getBackgroundPreset } from './background-presets'
 import { DEFAULT_SPIRIT_SETTINGS, type SpiritSettings } from '../engine/spirit/config'
 import { matchSpiritColorway } from '../engine/spirit/colorways'
 import { getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
+import { DEFAULT_FLOW_SETTINGS, type FlowSettings } from '../engine/flow/config'
+import { matchFlowColorway } from '../engine/flow/colorways'
+import { matchFlowPreset } from '../engine/flow/presets'
 import type { Effect } from '../engine/types'
 
 interface TopBarProps {
@@ -81,6 +84,35 @@ function getSpiritShareDiff(
   return Object.keys(diff).length > 0 ? diff : undefined
 }
 
+function getFlowShareDiff(
+  settings: FlowSettings,
+  colorwayId: string | undefined,
+): Partial<FlowSettings> | undefined {
+  const diff: Partial<FlowSettings> = {}
+
+  for (const key of Object.keys(DEFAULT_FLOW_SETTINGS) as Array<keyof FlowSettings>) {
+    if (colorwayId && (key === 'color1' || key === 'color2' || key === 'bgColor')) {
+      continue
+    }
+
+    const current = settings[key]
+    const baseline = DEFAULT_FLOW_SETTINGS[key]
+
+    if (typeof current === 'number' && typeof baseline === 'number') {
+      if (!near(current, baseline)) {
+        diff[key] = (key === 'particleCount' ? Math.round(current) : round3(current)) as never
+      }
+      continue
+    }
+
+    if (current !== baseline) {
+      diff[key] = current as never
+    }
+  }
+
+  return Object.keys(diff).length > 0 ? diff : undefined
+}
+
 export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const [activeMobileSheet, setActiveMobileSheet] = useState<'effects' | 'controls' | null>(null)
   const isFullscreen = useStore((s) => s.isFullscreen)
@@ -132,6 +164,9 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
     let spiritPresetId: string | undefined
     let spiritColorwayId: string | undefined
     let spiritDiff: Partial<SpiritSettings> | undefined
+    let flowPresetId: string | undefined
+    let flowColorwayId: string | undefined
+    let flowDiff: Partial<FlowSettings> | undefined
 
     if (effect.id === 'the-spirit') {
       const currentCamera = {
@@ -154,6 +189,24 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
           spiritColorwayId = matchedColorwayId
         }
         spiritDiff = getSpiritShareDiff(store.spiritSettings, spiritColorwayId)
+      }
+    }
+
+    if (effect.id === 'volumetric-flow') {
+      const matchedPresetId = matchFlowPreset(store.flowSettings)
+      if (matchedPresetId !== 'custom') {
+        flowPresetId = matchedPresetId
+      }
+
+      const matchedColorwayId = matchFlowColorway(store.flowSettings)
+      if (!flowPresetId && matchedColorwayId !== 'custom' && matchedColorwayId !== 'original') {
+        flowColorwayId = matchedColorwayId
+      }
+      if (!flowPresetId) {
+        flowDiff = getFlowShareDiff(
+          store.flowSettings,
+          matchedColorwayId !== 'custom' ? matchedColorwayId : undefined,
+        )
       }
     }
 
@@ -203,6 +256,9 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
       spr: spiritPresetId,
       sc: spiritColorwayId,
       sp: spiritDiff,
+      fp: flowPresetId,
+      fc: flowColorwayId,
+      fl: flowDiff,
     })
 
     const url = `${window.location.origin}/create#${hash}`

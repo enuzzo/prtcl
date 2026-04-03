@@ -1,5 +1,6 @@
 import type { ShareState } from './types'
 import type { SpiritSettings } from '../engine/spirit/config'
+import type { FlowSettings } from '../engine/flow/config'
 
 const R = (n: number) => Math.round(n * 1000) / 1000
 
@@ -33,6 +34,29 @@ const SPIRIT_KEY_MAP: Record<ShareableSpiritKey, string> = {
 }
 
 const SPIRIT_KEY_ENTRIES = Object.entries(SPIRIT_KEY_MAP) as Array<[ShareableSpiritKey, string]>
+
+type ShareableFlowKey =
+  | 'particleCount'
+  | 'particleSize'
+  | 'spread'
+  | 'speed'
+  | 'turbulence'
+  | 'color1'
+  | 'color2'
+  | 'bgColor'
+
+const FLOW_KEY_MAP: Record<ShareableFlowKey, string> = {
+  particleCount: 'p',
+  particleSize: 'sz',
+  spread: 'w',
+  speed: 's',
+  turbulence: 't',
+  color1: 'c1',
+  color2: 'c2',
+  bgColor: 'bg',
+}
+
+const FLOW_KEY_ENTRIES = Object.entries(FLOW_KEY_MAP) as Array<[ShareableFlowKey, string]>
 
 function encodeVec3(v: [number, number, number]): string {
   return `${R(v[0])},${R(v[1])},${R(v[2])}`
@@ -97,6 +121,50 @@ function decodeSpiritSettings(raw: string): Partial<SpiritSettings> | undefined 
   }
 }
 
+function encodeFlowSettings(settings: Partial<FlowSettings>): string {
+  const compact: Record<string, number | string> = {}
+
+  for (const [key, shortKey] of FLOW_KEY_ENTRIES) {
+    const value = settings[key]
+    if (value == null) continue
+
+    if (typeof value === 'number') {
+      compact[shortKey] = key === 'particleCount' ? Math.round(value) : R(value)
+    } else {
+      compact[shortKey] = value
+    }
+  }
+
+  return JSON.stringify(compact)
+}
+
+function decodeFlowSettings(raw: string): Partial<FlowSettings> | undefined {
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const settings: Partial<FlowSettings> = {}
+
+    for (const [key, shortKey] of FLOW_KEY_ENTRIES) {
+      const value = parsed[shortKey]
+      if (value == null) continue
+
+      if (key === 'color1' || key === 'color2' || key === 'bgColor') {
+        if (typeof value === 'string') {
+          settings[key] = value as never
+        }
+        continue
+      }
+
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        settings[key] = value as never
+      }
+    }
+
+    return Object.keys(settings).length > 0 ? settings : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * Encode editor state into a URL hash string (without the leading #).
  */
@@ -126,6 +194,11 @@ export function encodeShareState(state: ShareState): string {
   if (state.sc) params.set('sc', state.sc)
   if (state.sp && Object.keys(state.sp).length > 0) {
     params.set('sp', encodeSpiritSettings(state.sp))
+  }
+  if (state.fp) params.set('fp', state.fp)
+  if (state.fc) params.set('fc', state.fc)
+  if (state.fl && Object.keys(state.fl).length > 0) {
+    params.set('fl', encodeFlowSettings(state.fl))
   }
 
   return params.toString()
@@ -207,6 +280,18 @@ export function parseShareHash(hash: string): ShareState | null {
   if (sp) {
     const decoded = decodeSpiritSettings(sp)
     if (decoded) state.sp = decoded
+  }
+
+  const fp = params.get('fp')
+  if (fp) state.fp = fp
+
+  const fc = params.get('fc')
+  if (fc) state.fc = fc
+
+  const fl = params.get('fl')
+  if (fl) {
+    const decoded = decodeFlowSettings(fl)
+    if (decoded) state.fl = decoded
   }
 
   return state

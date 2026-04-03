@@ -14,7 +14,7 @@ GPU-accelerated particle effects you can drop into any website. Pick a preset, t
 
 </div>
 
-21 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Audio reactivity. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
+22 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Legacy WebGL oddities preserved in glass boxes. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Audio reactivity. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
 
 **[prtcl.es](https://prtcl.es)**
 
@@ -47,11 +47,11 @@ The render loop pre-allocates everything and reads state via Zustand's `getState
 
 **Bloom** is engine-level via `@react-three/postprocessing` — effects opt in with `bloom: true`. ACES tone mapping when active. Disabled on mobile. Zero overhead when off.
 
-**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. The Spirit preserves Edan Kwan's original MIT-licensed piece through an isolated legacy Three.js renderer, because some apparitions should not be domesticated. All three run outside the standard particle path.
+**Custom renderers** let effects break free from the particle system entirely. Inside Nebula uses volumetric raymarching on a BackSide BoxGeometry. Iridescence wraps a fluid holographic domain-warping shader on a SphereGeometry with Fresnel shading. The Spirit preserves Edan Kwan's original MIT-licensed piece through an isolated legacy Three.js renderer, because some apparitions should not be domesticated. Volumetric Flow does the same for David Li's plume, now wired into the PRTCL panel with native share support and dedicated Flow presets. All four run outside the standard particle path.
 
 Hand tracking uses MediaPipe Hands WASM (~4MB, lazy-loaded). Open palm controls camera orbit and zoom. Disturb mode lets your hand pass through the particle cloud. The Spirit is the exception: in `Control` mode the camera stays put and your palm puppeteers the apparition itself, which politely returns to center when tracking drops. All inputs are smoothed. It works better than it has any right to.
 
-Some effects now ship with **curated presets inside the control panel**, not just baked defaults in code. The Spirit and Axiom currently expose `Default` and `Melito`, each applying a full bundle of camera, zoom, background, particle settings, and effect controls in one click. The moment you start tweaking, the preset quietly becomes `Custom`, because lying to artists would be rude.
+Some effects now ship with **curated presets inside the control panel**, not just baked defaults in code. The Spirit and Axiom currently expose `Default` and `Melito`, each applying a full bundle of camera, zoom, background, particle settings, and effect controls in one click. Volumetric Flow now does the same with `Bloom` and `Original`, while still exposing direct controls for particle size, plume width, speed, turbulence, and its internal color trio. The moment you start tweaking, the preset quietly becomes `Custom`, because lying to artists would be rude.
 
 The Spirit also behaves like its own little haunted subsystem: it uses an internal background color instead of the global scene backgrounds, exposes a separate palette dropdown, and splits `Floor Shadow` from `Inner Shadow` so the shadow on the ground can be art-directed independently from the self-shadowing inside the cloud.
 
@@ -64,7 +64,7 @@ The Spirit also behaves like its own little haunted subsystem: it uses an intern
 | **Math** | Fractal Frequency, Hopf Fibration, 4D Clifford Torus, Electromagnetic Field, Perlin Noise, Hyperflower |
 | **Organic** | Nebula Organica, Inside Nebula, Cumulonimbus Storm, Fireflies, Murmuration |
 | **Text** | Text Wave, Text Scatter, Text Dissolve, Text Terrain |
-| **Abstract** | Starfield, Black Hole, Axiom, Paper Fleet, Iridescence, The Spirit |
+| **Abstract** | Starfield, Black Hole, Axiom, Paper Fleet, Iridescence, The Spirit, Volumetric Flow |
 
 ---
 
@@ -79,6 +79,7 @@ Inspired by [particles.casberry.in](https://particles.casberry.in/) by [Casberry
 | Inside Nebula | [Sabo Sugi](https://codepen.io/sabosugi/pen/ZYprEOw) — volumetric raymarching nebula | MIT |
 | Iridescence | [Sabo Sugi](https://codepen.io/sabosugi/pen/zxKELBB) — fluid holographic shader | MIT |
 | The Spirit | Edan Kwan — original MIT-licensed effect, preserved here through an isolated legacy renderer with explicit author credit retained in the repo | MIT |
+| Volumetric Flow | [David Li](http://david.li/flow) — original volumetric particle plume, preserved through an isolated legacy WebGL renderer with native PRTCL controls layered on top | MIT |
 | Perlin Noise | [Victor Vergara](https://codepen.io/vcomics/pen/djqNrm) — GLSL Perlin displacement, Perlin noise by [Stefan Gustavson](https://github.com/ashima/webgl-noise) | MIT |
 | All other effects | PRTCL Team | MIT |
 

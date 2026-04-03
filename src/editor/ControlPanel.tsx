@@ -9,6 +9,8 @@ import { SPIRIT_COLORWAYS, getSpiritColorway, matchSpiritColorway } from '../eng
 import { SPIRIT_CAMERA_POSITION, SPIRIT_CAMERA_TARGET } from '../engine/spirit/config'
 import { SPIRIT_PRESETS, getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
 import { AXIOM_PRESETS, getAxiomPreset, matchAxiomPreset } from '../effects/presets/axiom-presets'
+import { FLOW_PARTICLE_COUNT_MAX, FLOW_PARTICLE_COUNT_MIN } from '../engine/flow/config'
+import { FLOW_PRESETS, getFlowPreset, matchFlowPreset } from '../engine/flow/presets'
 
 interface ControlPanelProps {
   mobile?: boolean
@@ -18,11 +20,13 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const paneRef = useRef<Pane | null>(null)
   const controls = useStore((s) => s.controls)
+  const selectedEffect = useStore((s) => s.selectedEffect)
 
   // Only rebuild Tweakpane when the SET of controls changes (new effect selected),
   // not when control VALUES change (slider moved). This prevents disposing the pane
   // mid-event which causes a crash.
-  const selectedEffectId = useStore((s) => s.selectedEffect?.id)
+  const selectedEffectId = selectedEffect?.id
+  const isFlowMaster = selectedEffect?.customRenderer === 'flow-master'
 
   const controlSchema = useMemo(
     () => `${selectedEffectId}|${controls.map((c) => `${c.id}:${c.min}:${c.max}:${c.initial}`).join('|')}`,
@@ -39,27 +43,31 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
     const pane = new Pane({ container: containerRef.current }) as any
     paneRef.current = pane
 
-    // ── Camera controls ────────────────────────────────────
     const selectedEffect = useStore.getState().selectedEffect
     const isSpirit = selectedEffect?.id === 'the-spirit'
-    const { autoRotateSpeed, cameraZoom } = useStore.getState()
-    const cameraFolder = pane.addFolder({ title: 'Camera' })
-    const cameraParams = { autoRotateSpeed, cameraZoom }
+    const { autoRotateSpeed, cameraZoom, flowSettings } = useStore.getState()
+    const isFlowMasterEffect = selectedEffect?.customRenderer === 'flow-master'
 
-    if (!isSpirit) {
-      cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
-        min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
-      }).on('change', (ev: { value: number }) => {
-        useStore.getState().setAutoRotateSpeed(ev.value)
-      })
+    // ── Camera controls ────────────────────────────────────
+    const cameraParams = { autoRotateSpeed, cameraZoom }
+    if (!isFlowMasterEffect) {
+      const cameraFolder = pane.addFolder({ title: 'Camera' })
+
+      if (!isSpirit) {
+        cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
+          min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
+        }).on('change', (ev: { value: number }) => {
+          useStore.getState().setAutoRotateSpeed(ev.value)
+        })
+      }
+
+      cameraFolder.addBinding(cameraParams, 'cameraZoom', {
+        min: 0.2, max: isSpirit ? 3 : 10, step: 0.1, label: 'Zoom',
+      }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
     }
 
-    cameraFolder.addBinding(cameraParams, 'cameraZoom', {
-      min: 0.2, max: isSpirit ? 3 : 10, step: 0.1, label: 'Zoom',
-    }).on('change', (ev: { value: number }) => useStore.getState().setCameraZoom(ev.value))
-
     // ── Text controls (only for text effects) ────────────
-    if (selectedEffect?.category === 'text') {
+    if (!isFlowMasterEffect && selectedEffect?.category === 'text') {
       const textFolder = pane.addFolder({ title: 'Text' })
       const { textInput, textFont, textWeight } = useStore.getState()
 
@@ -122,7 +130,138 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
       3: 'The happiness of your life depends upon the quality of your thoughts. Waste no more time arguing about what a good man should be. Be one. The best revenge is to be unlike him who performed the injury. Very little is needed to make a happy life. It is all within yourself in your way of thinking.',
     }
 
-    {
+    if (isFlowMasterEffect) {
+      const flowFolder = pane.addFolder({ title: 'Flow' })
+      const flowPresetOptions: Record<string, string> = { Custom: 'custom' }
+      for (const preset of FLOW_PRESETS) {
+        flowPresetOptions[preset.name] = preset.id
+      }
+      const flowParams = {
+        preset: matchFlowPreset(flowSettings),
+        particleCount: flowSettings.particleCount,
+        particleSize: flowSettings.particleSize,
+        spread: flowSettings.spread,
+        speed: flowSettings.speed,
+        turbulence: flowSettings.turbulence,
+        color1: flowSettings.color1,
+        color2: flowSettings.color2,
+        bgColor: flowSettings.bgColor,
+      }
+
+      flowFolder.addBinding(flowParams, 'preset', {
+        label: 'Preset',
+        options: flowPresetOptions,
+      }).on('change', (ev: { value: string }) => {
+        const preset = getFlowPreset(ev.value)
+        if (!preset) return
+        Object.assign(flowParams, {
+          preset: preset.id,
+          ...preset.flow,
+        })
+        useStore.getState().patchFlowSettings(preset.flow)
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'particleCount', {
+        label: 'Particle Count',
+        min: FLOW_PARTICLE_COUNT_MIN,
+        max: FLOW_PARTICLE_COUNT_MAX,
+        step: 1,
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, particleCount: ev.value })
+        useStore.getState().patchFlowSettings({ particleCount: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'particleSize', {
+        label: 'Particle Size',
+        min: 0.4,
+        max: 3,
+        step: 0.01,
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, particleSize: ev.value })
+        useStore.getState().patchFlowSettings({ particleSize: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'spread', {
+        label: 'Flow Width',
+        min: 0.5,
+        max: 3,
+        step: 0.01,
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, spread: ev.value })
+        useStore.getState().patchFlowSettings({ spread: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'speed', {
+        min: 0, max: 5, step: 0.01, label: 'Speed',
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, speed: ev.value })
+        useStore.getState().patchFlowSettings({ speed: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'turbulence', {
+        min: 0, max: 0.5, step: 0.001, label: 'Turbulence',
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, turbulence: ev.value })
+        useStore.getState().patchFlowSettings({ turbulence: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'color1', {
+        label: 'Base Color', view: 'color',
+      }).on('change', (ev: { value: string }) => {
+        flowParams.preset = matchFlowPreset({
+          particleCount: flowParams.particleCount,
+          particleSize: flowParams.particleSize,
+          spread: flowParams.spread,
+          speed: flowParams.speed,
+          turbulence: flowParams.turbulence,
+          color1: ev.value,
+          color2: flowParams.color2,
+          bgColor: flowParams.bgColor,
+        })
+        useStore.getState().patchFlowSettings({ color1: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'color2', {
+        label: 'Shadow Color', view: 'color',
+      }).on('change', (ev: { value: string }) => {
+        flowParams.preset = matchFlowPreset({
+          particleCount: flowParams.particleCount,
+          particleSize: flowParams.particleSize,
+          spread: flowParams.spread,
+          speed: flowParams.speed,
+          turbulence: flowParams.turbulence,
+          color1: flowParams.color1,
+          color2: ev.value,
+          bgColor: flowParams.bgColor,
+        })
+        useStore.getState().patchFlowSettings({ color2: ev.value })
+        pane.refresh()
+      })
+
+      flowFolder.addBinding(flowParams, 'bgColor', {
+        label: 'Background', view: 'color',
+      }).on('change', (ev: { value: string }) => {
+        flowParams.preset = matchFlowPreset({
+          particleCount: flowParams.particleCount,
+          particleSize: flowParams.particleSize,
+          spread: flowParams.spread,
+          speed: flowParams.speed,
+          turbulence: flowParams.turbulence,
+          color1: flowParams.color1,
+          color2: flowParams.color2,
+          bgColor: ev.value,
+        })
+        useStore.getState().patchFlowSettings({ bgColor: ev.value })
+        pane.refresh()
+      })
+    } else {
       const effectFolder = pane.addFolder({ title: 'Effect' })
       let markCurrentEffectPresetCustom: (() => void) | null = null
       let effectGlobals: { particleCount: number; pointSize: number } | null = null
@@ -417,15 +556,18 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
         effect: s.selectedEffect?.id ?? 'unknown',
         particleCount: s.particleCount,
         pointSize: Math.round(s.pointSize * 1000) / 1000,
-        backgroundPreset: s.selectedEffect?.id === 'the-spirit' ? undefined : s.backgroundPreset,
+        backgroundPreset: s.selectedEffect?.id === 'the-spirit' || s.selectedEffect?.id === 'volumetric-flow' ? undefined : s.backgroundPreset,
         camera: {
           autoRotateSpeed: s.autoRotateSpeed,
           zoom: s.cameraZoom,
-          position: cam?.position ?? [0, 0, 5],
-          target: cam?.target ?? [0, 0, 0],
+          position: cam?.position ?? s.selectedEffect?.cameraPosition ?? [0, 0, 5],
+          target: cam?.target ?? s.selectedEffect?.cameraTarget ?? [0, 0, 0],
         },
         spirit: s.selectedEffect?.id === 'the-spirit'
           ? { ...s.spiritSettings }
+          : undefined,
+        flow: s.selectedEffect?.id === 'volumetric-flow'
+          ? { ...s.flowSettings }
           : undefined,
         controls: Object.fromEntries(
           s.controls.map((c) => [c.id, Math.round(c.value * 1000) / 1000]),
@@ -456,7 +598,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
     })
 
     return () => { pane.dispose(); paneRef.current = null }
-  }, [controlSchema]) // Depend on schema (ids+ranges), NOT on array reference
+  }, [controlSchema, isFlowMaster]) // Depend on schema (ids+ranges), NOT on array reference
 
   return (
     <div className={mobile ? 'w-full bg-surface' : 'w-[320px] h-full bg-surface border-l border-border overflow-y-auto'}>
@@ -467,6 +609,16 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
           <p className="text-[10px] font-mono uppercase tracking-wider text-text-secondary">Background</p>
           <p className="mt-1 text-[11px] leading-tight text-text-muted">
             The Spirit uses its own internal background color. Use the Spirit palette or the `Background` color above.
+          </p>
+        </div>
+      ) : isFlowMaster ? (
+        <div className="mx-3 mt-0.5 mb-2 rounded-lg border border-border bg-elevated/70 px-3 py-2">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-text-secondary">Original Renderer</p>
+          <p className="mt-1 text-[11px] leading-tight text-text-muted">
+            The simulation is still the original David Li WebGL renderer. We only moved its controls into the PRTCL panel.
+          </p>
+          <p className="mt-1 text-[11px] leading-tight text-text-muted">
+            Particle count is exposed with fine control in the UI, but this renderer still snaps between stable simulation tiers internally.
           </p>
         </div>
       ) : (

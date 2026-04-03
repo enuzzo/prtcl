@@ -9,6 +9,7 @@ import { PerlinNoise } from '../engine/PerlinNoise'
 import { InsideNebula } from '../engine/InsideNebula'
 import { Iridescence } from '../engine/Iridescence'
 import { Spirit } from '../engine/Spirit'
+import { FlowMaster } from '../engine/FlowMaster'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store'
@@ -157,6 +158,7 @@ const CANVAS_CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
 
 const OVERLAY_RENDERERS: Record<string, React.ComponentType> = {
   'the-spirit': Spirit,
+  'flow-master': FlowMaster,
 }
 
 /** Conditional bloom post-processing — zero overhead when disabled.
@@ -221,12 +223,20 @@ function BloomEffect() {
 export function Viewport() {
   const trackingEnabled = useStore((s) => s.trackingEnabled)
   const selectedEffect = useStore((s) => s.selectedEffect)
+  const flowBgColor = useStore((s) => s.flowSettings.bgColor)
+  const spiritBgColor = useStore((s) => s.spiritSettings.bgColor)
   const { videoEl } = useHandTracking()
 
   const overlayRendererId = selectedEffect?.customRenderer
   const OverlayRenderer = overlayRendererId ? OVERLAY_RENDERERS[overlayRendererId] ?? null : null
   const CanvasCustomRenderer = overlayRendererId ? CANVAS_CUSTOM_RENDERERS[overlayRendererId] ?? null : null
   const hideCanvas = Boolean(OverlayRenderer)
+  const overlayBackground =
+    overlayRendererId === 'flow-master'
+      ? flowBgColor
+      : overlayRendererId === 'the-spirit'
+        ? spiritBgColor
+        : undefined
 
   let sceneContent: React.ReactNode = null
   if (CanvasCustomRenderer) {
@@ -236,7 +246,7 @@ export function Viewport() {
   }
 
   return (
-    <div className="flex-1 min-w-0 relative">
+    <div className="flex-1 min-w-0 relative" style={overlayBackground ? { background: overlayBackground } : undefined}>
       <Canvas
         className={hideCanvas ? 'opacity-0 pointer-events-none' : undefined}
         camera={{ position: [0, 0, 14], fov: 60 }}

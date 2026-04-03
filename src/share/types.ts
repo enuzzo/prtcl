@@ -1,4 +1,5 @@
 import type { SpiritSettings } from '../engine/spirit/config'
+import type { FlowSettings } from '../engine/flow/config'
 
 /** Decoded share state from URL hash. All fields optional except effect. */
 export interface ShareState {
@@ -19,4 +20,7 @@ export interface ShareState {
   spr?: string                              // Spirit preset ID
   sc?: string                               // Spirit colorway ID
   sp?: Partial<SpiritSettings>              // Spirit settings diff
+  fp?: string                               // Flow preset ID
+  fc?: string                               // Flow colorway ID
+  fl?: Partial<FlowSettings>                // Flow settings diff
 }

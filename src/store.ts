@@ -3,6 +3,7 @@ import type { Effect, CompiledEffectFn, Control } from './engine/types'
 import type { TrackingSlice } from './tracking/types'
 import { getBackgroundPreset } from './editor/background-presets'
 import { DEFAULT_SPIRIT_SETTINGS, type SpiritSettings } from './engine/spirit/config'
+import { DEFAULT_FLOW_SETTINGS, normalizeFlowSettings, type FlowSettings } from './engine/flow/config'
 
 export interface PrtclState extends TrackingSlice {
   // Effect state
@@ -51,6 +52,7 @@ export interface PrtclState extends TrackingSlice {
   textPoints: Float32Array | null
   textFontsLoaded: boolean
   spiritSettings: SpiritSettings
+  flowSettings: FlowSettings
 
   // Performance (throttled — updated at most once per second)
   fps: number
@@ -102,6 +104,8 @@ export interface PrtclState extends TrackingSlice {
   setTextFontsLoaded: (loaded: boolean) => void
   patchSpiritSettings: (patch: Partial<SpiritSettings>) => void
   resetSpiritSettings: () => void
+  patchFlowSettings: (patch: Partial<FlowSettings>) => void
+  resetFlowSettings: () => void
 
   // Actions: performance (throttled internally)
   setFps: (fps: number) => void
@@ -163,6 +167,7 @@ export const useStore = create<PrtclState>((set) => ({
   textPoints: null,
   textFontsLoaded: false,
   spiritSettings: { ...DEFAULT_SPIRIT_SETTINGS },
+  flowSettings: { ...DEFAULT_FLOW_SETTINGS },
 
   // Performance
   fps: 0,
@@ -235,6 +240,10 @@ export const useStore = create<PrtclState>((set) => ({
     spiritSettings: { ...state.spiritSettings, ...patch },
   })),
   resetSpiritSettings: () => set({ spiritSettings: { ...DEFAULT_SPIRIT_SETTINGS } }),
+  patchFlowSettings: (patch) => set((state) => ({
+    flowSettings: normalizeFlowSettings({ ...state.flowSettings, ...patch }),
+  })),
+  resetFlowSettings: () => set({ flowSettings: { ...DEFAULT_FLOW_SETTINGS } }),
 
   // ── Tracking ──────────────────────────────────────────
   trackingEnabled: false,
