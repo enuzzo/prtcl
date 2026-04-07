@@ -50,7 +50,21 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
 
     // ── Camera controls ────────────────────────────────────
     const cameraParams = { autoRotateSpeed, cameraZoom }
-    if (!isFlowMasterEffect) {
+    // Shared ref so flow preset handler can update the camera sliders
+    const flowCameraParams = { autoRotateSpeed: flowSettings.autoRotateSpeed, zoom: flowSettings.zoom }
+    if (isFlowMasterEffect) {
+      const cameraFolder = pane.addFolder({ title: 'Camera' })
+      cameraFolder.addBinding(flowCameraParams, 'autoRotateSpeed', {
+        min: -5, max: 5, step: 0.1, label: 'Auto Rotate',
+      }).on('change', (ev: { value: number }) => {
+        useStore.getState().patchFlowSettings({ autoRotateSpeed: ev.value })
+      })
+      cameraFolder.addBinding(flowCameraParams, 'zoom', {
+        min: 0.3, max: 3, step: 0.01, label: 'Zoom',
+      }).on('change', (ev: { value: number }) => {
+        useStore.getState().patchFlowSettings({ zoom: ev.value })
+      })
+    } else {
       const cameraFolder = pane.addFolder({ title: 'Camera' })
 
       if (!isSpirit) {
@@ -143,6 +157,9 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
         spread: flowSettings.spread,
         speed: flowSettings.speed,
         turbulence: flowSettings.turbulence,
+        autoRotateSpeed: flowSettings.autoRotateSpeed,
+        zoom: flowSettings.zoom,
+        sharpness: flowSettings.sharpness,
         color1: flowSettings.color1,
         color2: flowSettings.color2,
         bgColor: flowSettings.bgColor,
@@ -158,6 +175,9 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
           preset: preset.id,
           ...preset.flow,
         })
+        // Also update the camera autorotate params so pane.refresh() shows new value
+        flowCameraParams.autoRotateSpeed = preset.flow.autoRotateSpeed
+        flowCameraParams.zoom = preset.flow.zoom
         useStore.getState().patchFlowSettings(preset.flow)
         pane.refresh()
       })
@@ -211,19 +231,18 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
         pane.refresh()
       })
 
+      flowFolder.addBinding(flowParams, 'sharpness', {
+        min: 0.5, max: 5, step: 0.1, label: 'Focus',
+      }).on('change', (ev: { value: number }) => {
+        flowParams.preset = matchFlowPreset({ ...flowParams, sharpness: ev.value })
+        useStore.getState().patchFlowSettings({ sharpness: ev.value })
+        pane.refresh()
+      })
+
       flowFolder.addBinding(flowParams, 'color1', {
         label: 'Base Color', view: 'color',
       }).on('change', (ev: { value: string }) => {
-        flowParams.preset = matchFlowPreset({
-          particleCount: flowParams.particleCount,
-          particleSize: flowParams.particleSize,
-          spread: flowParams.spread,
-          speed: flowParams.speed,
-          turbulence: flowParams.turbulence,
-          color1: ev.value,
-          color2: flowParams.color2,
-          bgColor: flowParams.bgColor,
-        })
+        flowParams.preset = matchFlowPreset({ ...flowParams, color1: ev.value })
         useStore.getState().patchFlowSettings({ color1: ev.value })
         pane.refresh()
       })
@@ -231,16 +250,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
       flowFolder.addBinding(flowParams, 'color2', {
         label: 'Shadow Color', view: 'color',
       }).on('change', (ev: { value: string }) => {
-        flowParams.preset = matchFlowPreset({
-          particleCount: flowParams.particleCount,
-          particleSize: flowParams.particleSize,
-          spread: flowParams.spread,
-          speed: flowParams.speed,
-          turbulence: flowParams.turbulence,
-          color1: flowParams.color1,
-          color2: ev.value,
-          bgColor: flowParams.bgColor,
-        })
+        flowParams.preset = matchFlowPreset({ ...flowParams, color2: ev.value })
         useStore.getState().patchFlowSettings({ color2: ev.value })
         pane.refresh()
       })
@@ -248,16 +258,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
       flowFolder.addBinding(flowParams, 'bgColor', {
         label: 'Background', view: 'color',
       }).on('change', (ev: { value: string }) => {
-        flowParams.preset = matchFlowPreset({
-          particleCount: flowParams.particleCount,
-          particleSize: flowParams.particleSize,
-          spread: flowParams.spread,
-          speed: flowParams.speed,
-          turbulence: flowParams.turbulence,
-          color1: flowParams.color1,
-          color2: flowParams.color2,
-          bgColor: ev.value,
-        })
+        flowParams.preset = matchFlowPreset({ ...flowParams, bgColor: ev.value })
         useStore.getState().patchFlowSettings({ bgColor: ev.value })
         pane.refresh()
       })
@@ -611,17 +612,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
             The Spirit uses its own internal background color. Use the Spirit palette or the `Background` color above.
           </p>
         </div>
-      ) : isFlowMaster ? (
-        <div className="mx-3 mt-0.5 mb-2 rounded-lg border border-border bg-elevated/70 px-3 py-2">
-          <p className="text-[10px] font-mono uppercase tracking-wider text-text-secondary">Original Renderer</p>
-          <p className="mt-1 text-[11px] leading-tight text-text-muted">
-            The simulation is still the original David Li WebGL renderer. We only moved its controls into the PRTCL panel.
-          </p>
-          <p className="mt-1 text-[11px] leading-tight text-text-muted">
-            Particle count is exposed with fine control in the UI, but this renderer still snaps between stable simulation tiers internally.
-          </p>
-        </div>
-      ) : (
+      ) : isFlowMaster ? null : (
         <BackgroundPicker />
       )}
     </div>

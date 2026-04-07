@@ -201,7 +201,8 @@ Static marketing page at `/` with Netmilk brand voice copy. Editor lives at `/cr
 ### Key File Locations
 
 ```
-src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, types
+src/engine/              — Core: ParticleSystem, ShaderMaterial, compiler, validator, adaptive-quality, camera-bridge, FlowMaster, types
+src/engine/flow/         — Volumetric Flow: config (settings + quality levels), presets, colorways
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown, BackgroundPicker, SceneBackground, background-presets
 src/landing/             — Landing page: LandingPage, LandingNav, LandingHero, BackgroundEffect/Canvas, FeatureBento, EffectShowcase, FinalCTA, LandingFooter, icons
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
@@ -320,12 +321,18 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 4.07**: Font optimization — replaced 2.2MB Nerd Font TTF with 20KB Inconsolata woff2 subset, `font-display: block` to prevent FOUT (dark background masks invisible text period). Removed Google Fonts preconnect (no longer needed for landing page).
 - [x] **Phase 4.08**: New effects + per-effect controls — Removed 4 weak presets (Fibonacci Crystal, Medusa, Kraken, Anemone) and creature category. Added 5 new effects: Hyperflower (twisted spherical harmonics, from external `hyperflower_attractor.js`), Electromagnetic Field (dipole field lines), Fireflies (bioluminescent pulses), Murmuration (starling flock waves), Axiom (living optimization landscape with wave-riding agents, 5 palettes). Moved Particles and Point Size from Global folder into per-effect EFFECT folder — each effect owns its own values. Point size range 0.1–12 (was 0.2–8.0). Copy Params now includes particleCount/pointSize at effect level. Per-effect `backgroundPreset` support (Axiom defaults to Electric). Effect count: 18 presets across 4 categories (math, organic, text, abstract). Removed creature category entirely.
 - [x] **Phase 4.09**: Engine bloom + 2 new effects — `@react-three/postprocessing` EffectComposer + Bloom as engine-level system (per-effect opt-in via `bloom/bloomStrength/bloomRadius/bloomThreshold`). ACES tone mapping when bloom active. Disabled on mobile. Inside Nebula: volumetric raymarching custom renderer (fbm + ridge + vein noise, 14 steps, DPR capped at 1.0, dithered rays, 6 color palettes). Iridescence: fluid holographic domain-warping shader on SphereGeometry with Fresnel + directional shading, 6 palettes (phase + remap modes), pointer-reactive distortion (disabled during orbit drag), shadow/crescent moon controls. Nebula Organica params retuned + bloom enabled. Background picker simplified to 8 saturated gradient presets (removed solids + patterns). StatusBar redesigned (removed fake FPS counter, centered version + copyright, GitHub link right). Particles/Point Size sliders hidden for fullscreen shader effects (particleCount === 0). Effect count: 20 presets.
+- [x] **Phase 4.10**: Volumetric Flow integration — David Li's curl-noise particle renderer wrapped in iframe sandbox (`FlowMaster.tsx`). Camera controls: autorotate (-5/+5) + zoom (0.3–3.0, mouse wheel supported via postMessage roundtrip). Focus slider (`u_sharpness` uniform, 0.5–5.0) controls particle radial falloff exponent (`pow(t, sharpness)`) for soft-to-crisp rendering. 11 curated presets (Default, Obsidian Plume, Solar Flare, Deep Abyss, Toxic Column, Phantom, Molten Gold, Neon Geyser, Arctic Mist, Blood Moon, Original) — 8 with dark backgrounds. 12 colorways. Quality tiers: 16K–262K particles with auto-scaling diameter/alpha. Settings sync via `postMessage` to iframe, zoom syncs back via `prtcl:flow:zoom` message. Key files: `FlowMaster.tsx` (iframe wrapper + source patching), `flow/config.ts` (settings + quality levels), `flow/presets.ts`, `flow/colorways.ts`.
 - [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
 - [ ] **Phase 5**: SiteGround deploy pipeline, prtcl.es, GitHub public
 
 ## Future Ideas
 
 - **Effect Transition Options** — currently morph is always 2s easeInOutSine. Add dropdown: Morph (current), Explode→Reform, Dissolve (alpha fade), Instant (hard cut).
+
+## Third-Party Credits
+
+- **Volumetric Flow** — based on [David Li's Particle Fluid Simulation](https://github.com/dli) (MIT License). Original WebGL curl-noise particle renderer, adapted with custom controls, presets, and camera integration.
+- **The Spirit** — based on [The Spirit by Edan Kwan](https://github.com/nicoptere/The-Spirit) (MIT License). Adapted with custom controls, colorways, and PRTCL integration.
 
 ## Conventions
 

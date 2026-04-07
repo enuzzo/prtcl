@@ -4,7 +4,7 @@ export const volumetricFlow: Effect = {
   id: 'volumetric-flow',
   slug: 'volumetric-flow',
   name: 'Volumetric Flow',
-  description: 'David Li\'s original volumetric plume, running in its own temperamental WebGL terrarium. The polite thing here is to leave it alone and stare.',
+  description: 'A curl-noise plume that rises because it has nowhere better to be. 100K particles pretending they know fluid dynamics. They\'re surprisingly convincing.',
   author: 'David Li',
   category: 'abstract',
   tags: ['flow', 'volumetric', 'curl-noise', 'original', 'webgl', 'mit'],
