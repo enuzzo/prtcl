@@ -72,8 +72,15 @@ export function CookieBanner() {
       `}</style>
       <div className="mx-auto flex max-w-6xl flex-col items-stretch gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
         <p className="flex-1 text-xs leading-relaxed text-text-secondary sm:text-sm">
-          We use cookies for anonymous analytics — no ads, no tracking across sites, no personal
-          data. Your call.
+          We use Google Analytics cookies for anonymous traffic stats — no ads, no cross-site
+          tracking, no personal data.{' '}
+          <a
+            href="/privacy"
+            className="text-accent2 underline hover:text-accent2-hover"
+          >
+            Privacy policy
+          </a>
+          .
         </p>
         <div className="flex shrink-0 gap-2">
           <button

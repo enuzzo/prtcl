@@ -19,6 +19,23 @@ export function LandingFooter() {
           <a href="/create" className="hover:text-text transition-colors">
             Editor
           </a>
+          <a href="/privacy" className="hover:text-text transition-colors">
+            Privacy
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                localStorage.removeItem('prtcl-consent')
+              } catch {
+                /* ignore */
+              }
+              window.location.reload()
+            }}
+            className="hover:text-text transition-colors cursor-pointer"
+          >
+            Cookie preferences
+          </button>
           <a
             href="https://github.com/enuzzo/prtcl"
             target="_blank"

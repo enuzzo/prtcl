@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { LandingPage } from './landing/LandingPage'
+import { PrivacyPolicy } from './landing/PrivacyPolicy'
 import { SplashScreen } from './components/SplashScreen'
 import { CookieBanner } from './components/CookieBanner'
 import { useStore } from './store'
@@ -53,6 +54,7 @@ function AppRoutes() {
       )}
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route
           path="/create"
           element={
