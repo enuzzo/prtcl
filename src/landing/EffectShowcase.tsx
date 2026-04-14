@@ -21,10 +21,10 @@ const SHOWCASE_EFFECTS: ShowcaseEffect[] = [
     embedParams: '&rotate=0.5&orbit=0&badge=0',
   },
   {
-    id: 'medusa',
-    name: 'Medusa',
-    description: 'Inverse kinematics tentacles. Unsettling. Beautiful.',
-    embedParams: '&rotate=1&orbit=0&badge=0',
+    id: 'murmuration',
+    name: 'Murmuration',
+    description: 'Starling swarms doing what starlings do. We just nudge the math.',
+    embedParams: '&rotate=0.6&orbit=0&badge=0',
   },
   {
     id: 'hopf-fibration',
@@ -130,11 +130,11 @@ export function EffectShowcase() {
           id="showcase-heading"
           className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
         >
-          18 effects.{' '}
+          22 effects.{' '}
           <span className="text-text-muted">Zero practical applications.</span>
         </h2>
         <p className="text-text-secondary text-base md:text-lg max-w-2xl mb-16 md:mb-20 leading-normal">
-          Fractals, jellyfish, noise fields, text dissolves. Every preset has
+          Fractals, organic clouds, swarming flocks, 4D topology. Every preset has
           live sliders so you can adjust parameters you don&apos;t fully understand
           until it looks exactly right. That&apos;s the process. That&apos;s always the process.
         </p>
