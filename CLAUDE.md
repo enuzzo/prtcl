@@ -14,7 +14,8 @@ PRTCL ("particles") is a free, open-source web tool for creating, customizing, a
 - **Creative Controls**: Tweakpane (right panel parameter GUI)
 - **Structural UI**: Tailwind CSS 4 (design tokens in `src/index.css` via `@theme`)
 - **State**: Zustand (flat store, `getState()` in render loop — zero React overhead)
-- **Deployment**: Vercel (static landing + SPA rewrites)
+- **Deployment**: SiteGround (Apache, FTP). Build + upload via `./deploy.sh` → `prtcl.es`. A leftover `vercel.json` is in repo but unused.
+- **Analytics**: Google Analytics 4 (gtag.js, ID `G-SF2G49TH7J`) loaded async in `index.html` — covers all routes including `/embed` (so iframe embeds on third-party sites are tracked too).
 
 ## Common Commands
 
@@ -24,6 +25,7 @@ npm run build        # Production build to dist/
 npm run preview      # Preview production build
 npx vitest run       # Run all tests
 npx tsc -b           # Type check (strict)
+./deploy.sh          # Build + FTP upload to prtcl.es (SiteGround). Password is hardcoded in the script (TODO: move to env).
 ```
 
 ## Architecture
@@ -97,21 +99,11 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 
 **MediaPipe loader pattern**: Uses a generation counter (`_gen`) to safely handle React StrictMode double-mount and rapid toggle scenarios. `closeMediaPipe()` bumps the generation, invalidating any in-flight async load. Concurrent callers share the same pending promise instead of throwing. This prevents the `_loading` flag from getting stuck and silently breaking subsequent tracking attempts.
 
-### Audio Reactivity
+### Audio Reactivity (SHELVED — commit `f3f0e2c`)
 
-Microphone input via Web Audio API for real-time audio-reactive particle effects (`src/audio/`). Lazy-loaded on first mic toggle (no autoplay policy issues).
+Microphone-driven audio reactivity (FFT bands + beat detection + TopBar mic toggle) was implemented and then **shelved** in commit `f3f0e2c "Fix mobile controls and shelve microphone support"`. The `src/audio/` directory and the TopBar mic toggle no longer exist. The 5 audio params (`bass/mids/highs/energy/beat`) are not appended to the compiled function signature.
 
-```
-getUserMedia (mic) → AudioContext → AnalyserNode (fftSize: 1024) → rAF loop → Zustand store → ParticleSystem (useFrame, 60fps)
-```
-
-**Frequency bands**: FFT splits 512 bins into bass (20-250Hz), mids (250-2kHz), highs (2k-20kHz), plus total energy — all normalized 0-1. Beat detector uses rolling bass average with 1.5× threshold, decays 1.0→0.0 over 100ms.
-
-**Effect integration**: 5 new params (`bass`, `mids`, `highs`, `energy`, `beat`) appended to compiled function signature. All zero when mic is off — effects need no conditionals.
-
-**UI**: Mic toggle button in TopBar (left of hand tracking). On click, 5 mini frequency bars expand leftward (300ms CSS transition). Bars reflect spectral segments in real-time (#FF2BD6 accent color).
-
-**Key files**: `analyser.ts` (band computation + BeatDetector class), `useAudioReactivity.ts` (hook: mic lifecycle, rAF analysis, store updates), `types.ts` (AudioSlice interface).
+To revive: restore from git history at `f3f0e2c~1` (full implementation: analyser, hook, types, mic toggle UI).
 
 ### Background Picker
 
@@ -282,7 +274,7 @@ Target: **Lighthouse 100/95/100/100** (Performance/Accessibility/Best Practices/
 
 ### Versioning
 
-`src/version.ts` exports `VERSION`, `CODENAME`, and `BUILD_HASH` (git short SHA injected at build time via Vite `define`). `VERSION_TAG` format: `v0.7.0+abc1234`. Shown in StatusBar (desktop editor). Bump `VERSION` in both `version.ts` and `package.json` on significant changes.
+`src/version.ts` exports `VERSION` (currently `0.9.0`), `CODENAME` (currently `Bloom`), and `BUILD_HASH` (git short SHA injected at build time via Vite `define`). `VERSION_TAG` format: `v0.9.0+abc1234`. Shown in StatusBar (desktop editor). Bump `VERSION` in both `version.ts` and `package.json` on significant changes — also update the `softwareVersion` in `index.html` structured data.
 
 ## Design System (in `src/index.css`)
 
@@ -307,7 +299,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy, Magnetic Dust.
-- [x] **Phase 1.11**: Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula)
+- [~] **Phase 1.11** (SHELVED in `f3f0e2c`): Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula). Removed because it was unstable on mobile.
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
 - [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 3 text effects (Text Wave, Text Scatter, Text Dissolve), Tweakpane TEXT folder, export + embed support with baked textPoints
 - [x] **Phase 3.5**: Polish & personality — Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
@@ -322,8 +314,9 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 4.08**: New effects + per-effect controls — Removed 4 weak presets (Fibonacci Crystal, Medusa, Kraken, Anemone) and creature category. Added 5 new effects: Hyperflower (twisted spherical harmonics, from external `hyperflower_attractor.js`), Electromagnetic Field (dipole field lines), Fireflies (bioluminescent pulses), Murmuration (starling flock waves), Axiom (living optimization landscape with wave-riding agents, 5 palettes). Moved Particles and Point Size from Global folder into per-effect EFFECT folder — each effect owns its own values. Point size range 0.1–12 (was 0.2–8.0). Copy Params now includes particleCount/pointSize at effect level. Per-effect `backgroundPreset` support (Axiom defaults to Electric). Effect count: 18 presets across 4 categories (math, organic, text, abstract). Removed creature category entirely.
 - [x] **Phase 4.09**: Engine bloom + 2 new effects — `@react-three/postprocessing` EffectComposer + Bloom as engine-level system (per-effect opt-in via `bloom/bloomStrength/bloomRadius/bloomThreshold`). ACES tone mapping when bloom active. Disabled on mobile. Inside Nebula: volumetric raymarching custom renderer (fbm + ridge + vein noise, 14 steps, DPR capped at 1.0, dithered rays, 6 color palettes). Iridescence: fluid holographic domain-warping shader on SphereGeometry with Fresnel + directional shading, 6 palettes (phase + remap modes), pointer-reactive distortion (disabled during orbit drag), shadow/crescent moon controls. Nebula Organica params retuned + bloom enabled. Background picker simplified to 8 saturated gradient presets (removed solids + patterns). StatusBar redesigned (removed fake FPS counter, centered version + copyright, GitHub link right). Particles/Point Size sliders hidden for fullscreen shader effects (particleCount === 0). Effect count: 20 presets.
 - [x] **Phase 4.10**: Volumetric Flow integration — David Li's curl-noise particle renderer wrapped in iframe sandbox (`FlowMaster.tsx`). Camera controls: autorotate (-5/+5) + zoom (0.3–3.0, mouse wheel supported via postMessage roundtrip). Focus slider (`u_sharpness` uniform, 0.5–5.0) controls particle radial falloff exponent (`pow(t, sharpness)`) for soft-to-crisp rendering. 11 curated presets (Default, Obsidian Plume, Solar Flare, Deep Abyss, Toxic Column, Phantom, Molten Gold, Neon Geyser, Arctic Mist, Blood Moon, Original) — 8 with dark backgrounds. 12 colorways. Quality tiers: 16K–262K particles with auto-scaling diameter/alpha. Settings sync via `postMessage` to iframe, zoom syncs back via `prtcl:flow:zoom` message. Key files: `FlowMaster.tsx` (iframe wrapper + source patching), `flow/config.ts` (settings + quality levels), `flow/presets.ts`, `flow/colorways.ts`.
+- [x] **Phase 4.11**: The Spirit integration — Edan Kwan's GPGPU particle simulation, custom controls + colorways, hand tracking integration (commits `ffba975`, `950acce`, `f3f0e2c`).
 - [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
-- [ ] **Phase 5**: SiteGround deploy pipeline, prtcl.es, GitHub public
+- [x] **Phase 5**: SiteGround deploy pipeline (live at `prtcl.es` via `./deploy.sh` FTP), GitHub public (`enuzzo/prtcl`), Google Analytics 4 wired up.
 
 ## Future Ideas
 

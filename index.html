@@ -4,14 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SF2G49TH7J"></script>
+    <!-- Google tag (gtag.js) with Consent Mode v2 (default denied — GDPR/EU compliant) -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      // Set default consent BEFORE loading gtag.js (cookieless pings until user accepts)
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+        wait_for_update: 500
+      });
+      // Restore previous consent decision if user already chose
+      try {
+        var c = localStorage.getItem('prtcl-consent');
+        if (c === 'accepted') {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+        }
+      } catch (e) { /* localStorage blocked — stay in denied state */ }
       gtag('js', new Date());
-      gtag('config', 'G-SF2G49TH7J');
+      gtag('config', 'G-SF2G49TH7J', { anonymize_ip: true });
     </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SF2G49TH7J"></script>
 
     <!-- Primary Meta -->
     <title>PRTCL — Free GPU Particle Effects for Any Website</title>

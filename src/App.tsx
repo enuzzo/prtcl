@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { LandingPage } from './landing/LandingPage'
 import { SplashScreen } from './components/SplashScreen'
+import { CookieBanner } from './components/CookieBanner'
 import { useStore } from './store'
 import { useIsMobile } from './hooks/useIsMobile'
 
@@ -20,6 +21,7 @@ function AppRoutes() {
   const location = useLocation()
   const isMobile = useIsMobile()
   const isCreate = location.pathname === '/create'
+  const isEmbed = location.pathname === '/embed'
 
   useEffect(() => {
     if (isCreate && isMobile) {
@@ -69,6 +71,8 @@ function AppRoutes() {
         />
         <Route path="*" element={<LandingPage />} />
       </Routes>
+      {/* Cookie consent: not on /embed (third-party iframes have their own banner) */}
+      {!isEmbed && <CookieBanner />}
     </>
   )
 }
