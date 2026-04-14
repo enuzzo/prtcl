@@ -1,7 +1,7 @@
 import { LandingNav } from './LandingNav'
 import { LandingFooter } from './LandingFooter'
 
-const LAST_UPDATED = 'April 14, 2026'
+const LAST_UPDATED = 'April 15, 2026'
 
 export function PrivacyPolicy() {
   return (

@@ -14,7 +14,7 @@ GPU-accelerated particle effects you can drop into any website. Pick a preset, t
 
 </div>
 
-22 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Legacy WebGL oddities preserved in glass boxes. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Audio reactivity. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
+22 built-in effects across 4 categories. Real-time sliders. Bloom post-processing. Volumetric raymarching. Legacy WebGL oddities preserved in glass boxes. Fluid holographic shaders. Smooth morph transitions. Hand tracking via webcam. Adaptive quality so your GPU doesn't cry. Zero accounts, zero backend.
 
 **[prtcl.es](https://prtcl.es)**
 
@@ -84,6 +84,18 @@ Inspired by [particles.casberry.in](https://particles.casberry.in/) by [Casberry
 | All other effects | PRTCL Team | MIT |
 
 Built with [React Three Fiber](https://github.com/pmndrs/react-three-fiber), [drei](https://github.com/pmndrs/drei), [postprocessing](https://github.com/pmndrs/postprocessing), [Tweakpane](https://tweakpane.github.io/docs/), [MediaPipe Hands](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker), and the [vibemilk](https://github.com/enuzzo/vibemilk) acid-pop theme.
+
+---
+
+## Privacy & Analytics
+
+prtcl.es uses **Google Analytics 4** for anonymous traffic stats (which effects are popular, where visitors come from). No ads, no cross-site tracking, no personal data, no accounts.
+
+The site implements [Google Consent Mode v2](https://support.google.com/analytics/answer/9976101) with a **default-denied** state — until a visitor accepts via the cookie banner, GA only sends cookieless modeled pings. IP addresses are anonymized. Visitors can revoke consent anytime via the "Cookie preferences" link in the footer.
+
+Self-hosted snippets and embeds you export are **completely tracker-free** — none of the analytics code is included in exported HTML, React, or iframe code. The `/embed` route itself is excluded from the cookie banner so iframe embeds inherit the host site's consent context.
+
+Full details: [prtcl.es/privacy](https://prtcl.es/privacy).
 
 ---
 
