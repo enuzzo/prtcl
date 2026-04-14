@@ -24,8 +24,8 @@ export function PrivacyPolicy() {
           </p>
           <p>
             For privacy-related requests, contact us at{' '}
-            <a href="mailto:privacy@netmilk.studio" className="text-accent2 hover:underline">
-              privacy@netmilk.studio
+            <a href="mailto:info@netmilk.ch" className="text-accent2 hover:underline">
+              info@netmilk.ch
             </a>{' '}
             or open an issue at{' '}
             <a
@@ -172,8 +172,8 @@ export function PrivacyPolicy() {
           </ul>
           <p>
             To exercise any of these rights, email us at{' '}
-            <a href="mailto:privacy@netmilk.studio" className="text-accent2 hover:underline">
-              privacy@netmilk.studio
+            <a href="mailto:info@netmilk.ch" className="text-accent2 hover:underline">
+              info@netmilk.ch
             </a>
             . We respond within 30 days.
           </p>
