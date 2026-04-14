@@ -101,7 +101,7 @@ Full details: [prtcl.es/privacy](https://prtcl.es/privacy).
 
 ## License
 
-[MIT](./LICENSE) — © 2026 [Netmilk Studio](https://netmilk.studio). Use it, fork it, embed it in your client's Webflow site and charge them for it.
+[MIT](./LICENSE) — © 2026 [Netmilk Studio](https://netmilk.ch). Privacy contact: [info@netmilk.ch](mailto:info@netmilk.ch). Use it, fork it, embed it in your client's Webflow site and charge them for it.
 
 ---
 
