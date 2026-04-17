@@ -28,6 +28,7 @@ dist-ssr
 
 # Worktrees
 .worktrees/
+.claude/worktrees/
 
 # Deploy script (contains server details)
 deploy.sh
