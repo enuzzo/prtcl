@@ -17,11 +17,12 @@ export const storm: Effect = {
   category: 'organic',
   tags: ['storm', 'ocean', 'lightning', 'rain', 'clouds', 'weather', 'nature'],
   particleCount: 16000,
-  pointSize: 0.27,
+  pointSize: 0.98,
   cameraDistance: 5,
-  cameraPosition: [-3.96, 0.124, -3.05],
+  cameraPosition: [0.207, 0.094, 4.995],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 0.5,
+  backgroundPreset: 'ultraviolet',
   createdAt: '2026-03-17',
   code: `
 // Scale: original coords go up to ~144, camera at z=100
@@ -211,4 +212,18 @@ color.setHSL(hue, sat, Math.min(1.0, Math.max(0.0, lit)));
 `,
   disturbMode: 'scatter',
   disturbStrength: 1.8,
+  controls: {
+    speed: 0.1,
+    spread: 38.261,
+    churn: 0.313,
+    rain: 0.017,
+    rainSpd: 0.667,
+    waveH: 0.804,
+    waveF: 0.16,
+    ceil: 5.783,
+    lfreq: 3.404,
+    lbright: 0.346,
+    lump: 1.763,
+    tear: 0.248,
+  },
 }

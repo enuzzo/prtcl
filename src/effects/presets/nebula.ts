@@ -4,7 +4,7 @@ export const nebula: Effect = {
   id: 'nebula-organica',
   slug: 'nebula-organica',
   name: 'Nebula Organica',
-  description: 'A sentient gas cloud. Calm, meditative. It was in a good mood before you opened this panel.',
+  description: 'A slow-breathing organism made of interstellar dust. Not quite a galaxy, not quite fog. Patient, and patently uninterested in your cursor.',
   author: 'PRTCL Team',
   category: 'organic',
   tags: ['nebula', 'gas', 'organic', 'volumetric'],

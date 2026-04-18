@@ -17,13 +17,14 @@ export const paperFleet: Effect = {
   author: 'PRTCL Team',
   category: 'abstract',
   tags: ['instanced', 'mesh', 'gravity', 'orbit', 'arrows', 'fleet', '3d'],
-  particleCount: 10000,
-  pointSize: 0.13,
+  particleCount: 23000,
+  pointSize: 0.31,
   cameraDistance: 200,
-  cameraPosition: [-80, 50, 20],
+  cameraPosition: [12.241, 48.792, -63.641],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 0.5,
-  cameraZoom: 1,
+  backgroundPreset: 'ultraviolet',
+  cameraZoom: 2.2,
   createdAt: '2026-03-18',
   renderer: 'custom',
   customRenderer: 'paper-fleet',
@@ -37,4 +38,8 @@ addControl('speed', 'Speed', 0.1, 3, 1);
 target.set(0, 0, 0);
 color.set(0, 0, 0);
 `,
+  controls: {
+    colorScheme: 0,
+    speed: 0.428,
+  },
 }

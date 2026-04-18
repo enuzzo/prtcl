@@ -32,14 +32,14 @@ export const FLOW_PARTICLE_COUNT_MIN = 20000
 export const FLOW_PARTICLE_COUNT_MAX = FLOW_QUALITY_LEVELS[FLOW_QUALITY_LEVELS.length - 1]!.count
 
 export const DEFAULT_FLOW_SETTINGS: FlowSettings = {
-  particleCount: 94081,
-  particleSize: 1.43,
+  particleCount: 72640,
+  particleSize: 2.02,
   spread: 1.73,
-  speed: 1,
-  turbulence: 0.228,
-  autoRotateSpeed: 0.1,
+  speed: 1.17,
+  turbulence: 0.193,
+  autoRotateSpeed: 0,
   zoom: 1,
-  sharpness: 3.1,
+  sharpness: 2.7,
   color1: '#72ea50',
   color2: '#1a1025',
   bgColor: '#280e3a',

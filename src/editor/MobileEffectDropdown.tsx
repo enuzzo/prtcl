@@ -1,11 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from 'react'
 import type { Effect } from '../engine/types'
 
-const CATEGORY_ORDER = ['organic', 'math', 'creature', 'text', 'abstract'] as const
+const CATEGORY_ORDER = ['math', 'organic', 'text', 'abstract'] as const
 const CATEGORY_LABELS: Record<string, string> = {
-  organic: 'Organic',
   math: 'Math',
-  creature: 'Creature',
+  organic: 'Organic',
   text: 'Text',
   abstract: 'Abstract',
 }

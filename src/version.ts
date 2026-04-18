@@ -1,6 +1,6 @@
 declare const __BUILD_HASH__: string
 
-export const VERSION = '0.9.0'
+export const VERSION = '0.9.1'
 export const CODENAME = 'Bloom'
 export const BUILD_HASH: string = typeof __BUILD_HASH__ !== 'undefined' ? __BUILD_HASH__ : 'dev'
 export const VERSION_TAG = `v${VERSION}+${BUILD_HASH}`

@@ -150,6 +150,69 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
       ],
     },
   },
+  {
+    id: 'graphite',
+    name: 'Graphite',
+    category: 'gradient',
+    baseColor: '#0a0a0a',
+    css: 'radial-gradient(ellipse at 50% 50%, #3a3a3a, #151515 55%, #0a0a0a)',
+    gradient: {
+      type: 'radial',
+      stops: [
+        { color: '#3a3a3a', position: 0 },
+        { color: '#151515', position: 0.55 },
+        { color: '#0a0a0a', position: 1 },
+      ],
+    },
+  },
+  {
+    id: 'twilight',
+    name: 'Twilight',
+    category: 'gradient',
+    baseColor: '#030108',
+    css: 'linear-gradient(160deg, #33133a, #1a0f3a 40%, #070316 75%, #030108)',
+    gradient: {
+      type: 'linear',
+      angle: 160,
+      stops: [
+        { color: '#33133a', position: 0 },
+        { color: '#1a0f3a', position: 0.4 },
+        { color: '#070316', position: 0.75 },
+        { color: '#030108', position: 1 },
+      ],
+    },
+  },
+  {
+    id: 'onyx',
+    name: 'Onyx',
+    category: 'gradient',
+    baseColor: '#010101',
+    css: 'radial-gradient(ellipse at 50% 50%, #161616, #070707 55%, #010101)',
+    gradient: {
+      type: 'radial',
+      stops: [
+        { color: '#161616', position: 0 },
+        { color: '#070707', position: 0.55 },
+        { color: '#010101', position: 1 },
+      ],
+    },
+  },
+  {
+    id: 'sepia',
+    name: 'Sepia',
+    category: 'gradient',
+    baseColor: '#0a0603',
+    css: 'radial-gradient(ellipse at 45% 50%, #4d3319, #1a0f07 55%, #0a0603)',
+    gradient: {
+      type: 'radial',
+      center: [45, 50],
+      stops: [
+        { color: '#4d3319', position: 0 },
+        { color: '#1a0f07', position: 0.55 },
+        { color: '#0a0603', position: 1 },
+      ],
+    },
+  },
 ]
 
 /** Look up a preset by ID */

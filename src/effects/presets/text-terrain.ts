@@ -11,14 +11,21 @@ export const textTerrain: Effect = {
   particleCount: 27000,
   pointSize: 0.38,
   cameraDistance: 50,
-  cameraPosition: [-35.079, 13.778, 32.593],
+  cameraPosition: [-12.145, 30.02, 37.868],
   cameraTarget: [0, 0, 0],
-  autoRotateSpeed: 0.3,
+  autoRotateSpeed: 0,
+  backgroundPreset: 'toxic',
   cameraZoom: 1,
   createdAt: '2026-03-19',
   renderer: 'custom',
   customRenderer: 'text-terrain',
-  controls: { speed: 0.666, waveSpeed: 0.468, waveHeight: 0.803, skyHeight: 1.543, terrainPalette: 0 },
+  controls: {
+    speed: 0.666,
+    waveSpeed: 0.468,
+    waveHeight: 0.803,
+    skyHeight: 1.543,
+    terrainPalette: 3,
+  },
   code: `
 addControl('speed', 'Speed', 0.1, 3, 0.666);
 addControl('waveSpeed', 'Wave Speed', 0.0, 2.0, 0.468);

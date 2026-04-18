@@ -32,27 +32,54 @@ export function LandingNav() {
         `}
         aria-label="Main navigation"
       >
-        {/* Logo */}
-        <a href="/" className="flex items-baseline gap-0.5 group" aria-label="PRTCL home">
-          <span className="text-accent font-bold text-lg tracking-[0.15em]">PRTCL</span>
-          <span className="text-text-muted text-xs tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            .ES
+        {/* Logo + specimen ID */}
+        <a href="/" className="flex items-baseline gap-3 group" aria-label="PRTCL home">
+          <span className="flex items-baseline gap-0.5">
+            <span className="text-accent font-bold text-lg tracking-[0.15em]">PRTCL</span>
+            <span className="text-text-muted text-xs tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              .ES
+            </span>
+          </span>
+          <span
+            className={`
+              hidden sm:inline text-[10px] tracking-[0.3em] uppercase text-text-muted/60
+              transition-opacity duration-300
+              ${scrolled ? 'opacity-100' : 'opacity-0'}
+            `}
+            aria-hidden="true"
+          >
+            Specimen Catalog
           </span>
         </a>
 
-        {/* CTA */}
-        <a
-          href="/create"
-          className="
-            px-5 py-2 rounded-md
-            bg-accent2 text-bg font-bold text-sm tracking-wider
-            hover:bg-accent2-hover hover:shadow-glow-lime
-            transition-all duration-200
-            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2
-          "
-        >
-          Create
-        </a>
+        <div className="flex items-center gap-3 md:gap-5">
+          <a
+            href="https://github.com/enuzzo/prtcl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              hidden sm:inline-flex items-center
+              text-text-muted text-[10px] tracking-[0.25em] uppercase font-bold
+              hover:text-text transition-colors duration-200
+            "
+          >
+            Source
+          </a>
+          <a
+            href="/create"
+            className="
+              inline-flex items-center gap-2
+              px-5 py-2
+              bg-accent2 text-bg font-bold text-xs tracking-[0.2em] uppercase
+              hover:bg-accent2-hover hover:shadow-glow-lime
+              transition-all duration-200
+              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2
+            "
+          >
+            <span className="text-[10px] opacity-70 tracking-[0.25em] font-normal">./</span>
+            Create
+          </a>
+        </div>
       </nav>
     </header>
   )

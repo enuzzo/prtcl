@@ -4,16 +4,17 @@ export const hyperflower: Effect = {
   id: 'hyperflower',
   slug: 'hyperflower',
   name: 'Hyperflower',
-  description: 'Twisted spherical harmonics having an identity crisis. The math blooms whether you understand it or not.',
+  description: 'Twisted spherical harmonics pretending to be botany. The equations don\'t care about your degree. It blooms anyway.',
   author: 'PRTCL Team',
   tags: ['math', 'attractor', 'bloom', 'harmonics'],
   category: 'math',
-  particleCount: 20000,
+  particleCount: 23000,
   pointSize: 0.21,
   cameraDistance: 6,
-  cameraPosition: [-0.897, 0.476, -0.781],
+  cameraPosition: [-0.667, 0.476, 0.985],
   cameraTarget: [0, 0, 0],
   autoRotateSpeed: 0.5,
+  backgroundPreset: 'plasma',
   disturbMode: 'swirl',
   code: `
     var sc = addControl('scale', 'Radius', 20, 220, 90);
@@ -71,6 +72,6 @@ export const hyperflower: Effect = {
       setInfo('Hyperflower', 'Twisted spherical harmonics, orbital drift, and attractor-like warping fused into a living 3D particle field.');
     }
   `,
-  controls: { scale: 100.296, twist: 3.123, flow: 0.491, chaos: 0.223, bloom: 0.686 },
+  controls: { scale: 93.913, twist: 1.357, flow: 0.278, chaos: 0.139, bloom: 0.587 },
   createdAt: '2026-03-22',
 }

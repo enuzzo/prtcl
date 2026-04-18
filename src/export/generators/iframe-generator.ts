@@ -48,7 +48,7 @@ export function buildEmbedUrl(payload: ExportPayload): string {
   }
 
   // Use current origin in dev so the iframe works locally for testing
-  const base = import.meta.env.DEV
+  const base = import.meta.env.DEV && typeof window !== 'undefined'
     ? `${window.location.origin}/embed`
     : 'https://prtcl.es/embed'
   return `${base}?${params.toString()}`

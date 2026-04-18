@@ -14,7 +14,7 @@ PRTCL ("particles") is a free, open-source web tool for creating, customizing, a
 - **Creative Controls**: Tweakpane (right panel parameter GUI)
 - **Structural UI**: Tailwind CSS 4 (design tokens in `src/index.css` via `@theme`)
 - **State**: Zustand (flat store, `getState()` in render loop — zero React overhead)
-- **Deployment**: SiteGround (Apache, FTP). Build + upload via `./deploy.sh` → `prtcl.es`. A leftover `vercel.json` is in repo but unused.
+- **Deployment**: SiteGround (Apache, FTP). Build + upload via `./deploy.sh` → `prtcl.es`.
 - **Analytics**: Google Analytics 4 (gtag.js, ID `G-SF2G49TH7J`) loaded async in `index.html` — covers all routes including `/embed` (so iframe embeds on third-party sites are tracked too).
 
 ## Common Commands
@@ -99,12 +99,6 @@ MediaPipe Hands (WASM, ~30fps) → useHandTracking hook → Zustand store → Ha
 
 **MediaPipe loader pattern**: Uses a generation counter (`_gen`) to safely handle React StrictMode double-mount and rapid toggle scenarios. `closeMediaPipe()` bumps the generation, invalidating any in-flight async load. Concurrent callers share the same pending promise instead of throwing. This prevents the `_loading` flag from getting stuck and silently breaking subsequent tracking attempts.
 
-### Audio Reactivity (SHELVED — commit `f3f0e2c`)
-
-Microphone-driven audio reactivity (FFT bands + beat detection + TopBar mic toggle) was implemented and then **shelved** in commit `f3f0e2c "Fix mobile controls and shelve microphone support"`. The `src/audio/` directory and the TopBar mic toggle no longer exist. The 5 audio params (`bass/mids/highs/energy/beat`) are not appended to the compiled function signature.
-
-To revive: restore from git history at `f3f0e2c~1` (full implementation: analyser, hook, types, mic toggle UI).
-
 ### Background Picker
 
 Customizable scene backgrounds with presets organized in 3 categories: solid colors, gradients (linear/radial), and patterns. Default is Nebula (radial gradient).
@@ -140,7 +134,7 @@ Customizable scene backgrounds with presets organized in 3 categories: solid col
 
 **IsolatedParticleSystem**: Standalone particle renderer that accepts all settings as props (no Zustand dependency). Used by ExportPreview. Includes viewport-relative point size scaling (`canvasHeight / 800`) so the small preview canvas looks proportional to the full viewport.
 
-**Limitations**: Custom renderer effects (Paper Fleet, Text Terrain) cannot be exported — Export button shows tooltip. Hand tracking and audio reactivity are not included in exports.
+**Limitations**: Custom renderer effects (Paper Fleet, Text Terrain) cannot be exported — Export button shows tooltip. Hand tracking is not included in exports.
 
 **Key files**: `ExportModal.tsx` (modal container), `IsolatedParticleSystem.tsx` (standalone renderer), `generators/html-generator.ts` (core HTML snippet), `generators/react-generator.ts`, `generators/iframe-generator.ts`, `templates/shader-strings.ts`, `src/embed/EmbedView.tsx`.
 
@@ -198,9 +192,8 @@ src/engine/flow/         — Volumetric Flow: config (settings + quality levels)
 src/editor/              — Three-panel editor: EditorLayout, EffectBrowser, Viewport, ControlPanel, TopBar, StatusBar, MobileEffectDropdown, BackgroundPicker, SceneBackground, background-presets
 src/landing/             — Landing page: LandingPage, LandingNav, LandingHero, BackgroundEffect/Canvas, FeatureBento, EffectShowcase, FinalCTA, LandingFooter, icons
 src/text/                — Text-to-particles: sampler, font-loader, fonts list, useTextSampling hook, types
-src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, perlin-noise, electromagnetic, hyperflower, fireflies, murmuration, axiom, paper-fleet, iridescence, inside-nebula, text-wave, text-scatter, text-dissolve, text-terrain)
+src/effects/presets/     — Built-in effect presets (frequency, hopf, nebula, starfield, blackhole, storm, clifford-torus, perlin-noise, electromagnetic, hyperflower, fireflies, murmuration, axiom, paper-fleet, iridescence, inside-nebula, the-spirit, volumetric-flow, text-wave, text-scatter, text-dissolve, text-terrain)
 src/tracking/            — Hand tracking: MediaPipe loader, gesture classifier, hand-camera controller, React hook
-src/audio/               — Audio reactivity: analyser (FFT bands + beat), useAudioReactivity hook, AudioSlice types
 src/components/          — SplashScreen (Canvas 2D particle text animation)
 src/export/              — Export system: modal, generators (HTML/React/iframe), preview, settings, tabs, icons
 src/embed/               — Embed route: EmbedView (stripped canvas for iframe embeds)
@@ -215,7 +208,7 @@ public/sitemap.xml       — Sitemap for prtcl.es
 ### UI Layout
 
 **Desktop** (≥768px): Three-panel layout (280px | flex | 320px) with collapsible sidebars:
-- **Left**: Effect browser — categorized presets in rounded cards (math, organic, creature, text, abstract), search. Math first so Fractal Frequency is the top effect. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
+- **Left**: Effect browser — categorized presets in rounded cards (math, organic, text, abstract), search. Math first so Fractal Frequency is the top effect. Descriptions only shown for selected effect. Duplicate-click guard prevents re-selecting same effect.
 - **Center**: R3F canvas with orbit controls
 - **Right**: Tweakpane — Global (particles, point size), Camera (auto-rotate, zoom), TEXT (Line 1, Line 2, font dropdown, line spacing — only for text effects), Effect (dynamic controls from `addControl()`, with DROPDOWN_CONTROLS map for named presets like style/colorMode/palette), Tools (Copy Params)
 - **Sidebar toggles**: Arrow buttons (`‹`/`›`) on panel edges collapse/expand each panel independently. After intro, sidebars start as overlays (no canvas reflow) and switch to flex/margin mode only after the user first toggles a panel. In fullscreen, panels always overlay as drawers (position absolute).
@@ -232,9 +225,22 @@ Everything is live — no submit buttons. Export is max 2 clicks.
 
 ### Preset Tuning Workflow
 
-Each preset defines baseline values for all parameters: `particleCount`, `pointSize`, `autoRotateSpeed`, `cameraZoom`, `cameraPosition`, `cameraTarget`, plus effect-specific control defaults. When an effect is selected, all baselines are applied automatically.
+Each preset defines baseline values for all parameters: `particleCount`, `pointSize`, `autoRotateSpeed`, `cameraZoom`, `cameraPosition`, `cameraTarget`, `backgroundPreset`, plus effect-specific control defaults. When an effect is selected, `EditorLayout.handleSelectEffect` applies them — including the per-preset `controls: {...}` override, which `updateControlValue`s each entry after `setControls()` sets the schema.
 
-**Copy Params** button in ControlPanel exports a JSON snapshot of all current settings (global, camera position/orientation, effect controls) to the clipboard. This enables iterative tuning: adjust sliders → Copy Params → paste JSON → update preset defaults in code.
+**Copy Params** button in ControlPanel exports a JSON snapshot of all current settings to the clipboard. To apply it to a preset, **always use the script** — do not hand-edit, because hand-edits have dropped fields in the past:
+
+```bash
+pbpaste | node scripts/apply-preset.mjs              # macOS, from clipboard
+node scripts/apply-preset.mjs payload.json           # from file
+cat payload.json | node scripts/apply-preset.mjs     # from stdin
+node scripts/apply-preset.mjs payload.json --dry-run # preview diff only
+```
+
+The script is deterministic: it resolves the preset file by matching `id:`, applies every top-level field in the JSON, creates missing fields (`backgroundPreset`, `cameraZoom`, `controls`) where needed, and **verifies by read-back** — if any value didn't land, it refuses to write. It covers: `particleCount`, `pointSize`, `backgroundPreset`, `camera.{autoRotateSpeed,zoom,position,target}`, `text`/`font` for text effects, and the full `controls` object. See [scripts/apply-preset.mjs](scripts/apply-preset.mjs).
+
+When a user pastes a Copy Params JSON in conversation, run the script rather than editing the preset file by hand.
+
+**⚠ Volumetric Flow exception**: Copy Params for `volumetric-flow` includes a `"flow": {...}` object (particleCount, particleSize, spread, speed, turbulence, sharpness, autoRotateSpeed, zoom, color1, color2, bgColor). The script ignores this object — it has no mapping. Apply `flow` fields manually to `DEFAULT_FLOW_SETTINGS` in `src/engine/flow/config.ts`. Camera fields (position, target, zoom, autoRotateSpeed) still go through the script normally.
 
 ### Camera Bridge
 
@@ -299,7 +305,7 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 1.8**: Hand tracking — MediaPipe Hands WASM, open palm gesture controls camera orbit + zoom, mirrored webcam thumbnail, smoothed inputs, 5s timeout return to home position
 - [x] **Phase 1.9**: Mobile responsive + collapsible sidebars — mobile showcase mode (dropdown effect selector, fullscreen particles), desktop collapsible off-canvas panels with arrow toggles, immersive fullscreen (auto-collapse + drawer overlays), CSS transitions 300ms
 - [x] **Phase 1.10**: New presets + engine features — pointer tracking (pointerX/Y/Z in EffectContext), Fibonacci Crystal (icosahedral facets + spherical harmonics + Quilez palette), Paper Fleet (10k instanced mesh arrows with gravitational orbits). Custom renderer architecture: effects can declare `renderer: 'custom'` to mount standalone R3F components instead of ParticleSystem. Removed Spiral Galaxy, Magnetic Dust.
-- [~] **Phase 1.11** (SHELVED in `f3f0e2c`): Audio reactivity — microphone input via Web Audio API, FFT frequency analysis (bass/mids/highs/energy/beat), TopBar mic toggle with expanding frequency bars, 3 preset upgrades (Fractal Frequency, Fibonacci Crystal, Nebula). Removed because it was unstable on mobile.
+- [~] **Phase 1.11** (REMOVED): Audio reactivity was implemented (mic input, FFT bands, beat detection, TopBar mic toggle) and shelved in `f3f0e2c` because it was unstable on mobile. Later fully removed from the codebase. To revive, restore from git history at `f3f0e2c~1`.
 - [x] **Phase 2**: Export system — 3 modes (Website Embed, React Component, Iframe) + modal with live preview + /embed route. Self-contained HTML snippets for Elementor/Webflow/Wix/WordPress, React/R3F component export, iframe embeds. Video/GIF deliberately dropped (screen recording exists).
 - [x] **Phase 3**: Text-to-particles — canvas text sampler, Google Fonts (12 curated), 3 text effects (Text Wave, Text Scatter, Text Dissolve), Tweakpane TEXT folder, export + embed support with baked textPoints
 - [x] **Phase 3.5**: Polish & personality — Text Scatter rewrite (cascading waves, orbital drift, WLED-inspired palettes, sparkle), Text Dissolve color modes (PRTCL/Spectrum/Noir), EffectBrowser category cards + description-on-select, GLaDOS-style effect descriptions, duplicate-click guard fix, splash screen tuning (1800 particles, larger font), dropdown controls for style/colorMode/palette
@@ -315,6 +321,9 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 - [x] **Phase 4.09**: Engine bloom + 2 new effects — `@react-three/postprocessing` EffectComposer + Bloom as engine-level system (per-effect opt-in via `bloom/bloomStrength/bloomRadius/bloomThreshold`). ACES tone mapping when bloom active. Disabled on mobile. Inside Nebula: volumetric raymarching custom renderer (fbm + ridge + vein noise, 14 steps, DPR capped at 1.0, dithered rays, 6 color palettes). Iridescence: fluid holographic domain-warping shader on SphereGeometry with Fresnel + directional shading, 6 palettes (phase + remap modes), pointer-reactive distortion (disabled during orbit drag), shadow/crescent moon controls. Nebula Organica params retuned + bloom enabled. Background picker simplified to 8 saturated gradient presets (removed solids + patterns). StatusBar redesigned (removed fake FPS counter, centered version + copyright, GitHub link right). Particles/Point Size sliders hidden for fullscreen shader effects (particleCount === 0). Effect count: 20 presets.
 - [x] **Phase 4.10**: Volumetric Flow integration — David Li's curl-noise particle renderer wrapped in iframe sandbox (`FlowMaster.tsx`). Camera controls: autorotate (-5/+5) + zoom (0.3–3.0, mouse wheel supported via postMessage roundtrip). Focus slider (`u_sharpness` uniform, 0.5–5.0) controls particle radial falloff exponent (`pow(t, sharpness)`) for soft-to-crisp rendering. 11 curated presets (Default, Obsidian Plume, Solar Flare, Deep Abyss, Toxic Column, Phantom, Molten Gold, Neon Geyser, Arctic Mist, Blood Moon, Original) — 8 with dark backgrounds. 12 colorways. Quality tiers: 16K–262K particles with auto-scaling diameter/alpha. Settings sync via `postMessage` to iframe, zoom syncs back via `prtcl:flow:zoom` message. Key files: `FlowMaster.tsx` (iframe wrapper + source patching), `flow/config.ts` (settings + quality levels), `flow/presets.ts`, `flow/colorways.ts`.
 - [x] **Phase 4.11**: The Spirit integration — Edan Kwan's GPGPU particle simulation, custom controls + colorways, hand tracking integration (commits `ffba975`, `950acce`, `f3f0e2c`).
+- [x] **Phase 4.12**: Polish & preset tuning pass — Black Hole "Gargantua" complete rewrite (anisotropic FBM turbulence, blackbody T(r) model, soft Doppler D², fog/fabric density via luminance floor 0.65 + bloomThreshold 0.35, 85% disk allocation, compound halo rotation, 50k default / 100k max); landing page "Laboratory Specimen Catalog" redesign (spec-sheet hero, asymmetric bento, live particle counter CTA); 8 effect descriptions rewritten (GLaDOS/sornione voice); 4 new background presets (Graphite, Twilight, Onyx, Sepia — total 12); particle slider max raised 30k → 100k; auto-rotate step 0.5 → 0.1; `scripts/apply-preset.mjs` created for deterministic Copy Params → preset file application; preset defaults tuned for 13 effects (hyperflower, storm, fireflies, murmuration, text-wave, text-scatter, text-dissolve, text-terrain, starfield, black-hole, axiom, paper-fleet, volumetric-flow). Effect count: 22 presets.
+- [ ] **Phase 4.13**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
+- [ ] **Phase 4.14**: Particlock — clock effects (see `memory/project_particlock_v1.md`).
 - [ ] **Phase 4.1**: Share button — `prtcl.es/create#effect=...&controls=...`. TopBar button next to Export, copy URL to clipboard. Parse hash on load to restore state. Serialize: effect ID, controls, camera, global settings, background.
 - [x] **Phase 5**: SiteGround deploy pipeline (live at `prtcl.es` via `./deploy.sh` FTP), GitHub public (`enuzzo/prtcl`), Google Analytics 4 wired up.
 
@@ -326,6 +335,31 @@ Acid-pop palette extracted from vibemilk design system (`incoming/vibemilk-ds/cs
 
 - **Volumetric Flow** — based on [David Li's Particle Fluid Simulation](https://github.com/dli) (MIT License). Original WebGL curl-noise particle renderer, adapted with custom controls, presets, and camera integration.
 - **The Spirit** — based on [The Spirit by Edan Kwan](https://github.com/nicoptere/The-Spirit) (MIT License). Adapted with custom controls, colorways, and PRTCL integration.
+
+## Gotchas & Known Traps
+
+Hard-won lessons that have caused bugs or wasted time. Read before touching effect code or presets.
+
+### Validator forbidden words (effect code strings)
+`src/engine/validator.ts` blocks `\bword\b` patterns — **word boundaries apply everywhere in the string, including comments**. The full list: `document`, `window`, `fetch`, `eval`, `import`, `require`, `XMLHttpRequest`, `WebSocket`, `globalThis`, **`self`**, **`top`**, `parent`, `opener`, `location`, `cookie`, `localStorage`, `sessionStorage`, `setTimeout`, `setInterval`, `Function`. Examples that have bitten us:
+- `// self-spin` → blocked by `\bself\b` (rename to "spins on own axis")
+- `// top-down view` → blocked by `\btop\b` (rename to "bird's-eye")
+- `turbOpacity` → fine, `\btop\b` doesn't match inside a longer word
+
+### Volumetric Flow settings are NOT in the preset file
+`src/effects/presets/volumetric-flow.ts` has `renderer: 'custom'` and a stub `code` string. The actual simulation defaults live in `DEFAULT_FLOW_SETTINGS` in `src/engine/flow/config.ts`. `apply-preset.mjs` ignores the `"flow": {...}` block in Copy Params JSON — edit `config.ts` manually for those fields.
+
+### Particle count slider max
+Hardcoded at `src/editor/ControlPanel.tsx` near the `addBinding(effectGlobals, 'particleCount', ...)` call. Was 30k (raised to 100k in Phase 4.12). Adjust there when needed.
+
+### Cyclic time crossfade causes glitches
+`time % cycle` resets discontinuously every `cycle` seconds, causing a visible jump in any noise function parameterized by that value. Use continuous `localTime = time * SPEED` for smooth noise evolution. The crossfade pattern was removed from Black Hole in Phase 4.12.
+
+### Turbulence × edge × Doppler product kills particles
+If three factors that can each approach zero are multiplied together (`turbOpacity × edgeFade × doppler`), the product makes most particles invisible. Fix: use explicit floors on each factor (e.g., `turbOpacity = 0.65 + turb * 0.35`) and avoid smoothstep kill-zones.
+
+### bloomThreshold determines fog vs LED look
+At 0.55 most particles are below the threshold and appear as isolated points. At 0.35 overlapping particles merge into continuous glow. For fog/nebula effects, set `bloomThreshold: 0.35` on the Effect object.
 
 ## Conventions
 

@@ -10,7 +10,7 @@ export const electromagnetic: Effect = {
   id: 'electromagnetic',
   slug: 'electromagnetic',
   name: 'Electromagnetic Field',
-  description: "Maxwell's equations made visible. Still more elegant than your CSS grid.",
+  description: "Dipole field lines traced at 60fps. Maxwell figured this out in 1865 with a quill and paper. Nothing you do today will feel as productive.",
   author: 'PRTCL Team',
   category: 'math',
   tags: ['electromagnetic', 'field', 'dipole', 'magnet', 'physics', 'field-lines'],

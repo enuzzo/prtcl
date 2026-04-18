@@ -10,7 +10,7 @@ export const perlinNoise: Effect = {
   id: 'perlin-noise',
   slug: 'perlin-noise',
   name: 'Perlin Noise',
-  description: 'A sphere possessed by Perlin turbulence. 700k vertices screaming into the void. Turn on Electroflow if you dare.',
+  description: 'A sphere possessed by Perlin turbulence. Ken Perlin won an Academy Award for this noise function in 1997. You can ruin it in about eight seconds.',
   author: 'Victor Vergara',
   category: 'math',
   tags: ['perlin', 'noise', 'shader', 'icosahedron', 'displacement', 'turbulence'],

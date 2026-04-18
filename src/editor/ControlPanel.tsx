@@ -69,7 +69,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
 
       if (!isSpirit) {
         cameraFolder.addBinding(cameraParams, 'autoRotateSpeed', {
-          min: -10, max: 10, step: 0.5, label: 'Auto Rotate',
+          min: -10, max: 10, step: 0.1, label: 'Auto Rotate',
         }).on('change', (ev: { value: number }) => {
           useStore.getState().setAutoRotateSpeed(ev.value)
         })
@@ -274,7 +274,7 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
       if (particleCount > 0) {
         effectGlobals = { particleCount, pointSize }
         effectFolder.addBinding(effectGlobals, 'particleCount', {
-          min: 1000, max: 30000, step: 1000, label: 'Particles',
+          min: 1000, max: 100000, step: 1000, label: 'Particles',
         }).on('change', (ev: { value: number }) => {
           markCurrentEffectPresetCustom?.()
           useStore.getState().setParticleCount(ev.value)

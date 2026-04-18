@@ -81,7 +81,16 @@ export function EditorLayout() {
       const store = useStore.getState()
       store.setSelectedEffect(effect)
       store.setCompiledFn(result.value.fn)
+      // Start from the schema the code declared via addControl()...
       store.setControls(result.value.controls)
+      // ...then apply any per-preset overrides declared on the Effect itself.
+      // This is the only place these overrides get honored for main effects,
+      // so silently dropping them here is how stale defaults used to ship.
+      if (effect.controls) {
+        for (const [id, value] of Object.entries(effect.controls)) {
+          store.updateControlValue(id, value)
+        }
+      }
       store.setInfo(result.value.info)
       store.setParticleCount(effect.particleCount)
       if (effect.defaultText) store.setTextInput(effect.defaultText)

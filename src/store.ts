@@ -199,7 +199,11 @@ export const useStore = create<PrtclState>((set) => ({
   setBloomThreshold: (v) => set({ bloomThreshold: v }),
 
   // Actions: camera
-  setAutoRotateSpeed: (speed) => set({ autoRotateSpeed: speed }),
+  // Round to the slider's step (0.1). Cleans both 1.1e-16 residues near zero
+  // and "0.10000000000000003"-style artefacts from summed 0.1 increments, so
+  // Copy Params exports and the displayed value stay on grid.
+  setAutoRotateSpeed: (speed) =>
+    set({ autoRotateSpeed: Math.round(speed * 10) / 10 }),
   setCameraZoom: (zoom) => set({ cameraZoom: zoom }),
   setBaseZoomDistance: (dist) => set({ baseZoomDistance: dist }),
   setCameraPosition: (pos) => set({ pendingCameraPosition: pos }),
