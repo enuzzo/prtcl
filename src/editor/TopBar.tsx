@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 // Note: fullscreen state is managed in the Zustand store (shared with EditorLayout for panel auto-collapse)
 import { useStore } from '../store'
 import { VERSION, CODENAME } from '../version'
 import { MobileEffectDropdown } from './MobileEffectDropdown'
-import { MobileControlsSheet } from './MobileControlsSheet'
 import { ALL_PRESETS } from '../effects/presets'
 import { encodeShareState } from '../share'
 import { getCameraSnapshot } from '../engine/camera-bridge'
@@ -114,7 +114,9 @@ function getFlowShareDiff(
 }
 
 export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
-  const [activeMobileSheet, setActiveMobileSheet] = useState<'effects' | 'controls' | null>(null)
+  const [activeMobileSheet, setActiveMobileSheet] = useState<'effects' | null>(null)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isStandalone, setIsStandalone] = useState(false)
   const isFullscreen = useStore((s) => s.isFullscreen)
 
   // Sync browser fullscreen state with store (handles ESC key, etc.)
@@ -128,6 +130,29 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const trackingReady = useStore((s) => s.trackingReady)
   const trackingError = useStore((s) => s.trackingError)
   const selectedEffect = useStore((s) => s.selectedEffect)
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    setIsStandalone(standalone)
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+    const onAppInstalled = () => {
+      setInstallPrompt(null)
+      setIsStandalone(true)
+    }
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.addEventListener('appinstalled', onAppInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', onAppInstalled)
+    }
+  }, [])
 
   const toggleTracking = useCallback(() => {
     if (trackingError) {
@@ -278,9 +303,46 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
     }
   }, [isMobile])
 
+  const handleInstall = useCallback(async () => {
+    const store = useStore.getState()
+    if (!installPrompt) {
+      store.showToast('Use Add to Home Screen from your browser menu.')
+      return
+    }
+
+    try {
+      await installPrompt.prompt()
+      const choice = await installPrompt.userChoice
+      if (choice.outcome === 'accepted') {
+        setInstallPrompt(null)
+      }
+    } catch {
+      store.showToast('Install prompt is not available right now.')
+    }
+  }, [installPrompt])
+
+  const mobileOverlay =
+    isMobile && activeMobileSheet === 'effects' && typeof document !== 'undefined'
+      ? createPortal(
+          <MobileEffectDropdown
+            effects={ALL_PRESETS}
+            selectedId={selectedEffect?.id ?? null}
+            onSelect={handleMobileSelect}
+            onClose={() => setActiveMobileSheet(null)}
+          />,
+          document.body,
+        )
+      : null
+
   return (
     <>
-      <div className="flex items-center justify-between h-12 px-4 bg-surface border-b border-border relative z-50">
+      <div
+        className="flex items-center justify-between h-12 px-4 bg-surface border-b border-border relative z-50"
+        style={isMobile ? {
+          height: 'calc(48px + env(safe-area-inset-top, 0px))',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        } : undefined}
+      >
         {/* Left: Logo (always) + version/codename (desktop only) */}
         <div className="flex items-baseline gap-3">
           <span className="font-mono text-accent font-bold tracking-wider">PRTCL</span>
@@ -314,14 +376,14 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
 
         {/* Right: actions */}
         <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
-          {isMobile && (
+          {isMobile && installPrompt && !isStandalone && (
             <button
-              onClick={() => setActiveMobileSheet((sheet) => (sheet === 'controls' ? null : 'controls'))}
-              className="px-2 py-1.5 rounded text-sm font-mono bg-elevated text-text-muted border border-transparent hover:bg-border/50 transition-colors"
-              title="Effect controls"
-              aria-label="Open effect controls"
+              onClick={handleInstall}
+              className="px-2.5 py-1.5 bg-accent2/10 text-accent2 border border-accent2/30 rounded text-sm font-mono hover:bg-accent2/20 transition-colors"
+              title="Install PRTCL"
+              aria-label="Install PRTCL"
             >
-              ⚙
+              ⤓
             </button>
           )}
 
@@ -391,18 +453,8 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
         </div>
       </div>
 
-      {/* Mobile dropdown overlay */}
-      {isMobile && activeMobileSheet === 'effects' && (
-        <MobileEffectDropdown
-          effects={ALL_PRESETS}
-          selectedId={selectedEffect?.id ?? null}
-          onSelect={handleMobileSelect}
-          onClose={() => setActiveMobileSheet(null)}
-        />
-      )}
-      {isMobile && activeMobileSheet === 'controls' && (
-        <MobileControlsSheet onClose={() => setActiveMobileSheet(null)} />
-      )}
+      {/* Mobile dropdown overlay is portaled so fixed positioning is viewport-based. */}
+      {mobileOverlay}
     </>
   )
 }

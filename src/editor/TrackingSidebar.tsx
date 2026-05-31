@@ -66,9 +66,11 @@ export function TrackingSidebar() {
           </div>
 
           {/* Status */}
-          <div style={{ color: gesture === 'open_palm' ? '#7CFF00' : undefined }} className={gesture === 'none' ? 'text-text-muted' : ''}>
+          <div style={{ color: gesture === 'open_palm' || gesture === 'fist' ? '#7CFF00' : undefined }} className={gesture === 'none' ? 'text-text-muted' : ''}>
             {gesture === 'open_palm'
               ? mode === 'control' ? 'You are the controller now' : 'Reach into the particles'
+              : gesture === 'fist'
+                ? 'Fist closes the shape'
               : 'Waiting for a hand... any hand'}
           </div>
         </div>

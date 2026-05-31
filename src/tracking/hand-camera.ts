@@ -1,6 +1,7 @@
 import { Vector3, Spherical } from 'three'
 import type { Camera } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import type { HandGesture } from './types'
 
 // ── Constants ──────────────────────────────────────────
 const ROTATE_SPEED = 0.06          // radians per frame at full offset
@@ -55,7 +56,7 @@ export function updateHandCamera(
   camera: Camera,
   palmPosition: { x: number; y: number } | null,
   handSize: number,
-  gesture: string,
+  gesture: HandGesture,
 ): void {
   if (gesture === 'open_palm' && palmPosition) {
     // Capture home state on very first engagement
@@ -117,7 +118,20 @@ export function updateHandCamera(
     return
   }
 
-  // ── Palm not open (fist, gone, other gesture) ──────
+  if (gesture === 'fist' && palmPosition) {
+    // Freeze camera while the effect collapses; re-anchor before the palm opens again.
+    if (_engaged) {
+      _smoothPalmX += (palmPosition.x - _smoothPalmX) * INPUT_ALPHA
+      _smoothPalmY += (palmPosition.y - _smoothPalmY) * INPUT_ALPHA
+      _smoothHandSize += (handSize - _smoothHandSize) * INPUT_ALPHA
+      _anchorX = _smoothPalmX
+      _anchorY = _smoothPalmY
+    }
+    _wasOpenPalm = false
+    return
+  }
+
+  // ── Hand gone / ambiguous gesture ─────────────────
   _wasOpenPalm = false
   if (!_engaged) return
 

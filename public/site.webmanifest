@@ -1,0 +1,29 @@
+{
+  "id": "/create",
+  "name": "PRTCL Particle Effects Editor",
+  "short_name": "PRTCL",
+  "description": "Create, switch, share, and export GPU particle effects from a fullscreen web app.",
+  "start_url": "/create",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08040E",
+  "theme_color": "#08040E",
+  "orientation": "any",
+  "categories": ["design", "graphics", "developer"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create",
+      "short_name": "Create",
+      "url": "/create",
+      "description": "Open the PRTCL effect editor"
+    }
+  ]
+}

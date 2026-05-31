@@ -13,6 +13,7 @@ function isFingerExtended(landmarks: Landmark[], tip: number, pip: number): bool
  * Stateless gesture classification from 21 landmarks.
  * Detects open_palm when at least 3 of 4 fingers are extended (thumb excluded —
  * its x-axis check is unreliable across camera angles and handedness).
+ * Detects fist when all four non-thumb fingers are curled.
  */
 export function classifyGesture(landmarks: Landmark[], _handedness: string): HandGesture {
   const indexUp = isFingerExtended(landmarks, LANDMARK.INDEX_TIP, LANDMARK.INDEX_PIP)
@@ -24,6 +25,10 @@ export function classifyGesture(landmarks: Landmark[], _handedness: string): Han
 
   if (extended >= 3) {
     return 'open_palm'
+  }
+
+  if (extended === 0) {
+    return 'fist'
   }
 
   return 'none'

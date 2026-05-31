@@ -67,7 +67,7 @@ export function MobileEffectDropdown({
       ref={backdropRef}
       onPointerDown={handleBackdropClick}
       className="fixed inset-0 top-12 z-[70] bg-black/40 backdrop-blur-sm"
-      style={{ top: '48px' }}
+      style={{ top: 'calc(48px + env(safe-area-inset-top, 0px))' }}
     >
       <div
         onPointerDown={(e) => e.stopPropagation()}

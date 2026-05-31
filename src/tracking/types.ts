@@ -14,7 +14,7 @@ export interface Landmark {
   z: number  // depth (smaller = closer)
 }
 
-export type HandGesture = 'none' | 'open_palm'
+export type HandGesture = 'none' | 'open_palm' | 'fist'
 export type TrackingMode = 'control' | 'disturb'
 
 export interface TrackingSlice {

@@ -16,6 +16,7 @@ import { useStore } from '../store'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { setCameraRef, setControlsRef, getControlsRef } from '../engine/camera-bridge'
 import { resetHandCamera, updateHandCamera } from '../tracking/hand-camera'
+import { getHandShapeTargetScale, HAND_SHAPE_SCALE_ALPHA } from '../tracking/hand-shape-collapse'
 import { useHandTracking } from '../tracking/useHandTracking'
 import { TrackingThumbnail } from './TrackingThumbnail'
 import { SceneBackground } from './SceneBackground'
@@ -147,6 +148,24 @@ function HandCameraSync({ disabled = false }: { disabled?: boolean }) {
   return null
 }
 
+function HandShapeGroup({ children }: { children: React.ReactNode }) {
+  const groupRef = useRef<THREE.Group>(null)
+
+  useFrame(() => {
+    const group = groupRef.current
+    if (!group) return
+
+    const state = useStore.getState()
+    const targetScale = state.trackingEnabled
+      ? getHandShapeTargetScale(state.gesture)
+      : 1
+    const nextScale = group.scale.x + (targetScale - group.scale.x) * HAND_SHAPE_SCALE_ALPHA
+    group.scale.setScalar(nextScale)
+  })
+
+  return <group ref={groupRef}>{children}</group>
+}
+
 /** Registry of custom renderers — maps customRenderer id to R3F component */
 const CANVAS_CUSTOM_RENDERERS: Record<string, React.ComponentType> = {
   'paper-fleet': PaperFleet,
@@ -253,7 +272,7 @@ export function Viewport() {
         gl={{ antialias: false, alpha: false }}
       >
         {!hideCanvas && <SceneBackground />}
-        {sceneContent}
+        <HandShapeGroup>{sceneContent}</HandShapeGroup>
         {!hideCanvas && <BloomPass />}
         <CameraSync />
         <HandCameraSync disabled={Boolean(OverlayRenderer)} />

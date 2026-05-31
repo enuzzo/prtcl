@@ -42,8 +42,8 @@ describe('classifyGesture (stateless)', () => {
     expect(classifyGesture(openHand(), 'Right')).toBe('open_palm')
   })
 
-  it('classifies closed fist as none (only open_palm is detected)', () => {
-    expect(classifyGesture(closedFist(), 'Right')).toBe('none')
+  it('classifies closed fist as fist', () => {
+    expect(classifyGesture(closedFist(), 'Right')).toBe('fist')
   })
 })
 
@@ -52,18 +52,18 @@ describe('createGestureClassifier (with debounce)', () => {
     const classify = createGestureClassifier()
     // First classification is immediate
     expect(classify(openHand(), 'Right', 0)).toBe('open_palm')
-    // Switch to none at t=50ms — should still return open_palm (debounce)
+    // Switch to fist at t=50ms — should still return open_palm (debounce)
     expect(classify(closedFist(), 'Right', 50)).toBe('open_palm')
     // At t=100ms — still debouncing
     expect(classify(closedFist(), 'Right', 100)).toBe('open_palm')
-    // At t=200ms — debounce passed (150ms of consistent none)
-    expect(classify(closedFist(), 'Right', 200)).toBe('none')
+    // At t=200ms — debounce passed (150ms of consistent fist)
+    expect(classify(closedFist(), 'Right', 200)).toBe('fist')
   })
 
   it('resets debounce if gesture changes back before threshold', () => {
     const classify = createGestureClassifier()
     classify(openHand(), 'Right', 0)
-    classify(closedFist(), 'Right', 50)  // start debounce for none
+    classify(closedFist(), 'Right', 50)  // start debounce for fist
     classify(openHand(), 'Right', 80)    // back to palm — resets debounce
     classify(openHand(), 'Right', 250)
     expect(classify(openHand(), 'Right', 250)).toBe('open_palm')
