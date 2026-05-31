@@ -34,7 +34,7 @@ Open [localhost:5173](http://localhost:5173). That's it.
 npm run build        # Production build
 npm run preview      # Preview build
 npx vitest run       # Tests
-npx tsc -b           # Type check
+npm run typecheck    # Type check
 ```
 
 ---
