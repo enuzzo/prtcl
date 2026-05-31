@@ -1,9 +1,12 @@
-const CACHE_NAME = 'prtcl-shell-v1'
+const CACHE_NAME = 'prtcl-shell-v2'
 const APP_SHELL = [
   '/',
   '/create',
   '/favicon.svg',
-  '/site.webmanifest',
+  '/apple-touch-icon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/site.webmanifest?v=20260531',
   '/fonts/Inconsolata-Regular.woff2',
 ]
 
