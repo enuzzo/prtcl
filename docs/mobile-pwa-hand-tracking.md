@@ -12,7 +12,9 @@ The `/create` route is optimized for phone use as a focused performance surface:
 
 PRTCL declares `/create` as the app start URL in `public/site.webmanifest`. In production, `src/main.tsx` registers `public/sw.js`, which caches the app shell and lets supported browsers offer an install prompt.
 
-Safari on iOS does not expose `beforeinstallprompt`; users still install from the browser share menu with "Add to Home Screen". Chromium-based mobile browsers can show the in-app install button when the install prompt is available.
+Safari on iOS does not expose `beforeinstallprompt`; users still install from the browser share menu with "Add to Home Screen". The page includes `apple-mobile-web-app-*` metadata and a dedicated 180x180 PNG touch icon at `/apple-touch-icon.png`, which Safari uses for the home screen icon. Chromium-based mobile browsers can show the in-app install button when the install prompt is available and read PNG icons from the web manifest.
+
+Run `npm run generate:pwa-icons` after changing `public/favicon.svg` so the Apple touch icon and manifest PNG icons stay visually aligned.
 
 ## Hand Gestures
 
