@@ -5,6 +5,25 @@ import type { MediaPipeResult } from './mediapipe-loader'
 import { LandmarkSmoother } from './smoothing'
 import { createGestureClassifier, getPalmCenter, getHandSize } from './gesture-classifier'
 import { resetHandCamera } from './hand-camera'
+import { getCameraStartErrorMessage, getCameraSupportError } from './camera-errors'
+
+async function requestUserCamera(): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 320 },
+        height: { ideal: 240 },
+        facingMode: { ideal: 'user' },
+      },
+    })
+  } catch (error) {
+    const name = error instanceof DOMException ? error.name : ''
+    if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+      return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+    }
+    throw error
+  }
+}
 
 /**
  * React hook that manages the full webcam → MediaPipe → store pipeline.
@@ -62,11 +81,26 @@ export function useHandTracking(): {
 
     const start = async () => {
       try {
+        const store = useStore.getState()
+        const supportError = getCameraSupportError({
+          isSecureContext: window.isSecureContext,
+          hasMediaDevices: typeof navigator.mediaDevices?.getUserMedia === 'function',
+          userAgent: navigator.userAgent,
+        })
+
+        if (supportError) {
+          store.setTrackingError(supportError)
+          store.showToast(supportError)
+          store.setTrackingEnabled(false)
+          return
+        }
+
+        store.setTrackingError(null)
+        store.showToast('Allow camera access to start hand tracking.')
+
         // Request webcam
         console.log('[PRTCL] Tracking: requesting webcam...')
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 320, height: 240, facingMode: 'user' },
-        })
+        const stream = await requestUserCamera()
 
         if (dead) {
           console.log('[PRTCL] Tracking: dead after getUserMedia, bailing')
@@ -97,6 +131,7 @@ export function useHandTracking(): {
         console.log('[PRTCL] Tracking: ready! Starting frame loop')
         useStore.getState().setTrackingReady(true)
         useStore.getState().setTrackingError(null)
+        useStore.getState().showToast('Hand tracking ready.')
         activeRef.current = true
 
         // Feed frames to MediaPipe.
@@ -119,10 +154,9 @@ export function useHandTracking(): {
         // Ignore expected errors from cleanup/strict-mode superseding a stale load
         if (dead) return
         console.warn('[PRTCL] Hand tracking start() failed:', e)
-        const msg = e instanceof DOMException && e.name === 'NotAllowedError'
-          ? 'Camera permission required for hand tracking'
-          : `Hand tracking unavailable: ${(e as Error).message}`
+        const msg = getCameraStartErrorMessage(e, navigator.userAgent)
         useStore.getState().setTrackingError(msg)
+        useStore.getState().showToast(msg)
         useStore.getState().setTrackingEnabled(false)
       }
     }

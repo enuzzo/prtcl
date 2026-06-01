@@ -25,3 +25,11 @@ MediaPipe Hands feeds smoothed landmarks into the gesture classifier:
 - `none`: no stable hand gesture; camera returns toward its home position when tracking is not actively engaged.
 
 When a fist is detected after an open palm, camera movement freezes and re-anchors before the hand opens again. This prevents a jump while still making close/open hand gestures visually useful.
+
+## Chrome iOS Camera Notes
+
+Safari on iOS and Chrome on iOS can expose different permission UX even though both run on WebKit. If Chrome does not show a camera prompt, first check iOS Settings > Chrome > Camera. Google documents that when camera access is turned off for Chrome at the device/app level, Chrome may not show a permission prompt for a site.
+
+The hand tracking button surfaces these failures as toasts on mobile instead of only changing the button title. On Chrome iOS, permission denials point users to iOS Settings > Chrome > Camera and ask them to reload PRTCL before trying again.
+
+For Chrome's address bar warning icon on iPhone, use Chrome's overflow menu > Site Information > Connection. Tapping the icon itself may only move or collapse the address bar on iOS.
