@@ -14,6 +14,8 @@ import { getSpiritPreset, matchSpiritPreset } from '../engine/spirit/presets'
 import { DEFAULT_FLOW_SETTINGS, type FlowSettings } from '../engine/flow/config'
 import { matchFlowColorway } from '../engine/flow/colorways'
 import { matchFlowPreset } from '../engine/flow/presets'
+import { getCameraStartErrorMessage } from '../tracking/camera-errors'
+import { getCurrentCameraSupportError, requestUserCamera, setPendingCameraStream } from '../tracking/camera-stream'
 import type { Effect } from '../engine/types'
 
 interface TopBarProps {
@@ -117,6 +119,7 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
   const [activeMobileSheet, setActiveMobileSheet] = useState<'effects' | null>(null)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isStandalone, setIsStandalone] = useState(false)
+  const [trackingStarting, setTrackingStarting] = useState(false)
   const isFullscreen = useStore((s) => s.isFullscreen)
 
   // Sync browser fullscreen state with store (handles ESC key, etc.)
@@ -154,12 +157,42 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
     }
   }, [])
 
-  const toggleTracking = useCallback(() => {
+  const toggleTracking = useCallback(async () => {
+    if (trackingStarting) return
+
     if (trackingError) {
       useStore.getState().setTrackingError(null)
     }
-    useStore.getState().setTrackingEnabled(!trackingEnabled)
-  }, [trackingEnabled, trackingError])
+
+    const store = useStore.getState()
+    if (trackingEnabled) {
+      store.setTrackingEnabled(false)
+      return
+    }
+
+    const supportError = getCurrentCameraSupportError()
+    if (supportError) {
+      store.setTrackingError(supportError)
+      store.showToast(supportError)
+      return
+    }
+
+    setTrackingStarting(true)
+    store.showToast('Allow camera access to start hand tracking.')
+    try {
+      const stream = await requestUserCamera()
+      setPendingCameraStream(stream)
+      store.setTrackingError(null)
+      store.setTrackingEnabled(true)
+    } catch (error) {
+      const message = getCameraStartErrorMessage(error, navigator.userAgent)
+      store.setTrackingError(message)
+      store.showToast(message)
+      store.setTrackingEnabled(false)
+    } finally {
+      setTrackingStarting(false)
+    }
+  }, [trackingEnabled, trackingError, trackingStarting])
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -398,14 +431,16 @@ export function TopBar({ isMobile, onSelectEffect }: TopBarProps) {
                 : trackingEnabled
                   ? 'bg-accent2/15 text-accent2 border border-accent2/40'
                   : 'bg-elevated text-text-muted border border-transparent hover:bg-border/50'
-            } ${trackingEnabled && !trackingReady ? 'animate-pulse' : ''}`}
+            } ${(trackingStarting || (trackingEnabled && !trackingReady)) ? 'animate-pulse' : ''}`}
             title={
               trackingError
-                ?? (trackingEnabled && !trackingReady
-                  ? 'Summoning MediaPipe...'
-                  : trackingEnabled
-                    ? 'Hand tracking ON'
-                    : 'Control with hands')
+                ?? (trackingStarting
+                  ? 'Starting camera...'
+                  : trackingEnabled && !trackingReady
+                    ? 'Summoning MediaPipe...'
+                    : trackingEnabled
+                      ? 'Hand tracking ON'
+                      : 'Control with hands')
             }
             aria-label="Toggle hand tracking"
           >

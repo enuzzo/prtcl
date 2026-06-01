@@ -5,25 +5,8 @@ import type { MediaPipeResult } from './mediapipe-loader'
 import { LandmarkSmoother } from './smoothing'
 import { createGestureClassifier, getPalmCenter, getHandSize } from './gesture-classifier'
 import { resetHandCamera } from './hand-camera'
-import { getCameraStartErrorMessage, getCameraSupportError } from './camera-errors'
-
-async function requestUserCamera(): Promise<MediaStream> {
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: { ideal: 320 },
-        height: { ideal: 240 },
-        facingMode: { ideal: 'user' },
-      },
-    })
-  } catch (error) {
-    const name = error instanceof DOMException ? error.name : ''
-    if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
-      return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-    }
-    throw error
-  }
-}
+import { getCameraStartErrorMessage } from './camera-errors'
+import { getCurrentCameraSupportError, requestUserCamera, takePendingCameraStream } from './camera-stream'
 
 /**
  * React hook that manages the full webcam → MediaPipe → store pipeline.
@@ -82,11 +65,7 @@ export function useHandTracking(): {
     const start = async () => {
       try {
         const store = useStore.getState()
-        const supportError = getCameraSupportError({
-          isSecureContext: window.isSecureContext,
-          hasMediaDevices: typeof navigator.mediaDevices?.getUserMedia === 'function',
-          userAgent: navigator.userAgent,
-        })
+        const supportError = getCurrentCameraSupportError()
 
         if (supportError) {
           store.setTrackingError(supportError)
@@ -95,12 +74,9 @@ export function useHandTracking(): {
           return
         }
 
-        store.setTrackingError(null)
-        store.showToast('Allow camera access to start hand tracking.')
-
         // Request webcam
         console.log('[PRTCL] Tracking: requesting webcam...')
-        const stream = await requestUserCamera()
+        const stream = takePendingCameraStream() ?? await requestUserCamera()
 
         if (dead) {
           console.log('[PRTCL] Tracking: dead after getUserMedia, bailing')
@@ -113,7 +89,11 @@ export function useHandTracking(): {
         const video = document.createElement('video')
         video.srcObject = stream
         video.setAttribute('playsinline', '')
+        video.playsInline = true
+        video.autoplay = true
         video.muted = true
+        video.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none'
+        document.body.appendChild(video)
         await video.play()
         videoRef.current = video
         setVideoEl(video)  // Trigger re-render so TrackingThumbnail receives the element
@@ -175,6 +155,7 @@ export function useHandTracking(): {
         stream.getTracks().forEach((t) => t.stop())
         video.srcObject = null
       }
+      video?.remove()
       videoRef.current = null
       setVideoEl(null)
 

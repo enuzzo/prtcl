@@ -30,6 +30,6 @@ When a fist is detected after an open palm, camera movement freezes and re-ancho
 
 Safari on iOS and Chrome on iOS can expose different permission UX even though both run on WebKit. If Chrome does not show a camera prompt, first check iOS Settings > Chrome > Camera. Google documents that when camera access is turned off for Chrome at the device/app level, Chrome may not show a permission prompt for a site.
 
-The hand tracking button surfaces these failures as toasts on mobile instead of only changing the button title. On Chrome iOS, permission denials point users to iOS Settings > Chrome > Camera and ask them to reload PRTCL before trying again.
+The hand tracking button requests the camera directly from the user tap before enabling the MediaPipe pipeline. This keeps stricter browsers, including Chrome iOS, inside the same user activation that opened the permission prompt. Failures are surfaced as toasts on mobile instead of only changing the button title. On Chrome iOS, permission denials point users to iOS Settings > Chrome > Camera and ask them to reload PRTCL before trying again.
 
 For Chrome's address bar warning icon on iPhone, use Chrome's overflow menu > Site Information > Connection. Tapping the icon itself may only move or collapse the address bar on iOS.
