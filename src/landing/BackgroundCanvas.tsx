@@ -13,28 +13,34 @@ import { frequencyFn, frequencyControls } from './precompiled-frequency'
 
 const PARTICLE_COUNT = 6000
 const POINT_SIZE = 0.5
+const MOBILE_PARTICLE_COUNT = 3200
+const MOBILE_POINT_SIZE = 0.58
 const CAM_POS: [number, number, number] = [0.5, 0, 1.2]
+const MOBILE_CAM_POS: [number, number, number] = [0.15, 0, 1.35]
 const CAM_TARGET: [number, number, number] = [0, 0, 0]
 const AUTO_ROTATE_SPEED = 0.8
+const MOBILE_AUTO_ROTATE_SPEED = 0.55
 
 export default function BackgroundCanvas() {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
   return (
     <Canvas
-      camera={{ position: CAM_POS, fov: 60 }}
+      camera={{ position: isMobile ? MOBILE_CAM_POS : CAM_POS, fov: 60 }}
       gl={{ antialias: false, alpha: true, powerPreference: 'low-power' }}
-      dpr={[1, 1.5]}
+      dpr={isMobile ? 1 : [1, 1.5]}
       style={{ background: 'transparent' }}
     >
       <IsolatedParticleSystem
         compiledFn={frequencyFn}
         controls={frequencyControls}
-        particleCount={PARTICLE_COUNT}
-        pointSize={POINT_SIZE}
+        particleCount={isMobile ? MOBILE_PARTICLE_COUNT : PARTICLE_COUNT}
+        pointSize={isMobile ? MOBILE_POINT_SIZE : POINT_SIZE}
       />
       <OrbitControls
         target={CAM_TARGET}
         autoRotate
-        autoRotateSpeed={AUTO_ROTATE_SPEED}
+        autoRotateSpeed={isMobile ? MOBILE_AUTO_ROTATE_SPEED : AUTO_ROTATE_SPEED}
         enableZoom={false}
         enablePan={false}
         enableRotate={false}

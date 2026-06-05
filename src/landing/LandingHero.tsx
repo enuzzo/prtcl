@@ -114,7 +114,7 @@ export function LandingHero() {
                 "
               >
                 <span className="text-[10px] opacity-70 tracking-[0.25em] font-normal">./</span>
-                Open the editor
+                Start here!
                 <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">&rarr;</span>
               </a>
               <a

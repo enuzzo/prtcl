@@ -69,14 +69,14 @@ export function LandingNav() {
             href="/create"
             className="
               inline-flex items-center gap-2
-              px-5 py-2
-              bg-accent2 text-bg font-bold text-xs tracking-[0.2em] uppercase
+              px-5 py-2.5 md:py-2
+              bg-accent2 text-bg font-bold text-sm md:text-xs tracking-[0.16em] md:tracking-[0.2em] uppercase
               hover:bg-accent2-hover hover:shadow-glow-lime
               transition-all duration-200
               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2
             "
           >
-            <span className="text-[10px] opacity-70 tracking-[0.25em] font-normal">./</span>
+            <span className="text-[11px] md:text-[10px] opacity-70 tracking-[0.25em] font-normal">./</span>
             Create
           </a>
         </div>

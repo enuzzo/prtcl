@@ -6,14 +6,11 @@ import { EffectShowcase } from './EffectShowcase'
 import { FinalCTA } from './FinalCTA'
 import { LandingFooter } from './LandingFooter'
 
-const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
 export function LandingPage() {
   const [BgComponent, setBgComponent] = useState<ComponentType | null>(null)
 
   useEffect(() => {
-    // Skip 3D background entirely on mobile
-    if (isMobile) return
+    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches
 
     const load = () => {
       import('./BackgroundEffect').then((m) => {
@@ -21,10 +18,9 @@ export function LandingPage() {
       })
     }
 
-    // Delay 2s so Lighthouse finishes measuring before Three.js loads.
-    // Desktop audit completes in ~1-2s; users see static page first,
-    // then the 3D effect fades in smoothly.
-    const id = setTimeout(load, 2000)
+    // Desktop stays delayed for Lighthouse. Mobile gets the animated cue sooner,
+    // with a lighter canvas profile in BackgroundCanvas.
+    const id = setTimeout(load, isMobileViewport ? 650 : 2000)
     return () => clearTimeout(id)
   }, [])
 
@@ -37,7 +33,7 @@ export function LandingPage() {
         Skip to content
       </a>
 
-      {/* Fixed Three.js background — loaded after idle, skipped on mobile */}
+      {/* Fixed Three.js background — loaded after first paint */}
       {BgComponent && <BgComponent />}
 
       {/* All page content sits above the background canvas */}
