@@ -24,7 +24,7 @@ const PLATFORMS = [
 
 const SPECS: { label: string; value: string; accent?: 'pink' | 'lime' }[] = [
   { label: 'Class', value: 'visual' },
-  { label: 'Particles', value: '20,000', accent: 'lime' },
+  { label: 'Particles', value: '100,000', accent: 'lime' },
   { label: 'Framerate', value: '60 fps', accent: 'lime' },
   { label: 'License', value: 'MIT' },
   { label: 'Accounts', value: 'none', accent: 'pink' },
@@ -67,11 +67,11 @@ export function LandingHero() {
         {/* Specimen file header */}
         <div className="flex items-baseline gap-3 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase text-text-muted mb-8 md:mb-10">
           <span className="inline-block w-1.5 h-1.5 bg-accent2 translate-y-[1px]" aria-hidden="true" />
-          <span className="text-accent2">PRTCL-009</span>
+          <span className="text-accent2">PRTCL-010</span>
           <span className="opacity-40">·</span>
           <span>Specimen Catalog</span>
           <span className="opacity-40 hidden sm:inline">·</span>
-          <span className="hidden sm:inline opacity-60">Bloom &nbsp;v0.9.0</span>
+          <span className="hidden sm:inline opacity-60">Fable &nbsp;v0.10.0</span>
         </div>
 
         {/* Main grid: headline left, spec sheet right */}
@@ -83,7 +83,7 @@ export function LandingHero() {
               className="font-bold tracking-tight leading-[0.95]"
             >
               <span className="block text-[clamp(3rem,10vw,7.5rem)] text-text">
-                20,000
+                100,000
               </span>
               <span className="block text-[clamp(1.75rem,5vw,3.5rem)] text-text-muted font-normal mt-2">
                 particles.

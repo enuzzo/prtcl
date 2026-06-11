@@ -201,10 +201,12 @@ if (group < 85) {
   light = 0.92 + GLOW * 0.08;
 
 } else {
-  // Stars: mostly dim, few twinkle
+  // Stars: mostly dim, the bright few actually twinkle
   hue = 0.58 + r1 * 0.2;
   sat = 0.15;
-  light = r2 > 0.972 ? 0.88 : 0.02;
+  light = r2 > 0.972
+    ? 0.62 + 0.3 * (0.5 + 0.5 * Math.sin(time * (1.5 + r3 * 3.0) + r1 * 40.0))
+    : 0.02;
 }
 
 target.set(x, y, z);

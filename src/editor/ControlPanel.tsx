@@ -135,6 +135,11 @@ export function ControlPanel({ mobile = false }: ControlPanelProps) {
       terrainText: { 'Custom': 0, 'Random': 1, 'Manifesto': 2, 'Aurelius': 3 },
       terrainPalette: { 'PRTCL': 0, 'Typewriter': 1, 'Vintage': 2, 'Matrix': 3 },
       wavePalette: { 'PRTCL': 0, 'Ocean': 1, 'Sunset': 2, 'Neon': 3, 'Spectrum': 4 },
+      ffPalette: { 'Spectral': 0, 'Synthwave': 1, 'Solar': 2, 'Emerald': 3, 'Glacier': 4 },
+      hopfPalette: { 'Rainbow': 0, 'PRTCL': 1, 'Plasma': 2, 'Aurum': 3 },
+      gasPalette: { 'Orion': 0, 'Carina': 1, 'Lagoon': 2, 'Ghost': 3, 'PRTCL': 4 },
+      hfPalette: { 'Iridescent': 0, 'Orchid': 1, 'Inferno': 2, 'Jade': 3 },
+      scatterPalette: { 'Aurora': 0, 'PRTCL': 1, 'Fire': 2, 'Ocean': 3 },
     }
 
     // Text presets: when a terrainText dropdown changes, also update the text input

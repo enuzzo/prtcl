@@ -3,6 +3,7 @@ import { LandingNav } from './LandingNav'
 import { LandingHero } from './LandingHero'
 import { FeatureBento } from './FeatureBento'
 import { EffectShowcase } from './EffectShowcase'
+import { SpecimenIndex } from './SpecimenIndex'
 import { FinalCTA } from './FinalCTA'
 import { LandingFooter } from './LandingFooter'
 
@@ -43,6 +44,7 @@ export function LandingPage() {
           <LandingHero />
           <FeatureBento />
           <EffectShowcase />
+          <SpecimenIndex />
           <FinalCTA />
         </main>
         <LandingFooter />

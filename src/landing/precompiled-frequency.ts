@@ -45,7 +45,16 @@ var colorT = time * colorSpeed;
 var hue = 0.6 + 0.4 * Math.sin(waveEnergy * 3.0 + colorT);
 var sat = 0.8 + 0.2 * waveEnergy;
 var light = 0.4 + 0.3 * waveEnergy;
-color.setHSL(hue, sat, light);
+if (waveEnergy > 1.05) {
+  var spark = (waveEnergy - 1.05) * 2.5;
+  sat = sat * (1.0 - spark * 0.7);
+  light = light + spark * 0.3;
+}
+var dcx = rx * S - camX, dcy = ry * S - camY, dcz = nz * S - camZ;
+var camDist = Math.sqrt(dcx * dcx + dcy * dcy + dcz * dcz);
+var shade = 1.3 - camDist * 0.18;
+if (shade < 0.6) shade = 0.6; else if (shade > 1.2) shade = 1.2;
+color.setHSL(hue, sat, Math.min(1, light * shade));
 `
 
 // Pre-compile once at module load — no compiler/validator needed

@@ -17,6 +17,8 @@ import { useStore } from '../store'
 const ARROW_FORWARD = new THREE.Vector3(0, 0, 1)
 const UP = new THREE.Vector3(0, 1, 0)
 const _v3 = new THREE.Vector3()
+const _accel = new THREE.Vector3()
+const _qRoll = new THREE.Quaternion()
 
 /** Simple random with range and power bias */
 function rnd(min = 1, max = 0, pow = 1): number {
@@ -190,9 +192,9 @@ export function PaperFleet() {
 
       // ── Original gravity: -PI / distSq ──
       // Creates stable orbits with hollow center
-      _v3.copy(arrow.position)
+      _accel.copy(arrow.position)
         .multiplyScalar(-Math.PI / arrow.position.lengthSq())
-      arrow.velocity.add(_v3)
+      arrow.velocity.add(_accel)
 
       // Position from velocity
       _v3.copy(arrow.velocity).multiplyScalar(dt)
@@ -201,6 +203,13 @@ export function PaperFleet() {
       // Rotation from velocity direction
       _v3.copy(arrow.velocity).normalize()
       arrow.rotation.setFromUnitVectors(ARROW_FORWARD, _v3)
+
+      // Banking — roll into the turn proportional to centripetal pull,
+      // like a paper plane that actually respects aerodynamics
+      const turn = _accel.z * _v3.x - _accel.x * _v3.z
+      const roll = Math.max(-0.9, Math.min(0.9, turn * 28))
+      _qRoll.setFromAxisAngle(ARROW_FORWARD, roll)
+      arrow.rotation.multiply(_qRoll)
 
       // Write to instance matrix (pointSize controls arrow scale)
       dummy.position.copy(arrow.position)

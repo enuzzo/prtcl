@@ -88,8 +88,20 @@ export const murmuration: Effect = {
     var jy = Math.sin(fi * 523.1 + t * 3.7 * chaos) * chaos * 0.2;
     var jz = Math.sin(fi * 197.3 + t * 4.3 * chaos) * chaos * 0.25;
 
+    // === FLIGHT CIRCUIT ===
+    // The flock travels a slow aerial loop and banks into its turns,
+    // like the real thing over a Rome rooftop at dusk
+    var pcx = Math.sin(t * 0.23) * 1.6;
+    var pcy = Math.sin(t * 0.31 + 1.7) * 0.7;
+    var pcz = Math.sin(t * 0.17 + 0.6) * 1.1;
+    var roll = Math.cos(t * 0.31 + 1.7) * 0.28;
+    var crl = Math.cos(roll);
+    var srl = Math.sin(roll);
+    var bfx = fx * crl - fy * srl;
+    var bfy = fx * srl + fy * crl;
+
     var S = 0.35;
-    target.set((fx + splitOffset + jx) * S, (fy + jy) * S, (fz + jz) * S);
+    target.set((bfx + splitOffset + jx + pcx) * S, (bfy + jy + pcy) * S, (fz + jz + pcz) * S);
 
     // === COLOR ===
     // User picks a static hue; the waves carve highlights into it.

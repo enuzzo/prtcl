@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 /**
- * Live counter: 20,000 particles × 60 frames per second, counting
+ * Live counter: 100,000 particles × 60 frames per second, counting
  * up from the moment the CTA scrolls into view. The number is fake-precise
  * on purpose — that's the joke.
  */
@@ -10,7 +10,7 @@ function useParticleCounter(targetVisible: boolean) {
 
   useEffect(() => {
     if (!targetVisible) return
-    const RATE_PER_SECOND = 20_000 * 60 // 1.2M particles/s rendered somewhere right now
+    const RATE_PER_SECOND = 100_000 * 60 // 6M particles/s rendered somewhere right now
     const start = performance.now()
     let raf = 0
     const tick = () => {
@@ -77,7 +77,7 @@ export function FinalCTA() {
         {/* Section meta */}
         <div className="flex items-baseline gap-3 text-[11px] tracking-[0.25em] uppercase text-text-muted mb-10 md:mb-14">
           <span className="inline-block w-1.5 h-1.5 bg-accent translate-y-[1px]" aria-hidden="true" />
-          <span className="text-accent">§ 04</span>
+          <span className="text-accent">§ 05</span>
           <span className="opacity-40">·</span>
           <span>Exit interview</span>
         </div>
@@ -161,7 +161,7 @@ export function FinalCTA() {
             </div>
             <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-[10px] tracking-[0.2em] uppercase">
               <span className="text-text-muted">Rate</span>
-              <span className="text-text tabular-nums">1,200,000 / s</span>
+              <span className="text-text tabular-nums">6,000,000 / s</span>
             </div>
             <p className="mt-3 text-[10px] text-text-muted/70 leading-relaxed">
               * Approximated. None of these are real particles. None of them contribute to anything.

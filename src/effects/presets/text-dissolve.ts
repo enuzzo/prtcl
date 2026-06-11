@@ -53,9 +53,12 @@ if (textPoints && i * 6 + 5 < textPoints.length) {
   var pVar = pSeed - Math.floor(pSeed);
   var driftScale = drift * intensity * (0.5 + pVar);
 
+  // Ember rise — dissolved particles float upward like sparks off a fire
+  var rise = drift * intensity * (0.25 + pVar * 0.35);
+
   target.set(
     tx + nx * driftScale,
-    ty + ny * driftScale,
+    ty + ny * driftScale + rise,
     nz * driftScale
   );
 

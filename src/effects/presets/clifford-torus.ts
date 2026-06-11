@@ -91,6 +91,16 @@ var energy = Math.max(0.0, Math.sin(w4 * Math.PI + time * 0.7));
 var sat    = 0.55 + 0.45 * wNorm;
 var lit    = (0.04 + 0.72 * energy * energy) * bright;
 
+// Comets racing the torus winding — seven bright heads chase each other
+// along the 14π coil, tails decaying behind them
+var cw = (u * 7.0) % 1.0;
+var chd = (time * speed * 0.25) % 1.0;
+var cdist = cw - chd;
+cdist = cdist - Math.floor(cdist);
+var ccomet = Math.exp(-cdist * 12.0);
+lit = lit + ccomet * 0.45 * bright;
+sat = sat * (1.0 - ccomet * 0.5);
+
 color.setHSL(hue, sat, Math.min(lit, 1.0));
 `,
   disturbMode: 'swirl',

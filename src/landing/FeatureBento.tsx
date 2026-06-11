@@ -171,7 +171,7 @@ export function FeatureBento() {
                 </span>
               </div>
               <div className="mt-2 text-sm md:text-base text-text-muted tracking-[0.15em] uppercase">
-                at 20k particles
+                up to 100k particles
               </div>
             </div>
 
@@ -181,7 +181,7 @@ export function FeatureBento() {
               </h3>
               <p className="text-text-secondary text-sm leading-snug max-w-md">
                 Custom WebGL shaders with adaptive quality. Scales itself down on weak hardware
-                before anything melts. Twenty thousand points doing absolutely nothing useful, beautifully.
+                before anything melts. A hundred thousand points doing absolutely nothing useful, beautifully.
               </p>
             </div>
           </article>

@@ -23,7 +23,7 @@ var cascade = addControl("cascade", "Cascade Width", 0.1, 1.0, 0.35);
 var drift = addControl("drift", "Drift Radius", 1.0, 12.0, 5.0);
 var orbitSpeed = addControl("orbitSpeed", "Orbit Speed", 0.0, 3.0, 1.2);
 var sparkle = addControl("sparkle", "Sparkle", 0.0, 1.0, 0.6);
-var palette = addControl("palette", "Palette", 0.0, 3.0, 0.0);
+var palette = addControl("scatterPalette", "Palette", 0.0, 3.0, 0.0);
 
 if (textPoints && i * 6 + 5 < textPoints.length) {
   var tx = textPoints[i * 6];
@@ -181,6 +181,6 @@ if (textPoints && i * 6 + 5 < textPoints.length) {
     drift: 3.583,
     orbitSpeed: 0.091,
     sparkle: 0.343,
-    palette: 0,
+    scatterPalette: 0,
   },
 }

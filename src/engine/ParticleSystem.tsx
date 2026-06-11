@@ -7,7 +7,9 @@ import { AdaptiveQuality } from './adaptive-quality'
 import { useStore } from '../store'
 import type { CompiledEffectFn } from './types'
 
-const MAX_PARTICLES = 30000
+// Must match the Particles slider max in ControlPanel — buffers below this cap
+// silently drop everything past it (Float32Array writes out of range are no-ops).
+const MAX_PARTICLES = 100000
 const MORPH_DURATION = 2.0 // seconds
 
 // ── Hand disturb constants ─────────────────────────────

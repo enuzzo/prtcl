@@ -58,10 +58,17 @@ var b1ph = ((time + 0.6) / 1.7) % 1.0;
 var b2ph = ((time + 1.3) / 2.3) % 1.0;
 var b3ph = ((time + 0.9) / 1.4) % 1.0;
 var ss   = 0.12;
-var b0br = b0ph < ss ? (1.0 - b0ph / ss) * lightBright : 0.0;
-var b1br = b1ph < ss ? (1.0 - b1ph / ss) * lightBright : 0.0;
-var b2br = b2ph < ss ? (1.0 - b2ph / ss) * lightBright : 0.0;
-var b3br = b3ph < ss ? (1.0 - b3ph / ss) * lightBright : 0.0;
+// Double-strike envelope: main discharge + a dimmer restrike 45ms later,
+// the flicker real lightning does
+var strikeEnv = function (ph) {
+  var p1 = ph < ss ? (1.0 - ph / ss) : 0.0;
+  var p2 = (ph > 0.045 && ph < 0.045 + ss * 0.6) ? (1.0 - (ph - 0.045) / (ss * 0.6)) * 0.75 : 0.0;
+  return (p1 > p2 ? p1 : p2) * lightBright;
+};
+var b0br = strikeEnv(b0ph);
+var b1br = strikeEnv(b1ph);
+var b2br = strikeEnv(b2ph);
+var b3br = strikeEnv(b3ph);
 
 // Bolt positions
 var b0x =  spread * 0.35; var b0z =  spread * 0.20;

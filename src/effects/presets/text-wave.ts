@@ -38,7 +38,14 @@ if (textPoints && i * 6 + 5 < textPoints.length) {
   var phase2 = ty * waveFreq * 0.7 + time * waveSpeed * 1.3;
   var zDisp2 = Math.sin(phase2) * waveAmp * 0.3;
 
-  target.set(tx, ty, zDisp + zDisp2);
+  // Diagonal cross-wave — interference running corner to corner
+  var phase3 = (tx + ty) * waveFreq * 0.5 - time * waveSpeed * 0.7;
+  var zDisp3 = Math.sin(phase3) * waveAmp * 0.22;
+
+  // Gentle vertical bob so the surface flexes instead of staying planar
+  var yBob = Math.sin(phase * 0.5 + time * 0.3) * waveAmp * 0.08;
+
+  target.set(tx, ty + yBob, zDisp + zDisp2 + zDisp3);
 
   // Wave phase for color: -1 to 1 normalized
   var wavePhase = Math.sin(phase);
